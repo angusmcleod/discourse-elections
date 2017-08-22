@@ -164,7 +164,7 @@ after_initialize do
         description = ''
 
         if status === 'electing'
-          description = I18n.t('election.notification.', title: self.title, status: status)
+          description = I18n.t('election.notification.electing', title: self.title, status: status)
         end
 
         if status === 'closed'
