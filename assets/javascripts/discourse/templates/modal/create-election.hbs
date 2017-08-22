@@ -1,0 +1,13 @@
+{{#d-modal-body title='election.create.label' class='create-election-modal'}}
+  {{input value=position placeholder=(i18n 'election.create.position') class='input-medium'}}
+  {{input value=detailsUrl placeholder=(i18n 'election.create.details_url') class='input-xxlarge'}}
+{{/d-modal-body}}
+
+<div class="modal-footer">
+  {{d-button title='election.create.btn_label' label='election.create.btn_label' action='createElection' class='btn btn-primary' disabled=disabled}}
+  {{#if loading}}
+    {{loading-spinner size='small'}}
+  {{else}}
+    <a {{action "closeModal"}}>{{i18n 'cancel'}}</a>
+  {{/if}}
+</div>

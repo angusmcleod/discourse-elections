@@ -1,0 +1,12 @@
+en:
+  election:
+    title: "Election"
+    nominate:
+      desc: "This election is currently taking nominations."
+      nominated: "Nominated"
+    notification:
+      electing: "The election \"%{title}\" has started"
+      closed: "The election \"%{title}\" has been closed"
+    errors:
+      more_nominations: "More nominations are needed to start the election."
+      seperate_poll: "You can't post a poll in an election topic."

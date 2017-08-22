@@ -1,0 +1,48 @@
+.election-list-container {
+  float: left;
+  clear: both;
+  margin-bottom: 5px;
+  padding-left: 9px;
+}
+
+.election-list ul {
+  margin: 0;
+  list-style: none;
+  display: inline-block;
+
+  li {
+    display: inline-block;
+  }
+}
+
+#topic-title .election-status {
+  padding-top: 15px;
+  padding-bottom: 5px;
+
+  span {
+    padding: 6px 12px;
+    background: dark-light-diff($primary, $secondary, 90%, -65%);
+    margin-right: 10px;
+  }
+}
+
+.election-controls {
+  .btn {
+    margin-right: 10px;
+  }
+
+  .spinner-container {
+    display: inline-block;
+    vertical-align: middle;
+  }
+}
+
+.create-election-modal input[type='text'] {
+  margin: 15px 0;
+}
+
+.election-list-controls {
+  a {
+    float: right;
+  }
+}

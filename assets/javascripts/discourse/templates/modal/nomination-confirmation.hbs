@@ -1,0 +1,12 @@
+{{#d-modal-body title=(concat prefix 'label')}}
+  {{{i18n (concat prefix 'body') position=model.position category=category}}}
+{{/d-modal-body}}
+
+<div class="modal-footer">
+  {{d-button title=(concat prefix 'btn') label=(concat prefix 'btn') action='toggleNomination' class='btn btn-primary'}}
+  {{#if loading}}
+    {{loading-spinner size='small'}}
+  {{else}}
+    <a {{action "closeModal"}}>{{i18n 'cancel'}}</a>
+  {{/if}}
+</div>

@@ -1,0 +1,34 @@
+en:
+  js:
+    category:
+      for_elections: "Category is used for elections"
+    election:
+      start: "Start Election"
+      list:
+        label: "Elections"
+      create:
+        label: "New Election"
+        position: "Position"
+        details_url: "Details URL"
+        btn_label: "Create"
+      details_url:
+        label: "Details"
+        placeholder: "Details Url"
+      status:
+        label: "Status"
+        nominate: "Taking Nominations"
+        electing: "Electing"
+        closed: "Closed"
+      nomination:
+        add:
+          label: "Nominate Yourself"
+          body: "If you want to nominate yourself for {{position}}
+                in {{category}}, click I nominate myself below.<br><br>
+                You can withdraw your nomination any time before the start of the election."
+          btn: "I nominate myself"
+        remove:
+          label: "Withdraw Nomination"
+          body: "If you want to withdraw your nomination for {{position}}
+                in {{category}} click I withdraw my nomination below.<br><br>"
+          btn: "I withdraw my nomination"
+        notification: "<a><i class='fa fa-info-circle'></i><p>{{description}}</p></a>"

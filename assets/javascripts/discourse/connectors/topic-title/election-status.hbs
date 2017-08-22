@@ -1,0 +1,9 @@
+{{#if showStatus}}
+  <span>
+    <a href='{{model.election_details_url}}' target='_blank'>
+      {{d-icon 'info-circle'}}
+      {{i18n 'election.details_url.label'}}
+    </a>
+  </span>
+  <span>{{i18n (concat 'election.status.' model.election_status)}}</span>
+{{/if}}
