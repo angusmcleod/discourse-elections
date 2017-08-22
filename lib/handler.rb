@@ -1,7 +1,7 @@
 class DiscourseElections::Handler
   def self.create_election_topic(category_id, position, details_url)
     category = Category.find(category_id)
-    title = "#{category.name} #{position} #{I18n.t('election.title')}"
+    title = "#{position} #{I18n.t('election.title')}"
 
     topic = Topic.new(title: title, user: Discourse.system_user, category_id: category.id)
     topic.skip_callbacks = true
