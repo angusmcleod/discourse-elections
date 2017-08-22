@@ -11,8 +11,11 @@ class DiscourseElections::Handler
     topic.subtype = 'election'
     topic.custom_fields['election_status'] = 'nominate'
     topic.custom_fields['election_position'] = position
-    topic.custom_fields['election_details_url'] = details_url
     topic.custom_fields['election_nominations'] = []
+
+    if details_url
+      topic.custom_fields['election_details_url'] = details_url
+    end
 
     topic.save!(validate: false)
 

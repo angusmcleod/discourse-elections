@@ -9,11 +9,11 @@ en:
       create:
         label: "New Election"
         position: "Position"
-        details_url: "Details URL"
+        details_url: "Details url (optional)"
         btn_label: "Create"
       details_url:
         label: "Details"
-        placeholder: "Details Url"
+        placeholder: "url (optional)"
       status:
         label: "Status"
         nominate: "Taking Nominations"
