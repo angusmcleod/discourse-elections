@@ -72,7 +72,7 @@ export default createWidget('election-controls', {
       }))
     }
 
-    if (user.staff && topic.election_status === 'nominate') {
+    if (user.is_elections_admin && topic.election_status === 'nominate') {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',

@@ -1,0 +1,4 @@
+plugins:
+  elections_admin_moderator:
+    client: true
+    default: false

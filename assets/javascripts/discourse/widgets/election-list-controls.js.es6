@@ -9,7 +9,7 @@ export default createWidget('election-list-controls', {
     const user = this.currentUser;
     let links = [];
 
-    if (user && user.staff) {
+    if (user && user.is_elections_admin) {
       links.push(this.attach('link', {
         icon: 'plus',
         label: 'election.create.label',

@@ -41,6 +41,10 @@ after_initialize do
       params.require(:position)
       params.permit(:details_url)
 
+      unless current_user.try(:elections_admin?)
+        raise StandardError.new I18n.t("election.errors.not_authorized")
+      end
+
       result = DiscourseElections::Handler.create_election_topic(
                 params[:category_id],
                 params[:position],
@@ -55,6 +59,10 @@ after_initialize do
 
     def start_election
       params.require(:topic_id)
+
+      unless current_user.try(:elections_admin?)
+        raise StandardError.new I18n.t("election.errors.not_authorized")
+      end
 
       result = DiscourseElections::Handler.start_election(params[:topic_id])
 
@@ -109,6 +117,18 @@ after_initialize do
       object.custom_fields['election_status']
     end
   end
+
+  User.class_eval do
+    def elections_admin?
+      if SiteSetting.elections_admin_moderator
+        staff?
+      else
+        admin?
+      end
+    end
+  end
+
+  add_to_serializer(:current_user, :is_elections_admin) {object.elections_admin?}
 
   PostRevisor.track_topic_field(:election_status)
 
