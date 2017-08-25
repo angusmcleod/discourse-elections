@@ -2,7 +2,7 @@ require_dependency 'new_post_manager'
 require_dependency 'post_creator'
 
 class DiscourseElections::Handler
-  def self.create_election_topic(category_id, position, details_url, message)
+  def self.create_election_topic(category_id, position, details_url, message, self_nomination_allowed)
     category = Category.find(category_id)
     title = I18n.t('election.title', position: position)
 
@@ -15,6 +15,7 @@ class DiscourseElections::Handler
     topic.custom_fields['election_status'] = 'nominate'
     topic.custom_fields['election_position'] = position
     topic.custom_fields['election_nominations'] = []
+    topic.custom_fields['election_self_nomination_allowed'] = self_nomination_allowed || false
 
     if details_url
       topic.custom_fields['election_details_url'] = details_url
@@ -127,7 +128,10 @@ class DiscourseElections::Handler
     end
 
     message = topic.custom_fields['election_message']
-    content << "\n\n #{message}"
+
+    if message
+      content << "\n\n #{message}"
+    end
 
     update_election_post(topic.id, content)
 

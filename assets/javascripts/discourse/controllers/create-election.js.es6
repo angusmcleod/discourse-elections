@@ -16,7 +16,8 @@ export default Ember.Controller.extend({
         category_id: this.get('model.categoryId'),
         position: this.get('position'),
         details_url: this.get('detailsUrl'),
-        message: this.get('message')
+        message: this.get('message'),
+        self_nomination_allowed: this.get('selfNominationAllowed')
       };
 
       this.set('loading', true);

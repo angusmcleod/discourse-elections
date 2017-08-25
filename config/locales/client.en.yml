@@ -11,6 +11,7 @@ en:
         position: "Position"
         details_url: "Details url (optional)"
         message_placeholder: "Content to add to the election post"
+        self_nomination_allowed: "Allow users to nominate themselves"
         btn_label: "Create"
       details_url:
         label: "Details"

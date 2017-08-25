@@ -6,10 +6,13 @@
 register_asset 'stylesheets/discourse-elections.scss'
 
 after_initialize do
+  Topic.register_custom_field_type('election_self_nomination', :boolean)
+
   add_to_serializer(:topic_view, :election_status) {object.topic.custom_fields['election_status']}
   add_to_serializer(:topic_view, :election_position) {object.topic.custom_fields['election_position']}
   add_to_serializer(:topic_view, :election_details_url) {object.topic.custom_fields['election_details_url']}
   add_to_serializer(:topic_view, :election_nominations) {object.topic.custom_fields['election_nominations']}
+  add_to_serializer(:topic_view, :election_self_nomination_allowed) {object.topic.custom_fields['election_self_nomination_allowed']}
   add_to_serializer(:topic_view, :subtype) {object.topic.subtype}
   add_to_serializer(:basic_category, :for_elections) {object.custom_fields["for_elections"]}
 
@@ -41,6 +44,7 @@ after_initialize do
       params.require(:position)
       params.permit(:details_url)
       params.permit(:message)
+      params.permit(:self_nomination)
 
       unless current_user.try(:elections_admin?)
         raise StandardError.new I18n.t("election.errors.not_authorized")
@@ -50,7 +54,8 @@ after_initialize do
                 params[:category_id],
                 params[:position],
                 params[:details_url],
-                params[:message])
+                params[:message],
+                params[:self_nomination_allowed])
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])

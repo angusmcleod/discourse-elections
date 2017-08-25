@@ -1,7 +1,17 @@
 {{#d-modal-body title='election.create.label' class='create-election-modal'}}
-  {{input value=position placeholder=(i18n 'election.create.position') class='input-medium'}}
-  {{input value=detailsUrl placeholder=(i18n 'election.create.details_url') class='input-xxlarge'}}
-  {{d-editor value=message placeholder='election.create.message_placeholder'}}
+  <div class="control-group">
+    {{input value=position placeholder=(i18n 'election.create.position') class='input-medium'}}
+  </div>
+  <div class="control-group">
+    {{input value=detailsUrl placeholder=(i18n 'election.create.details_url') class='input-xxlarge'}}
+  </div>
+  <div class="control-group">
+    {{d-editor value=message placeholder='election.create.message_placeholder'}}
+  </div>
+  <div class="control-group">
+    {{input type="checkbox" checked=selfNominationAllowed}}
+    <span>{{i18n 'election.create.self_nomination_allowed'}}</span>
+  </div>
 {{/d-modal-body}}
 
 <div class="modal-footer">
