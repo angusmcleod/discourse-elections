@@ -127,7 +127,7 @@ class DiscourseElections::Handler
       content << "\n\n#{I18n.t('election.nominate.nominated')}: "
 
       nominations.each_with_index do |n, i|
-        content << "\n - [#{n}](#{Discourse.base_url}/users/#{n})"
+        content << "\n - @#{n}"
       end
     end
 
