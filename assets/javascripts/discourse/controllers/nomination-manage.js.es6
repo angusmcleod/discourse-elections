@@ -4,8 +4,8 @@ export default Ember.Controller.extend({
   actions: {
     setNominations() {
       const topicId = this.get('model.topicId');
-      const usernames = this.get('model.usernames').split(',');
       const callback = this.get('model.callback');
+      let usernames = this.get('model.usernames').split(',');
 
       this.set('loading', true);
       ajax('/election/nominations', {

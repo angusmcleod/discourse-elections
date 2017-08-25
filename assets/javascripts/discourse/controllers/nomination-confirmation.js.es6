@@ -9,7 +9,7 @@ export default Ember.Controller.extend({
   },
 
   @computed('model.categoryId')
-  category(categoryId) {
+  categoryName(categoryId) {
     return Category.findById(categoryId).name;
   },
 

@@ -56,7 +56,10 @@ class DiscourseElections::Handler
 
     nom_string = topic.custom_fields['election_nominations'] || ''
     nominations = nom_string.split('|')
-    nominations.push(username)
+
+    unless nominations.include?(username)
+      nominations.push(username)
+    end
 
     update_nominations(topic, nominations)
   end
@@ -120,7 +123,7 @@ class DiscourseElections::Handler
   def self.update_nominations(topic, nominations)
     content = "#{I18n.t('election.nominate.desc')}"
 
-    if nominations.length > 0
+    if nominations && nominations.length > 0 && nominations[0].length > 2
       content << "\n\n#{I18n.t('election.nominate.nominated')}: "
 
       nominations.each_with_index do |n, i|

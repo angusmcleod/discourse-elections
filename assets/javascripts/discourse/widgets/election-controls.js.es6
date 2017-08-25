@@ -37,6 +37,11 @@ export default createWidget('election-controls', {
         topicId,
         position,
         callback: () => {
+          if (this.state.isNominated) {
+            this.state.nominations.splice(this.state.nominations.indexOf(this.currentUser.username), 1);
+          } else {
+            this.state.nominations.push(this.currentUser.username);
+          }
           this.state.isNominated = !this.state.isNominated;
           this.scheduleRerender();
         }
@@ -55,6 +60,7 @@ export default createWidget('election-controls', {
         usernames,
         callback: (usernames) => {
           this.state.nominations = usernames;
+          this.state.isNominated = usernames.indexOf(this.currentUser.username) > -1;
           this.scheduleRerender();
         }
       }
