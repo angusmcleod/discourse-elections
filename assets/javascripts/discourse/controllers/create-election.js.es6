@@ -15,7 +15,8 @@ export default Ember.Controller.extend({
       const data = {
         category_id: this.get('model.categoryId'),
         position: this.get('position'),
-        details_url: this.get('detailsUrl')
+        details_url: this.get('detailsUrl'),
+        message: this.get('message')
       };
 
       this.set('loading', true);

@@ -1,5 +1,8 @@
+require_dependency 'new_post_manager'
+require_dependency 'post_creator'
+
 class DiscourseElections::Handler
-  def self.create_election_topic(category_id, position, details_url)
+  def self.create_election_topic(category_id, position, details_url, message)
     category = Category.find(category_id)
     title = I18n.t('election.title', position: position)
 
@@ -17,10 +20,20 @@ class DiscourseElections::Handler
       topic.custom_fields['election_details_url'] = details_url
     end
 
+    if message
+      topic.custom_fields['election_message'] = message
+    end
+
     topic.save!(validate: false)
 
+    raw = "#{I18n.t('election.nominate.desc')}\n\n"
+
+    if message
+      raw << message
+    end
+
     manager = NewPostManager.new(Discourse.system_user, {
-      raw: I18n.t('election.nominate.desc'),
+      raw: raw,
       topic_id: topic.id
     })
     result = manager.perform
@@ -112,6 +125,9 @@ class DiscourseElections::Handler
         end
       end
     end
+
+    message = topic.custom_fields['election_message']
+    content << "\n\n #{message}"
 
     update_election_post(topic.id, content)
 

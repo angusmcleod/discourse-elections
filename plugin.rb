@@ -40,6 +40,7 @@ after_initialize do
       params.require(:category_id)
       params.require(:position)
       params.permit(:details_url)
+      params.permit(:message)
 
       unless current_user.try(:elections_admin?)
         raise StandardError.new I18n.t("election.errors.not_authorized")
@@ -48,7 +49,8 @@ after_initialize do
       result = DiscourseElections::Handler.create_election_topic(
                 params[:category_id],
                 params[:position],
-                params[:details_url])
+                params[:details_url],
+                params[:message])
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])
