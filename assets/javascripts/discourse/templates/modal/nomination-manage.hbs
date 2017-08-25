@@ -1,0 +1,13 @@
+{{#d-modal-body title='election.nomination.manage.label'}}
+  {{i18n 'election.nomination.manage.body'}}
+  {{user-selector usernames=model.usernames}}
+{{/d-modal-body}}
+
+<div class="modal-footer">
+  {{d-button title='election.nomination.manage.btn' label='election.nomination.manage.btn' action='setNominations' class='btn btn-primary'}}
+  {{#if loading}}
+    {{loading-spinner size='small'}}
+  {{else}}
+    <a {{action "closeModal"}}>{{i18n 'cancel'}}</a>
+  {{/if}}
+</div>

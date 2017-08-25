@@ -17,6 +17,7 @@ export default createWidget('election-controls', {
     }
 
     return {
+      nominations,
       isNominated,
       startingElection: false
     }
@@ -37,6 +38,23 @@ export default createWidget('election-controls', {
         position,
         callback: () => {
           this.state.isNominated = !this.state.isNominated;
+          this.scheduleRerender();
+        }
+      }
+    });
+  },
+
+  manageNominees() {
+    const topic = this.attrs.topic;
+    const usernames = this.state.nominations;
+    const topicId = topic.id;
+
+    showModal('nomination-manage', {
+      model: {
+        topicId,
+        usernames,
+        callback: (usernames) => {
+          this.state.nominations = usernames;
           this.scheduleRerender();
         }
       }
@@ -73,6 +91,12 @@ export default createWidget('election-controls', {
     }
 
     if (user.is_elections_admin && topic.election_status === 'nominate') {
+      contents.push(this.attach('button', {
+        action: 'manageNominees',
+        label: 'election.nomination.manage.label',
+        className: 'btn btn-primary'
+      }))
+
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',

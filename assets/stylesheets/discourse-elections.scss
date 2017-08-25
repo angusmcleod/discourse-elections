@@ -27,6 +27,8 @@
 }
 
 .election-controls {
+  margin-top: 10px;
+
   .btn {
     margin-right: 10px;
   }
@@ -45,4 +47,8 @@
 
 .create-election-modal .inline {
   display: inline-block;
+}
+
+.election-post .cooked li {
+  margin: 10px 0;
 }

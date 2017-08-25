@@ -28,9 +28,13 @@ en:
                 in {{category}}, click I nominate myself below.<br><br>
                 You can withdraw your nomination any time before the start of the election."
           btn: "I nominate myself"
+        manage:
+          label: "Manage Nominations"
+          body: "Select the nominees for this election."
+          btn: "Save"
         remove:
           label: "Withdraw Nomination"
           body: "If you want to withdraw your nomination for {{position}}
-                in {{category}} click I withdraw my nomination below.<br><br>"
+                in {{categoryName}} click I withdraw my nomination below.<br><br>"
           btn: "I withdraw my nomination"
         notification: "<a><i class='fa fa-info-circle'></i><p>{{description}}</p></a>"

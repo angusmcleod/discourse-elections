@@ -20,7 +20,12 @@ export default Ember.Controller.extend({
       const callback = this.get('model.callback');
 
       this.set('loading', true);
-      ajax(`/election/nomination`, { type: type, data: { topic_id: topicId }}).then((result) => {
+      ajax('/election/nomination', {
+        type,
+        data: {
+          topic_id: topicId
+        }
+      }).then((result) => {
         this.set('loading', false);
         callback();
         this.send('closeModal');

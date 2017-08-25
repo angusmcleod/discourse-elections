@@ -14,7 +14,10 @@ after_initialize do
   add_to_serializer(:topic_view, :election_nominations) {object.topic.custom_fields['election_nominations']}
   add_to_serializer(:topic_view, :election_self_nomination_allowed) {object.topic.custom_fields['election_self_nomination_allowed']}
   add_to_serializer(:topic_view, :subtype) {object.topic.subtype}
+
   add_to_serializer(:basic_category, :for_elections) {object.custom_fields["for_elections"]}
+
+  add_to_serializer(:post, :election_post) {object.is_first_post?}
 
   require_dependency "application_controller"
   module ::DiscourseElections
@@ -27,6 +30,7 @@ after_initialize do
   load File.expand_path('../lib/handler.rb', __FILE__)
 
   DiscourseElections::Engine.routes.draw do
+    post "nominations" => "election#set_nominations"
     post "nomination" => "election#add_nomination"
     delete "nomination" => "election#remove_nomination"
     post "create" =>"election#create_election"
@@ -72,6 +76,19 @@ after_initialize do
       end
 
       result = DiscourseElections::Handler.start_election(params[:topic_id])
+
+      if result[:error_message]
+        render json: failed_json.merge(message: result[:error_message])
+      else
+        render json: success_json
+      end
+    end
+
+    def set_nominations
+      params.require(:topic_id)
+      params.permit(:usernames)
+
+      result = DiscourseElections::Handler.set_nominations(params[:topic_id], params[:usernames])
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])

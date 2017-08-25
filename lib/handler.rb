@@ -46,6 +46,11 @@ class DiscourseElections::Handler
     end
   end
 
+  def self.set_nominations(topic_id, usernames)
+    topic = Topic.find(topic_id)
+    update_nominations(topic, usernames)
+  end
+
   def self.add_nomination(topic_id, username)
     topic = Topic.find(topic_id)
 
@@ -119,11 +124,7 @@ class DiscourseElections::Handler
       content << "\n\n#{I18n.t('election.nominate.nominated')}: "
 
       nominations.each_with_index do |n, i|
-        content << "[#{n}](#{Discourse.base_url}/users/#{n})"
-
-        if nominations.size > 1 && i != nominations.size - 1
-          content << ", "
-        end
+        content << "\n - [#{n}](#{Discourse.base_url}/users/#{n})"
       end
     end
 
