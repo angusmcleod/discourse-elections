@@ -3,7 +3,6 @@ en:
     title: "%{position} Election"
     nominate:
       desc: "This election is currently taking nominations."
-      nominated: "Nominated"
     notification:
       electing: "The election \"%{title}\" has started"
       closed: "The election \"%{title}\" has been closed"
@@ -11,6 +10,8 @@ en:
       more_nominations: "More nominations are needed to start the election."
       seperate_poll: "You can't post a poll in an election topic."
       not_authorized: "You are not authorized to perform this action."
+    post:
+      nominated: "Nominated"
 
   site_settings:
     elections_admin_moderator: "Allow moderators to administer elections"

@@ -2,11 +2,19 @@ import { iconNode } from 'discourse/helpers/fa-icon-node';
 import { withPluginApi } from 'discourse/lib/plugin-api';
 import { escapeExpression } from 'discourse/lib/utilities';
 import { queryRegistry } from 'discourse/widgets/widget';
+import Composer from 'discourse/models/composer';
 import RawHtml from 'discourse/widgets/raw-html';
+import { default as computed } from 'ember-addons/ember-computed-decorators';
 
 export default {
   name: 'election-edits',
   initialize(container) {
+    Composer.serializeOnCreate('election_nomination_statement', 'electionNominationStatement')
+
+    Composer.reopen({
+      electionNominationStatement: Ember.computed.alias('election_nomination_statement')
+    })
+
     withPluginApi('0.8.7', api => {
       api.reopenWidget('discourse-poll-option', {
         html(attrs) {
@@ -31,6 +39,13 @@ export default {
 
       api.addPostClassesCallback((attrs) => {
         if (attrs.election_post) return ["election-post"];
+      })
+
+      api.decorateWidget('post-meta-data:after', (helper) => {
+        const post = helper.widget.parentWidget.parentWidget.parentWidget.model;
+        if (post.election_is_nominee) {
+          return helper.h('span.nominated', I18n.t('election.post.nominated'))
+        }
       })
 
       api.decorateWidget('post-contents:after-cooked', (helper) => {

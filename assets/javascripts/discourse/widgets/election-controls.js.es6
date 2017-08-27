@@ -1,24 +1,19 @@
 import { createWidget } from 'discourse/widgets/widget';
+import { getOwner } from 'discourse-common/lib/get-owner';
 import showModal from 'discourse/lib/show-modal';
 import { ajax } from 'discourse/lib/ajax';
 import { h } from 'virtual-dom';
 
 export default createWidget('election-controls', {
   tagName: 'div.election-controls',
-  buildKey: (attrs) => `election-controls`,
+  buildKey: () => `election-controls`,
 
   defaultState(attrs) {
-    let nominations = attrs.topic.election_nominations;
-    let isNominated = false;
-
-    if (nominations && nominations.length) {
-      nominations = nominations.split('|') || [];
-      isNominated = nominations && nominations.indexOf(this.currentUser.username) > -1;
-    }
+    this.appEvents.on('header:update-topic', () => {
+      this.scheduleRerender();
+    });
 
     return {
-      nominations,
-      isNominated,
       startingElection: false
     }
   },
@@ -28,41 +23,41 @@ export default createWidget('election-controls', {
     const categoryId = topic.category_id;
     const topicId = topic.id;
     const position = topic.election_position;
-    const isNominated = this.state.isNominated;
+    const isNominated = topic.election_is_nominated;
 
     showModal('nomination-confirmation', {
       model: {
         isNominated,
         categoryId,
         topicId,
-        position,
-        callback: () => {
-          if (this.state.isNominated) {
-            this.state.nominations.splice(this.state.nominations.indexOf(this.currentUser.username), 1);
-          } else {
-            this.state.nominations.push(this.currentUser.username);
-          }
-          this.state.isNominated = !this.state.isNominated;
-          this.scheduleRerender();
-        }
+        position
       }
     });
   },
 
+  makeStatement() {
+    const controller = getOwner(this).lookup('controller:composer');
+    const topic = this.attrs.topic;
+
+    controller.open({
+      action: 'reply',
+      draftKey: 'reply',
+      draftSequence: 0,
+      topic
+    });
+
+    controller.set('model.electionNominationStatement', true);
+  },
+
   manageNominees() {
     const topic = this.attrs.topic;
-    const usernames = this.state.nominations;
+    const usernames = topic.election_nominations;
     const topicId = topic.id;
 
     showModal('nomination-manage', {
       model: {
         topicId,
-        usernames,
-        callback: (usernames) => {
-          this.state.nominations = usernames;
-          this.state.isNominated = usernames.indexOf(this.currentUser.username) > -1;
-          this.scheduleRerender();
-        }
+        usernames
       }
     });
   },
@@ -86,12 +81,21 @@ export default createWidget('election-controls', {
   html(attrs, state) {
     const topic = attrs.topic;
     const user = this.currentUser;
+    const isNominated = topic.election_is_nominated;
     let contents = [];
 
     if (topic.election_status === 'nominate' && topic.election_self_nomination_allowed === "true") {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
-        label: `election.nomination.${state.isNominated ? 'remove.label' : 'add.label'}`,
+        label: `election.nomination.${isNominated ? 'remove.label' : 'add.label'}`,
+        className: 'btn btn-primary'
+      }))
+    }
+
+    if (isNominated && !topic.election_made_statement) {
+      contents.push(this.attach('button', {
+        action: 'makeStatement',
+        label: `election.nomination.statement.add`,
         className: 'btn btn-primary'
       }))
     }

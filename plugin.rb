@@ -11,13 +11,31 @@ after_initialize do
   add_to_serializer(:topic_view, :election_status) {object.topic.custom_fields['election_status']}
   add_to_serializer(:topic_view, :election_position) {object.topic.custom_fields['election_position']}
   add_to_serializer(:topic_view, :election_details_url) {object.topic.custom_fields['election_details_url']}
-  add_to_serializer(:topic_view, :election_nominations) {object.topic.custom_fields['election_nominations']}
+  add_to_serializer(:topic_view, :election_nominations) {object.topic.election_nominations}
   add_to_serializer(:topic_view, :election_self_nomination_allowed) {object.topic.custom_fields['election_self_nomination_allowed']}
   add_to_serializer(:topic_view, :subtype) {object.topic.subtype}
+  add_to_serializer(:topic_view, :election_is_nominated) {
+    if scope.user
+      object.topic.election_nominations.include?(scope.user.username)
+    end
+  }
+  add_to_serializer(:topic_view, :election_nomination_statements) {object.topic.election_nomination_statements}
+  add_to_serializer(:topic_view, :election_made_statement) {
+    if scope.user
+      object.topic.election_nomination_statements.any?{|n| n['username'] == scope.user.username}
+    end
+  }
 
   add_to_serializer(:basic_category, :for_elections) {object.custom_fields["for_elections"]}
 
+  Post.register_custom_field_type('election_nomination_statement', :boolean)
   add_to_serializer(:post, :election_post) {object.is_first_post?}
+  add_to_serializer(:post, :election_nomination_statement) {object.custom_fields["election_nomination_statement"]}
+  add_to_serializer(:post, :election_is_nominee) {
+    if object.user
+      object.topic.election_nominations.include?(object.user.username)
+    end
+  }
 
   require_dependency "application_controller"
   module ::DiscourseElections
@@ -215,16 +233,29 @@ after_initialize do
           description = I18n.t('election.notification.closed', title: self.title, status: status)
         end
 
-        nom_string = self.custom_fields['election_nominations'] || ''
-        nominations = nom_string.split('|')
-
-        nominations.each do |username|
+        election_nominations.each do |username|
           user = User.find_by(username: username)
           user.notifications.create(notification_type: Notification.types[:custom],
                                     data: { topic_id: self.id,
                                             message: "election.nomination.notification",
                                             description: description }.to_json)
         end
+      end
+    end
+
+    def election_nominations
+      if self.custom_fields["election_nominations"]
+        self.custom_fields["election_nominations"].split('|')
+      else
+        []
+      end
+    end
+
+    def election_nomination_statements
+      if self.custom_fields["election_nomination_statements"]
+        JSON.parse(self.custom_fields["election_nomination_statements"])
+      else
+        []
       end
     end
   end
@@ -265,6 +296,36 @@ after_initialize do
 
     if extracted_polls.length > 0
       self.errors.add(:base, I18n.t("election.errors.seperate_poll"))
+    end
+  end
+
+  PostRevisor.track_topic_field(:election_nomination_statement)
+
+  DiscourseEvent.on(:post_created) do |post, opts, user|
+    if opts[:election_nomination_statement] && post.topic.election_nominations.include?(user.username)
+      post.custom_fields['election_nomination_statement'] = opts[:election_nomination_statement]
+      post.save
+
+      DiscourseElections::Handler.update_nomination_statement(post)
+    end
+  end
+
+  DiscourseEvent.on(:post_edited) do |post, topic_changed|
+    user = User.find(post.user_id)
+    if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.username)
+      DiscourseElections::Handler.update_nomination_statement(post)
+    end
+  end
+
+  DiscourseEvent.on(:post_destroyed) do |post, opts, user|
+    if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.username)
+      DiscourseElections::Handler.update_nomination_statement(post)
+    end
+  end
+
+  DiscourseEvent.on(:post_recovered) do |post, opts, user|
+    if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.username)
+      DiscourseElections::Handler.update_nomination_statement(post)
     end
   end
 end

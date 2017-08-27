@@ -49,6 +49,48 @@
   display: inline-block;
 }
 
-.election-post .cooked li {
-  margin: 10px 0;
+.nomination-statement-label {
+  display: inline-block;
+  vertical-align: middle;
+  margin-bottom: 10px;
+
+  span {
+    padding: 6px 12px;
+    background: $secondary;
+  }
+}
+
+.nominated {
+  @extend a.mention;
+  font-weight: normal;
+}
+
+.election-post .cooked {
+
+  .title {
+    text-decoration: underline;
+  }
+
+  .nomination-list {
+    margin-top: 15px;
+  }
+
+  .nomination {
+    border-bottom: none;
+
+    td {
+      vertical-align: top;
+      padding-bottom: 15px;
+    }
+  }
+
+  .nomination-user {
+    padding: 0;
+    margin-right: 15px;
+    white-space: nowrap;
+  }
+
+  .nomination-user img {
+    margin-right: 5px;
+  }
 }

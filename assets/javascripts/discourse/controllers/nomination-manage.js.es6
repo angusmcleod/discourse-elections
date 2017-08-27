@@ -1,23 +1,25 @@
 import { ajax } from 'discourse/lib/ajax';
 
 export default Ember.Controller.extend({
+  init() {
+    this.appEvents.on('header:update-topic', () => {
+      this.set('loading', false);
+      this.send('closeModal');
+    });
+  },
+
   actions: {
     setNominations() {
       const topicId = this.get('model.topicId');
-      const callback = this.get('model.callback');
-      let usernames = this.get('model.usernames').split(',');
+      const usernames = this.get('model.usernames').split(',');
 
       this.set('loading', true);
       ajax('/election/nominations', {
         type: 'POST',
         data: {
           topic_id: topicId,
-          usernames: usernames
+          usernames
         }
-      }).then((result) => {
-        this.set('loading', false);
-        callback(usernames);
-        this.send('closeModal');
       })
     }
   }

@@ -1,7 +1,7 @@
 en:
   js:
     category:
-      for_elections: "Category is used for elections"
+      for_elections: "Allow elections to be created in this category"
     election:
       start: "Start Election"
       list:
@@ -10,7 +10,8 @@ en:
         label: "New Election"
         position: "Position"
         details_url: "Details url (optional)"
-        message_placeholder: "Content to add to the election post"
+        nomination_message_placeholder: "Text shown during nominating process."
+        election_message_placeholder: "Text shown during electing process."
         self_nomination_allowed: "Allow users to nominate themselves"
         btn_label: "Create"
       details_url:
@@ -38,3 +39,8 @@ en:
                 in {{categoryName}} click I withdraw my nomination below.<br><br>"
           btn: "I withdraw my nomination"
         notification: "<a><i class='fa fa-info-circle'></i><p>{{description}}</p></a>"
+        statement:
+          add: "Add Statement"
+          label: "Nomination Statement"
+      post:
+        nominated: "nominated"
