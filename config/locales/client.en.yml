@@ -26,8 +26,7 @@ en:
         add:
           label: "Nominate Yourself"
           body: "If you want to nominate yourself for {{position}}
-                in {{category}}, click I nominate myself below.<br><br>
-                You can withdraw your nomination any time before the start of the election."
+                in {{categoryName}}, click I nominate myself below."
           btn: "I nominate myself"
         manage:
           label: "Manage Nominations"
