@@ -1,0 +1,45 @@
+it:
+  js:
+    category:
+      for_elections: "Consentire la creazione di elezioni in questa categoria"
+    election:
+      start: "Avvia Elezione"
+      list:
+        label: "Elezioni"
+      create:
+        label: "Nuova Elezione"
+        position: "Posizione"
+        details_url: "Dettagli url (opzionale)"
+        nomination_message_placeholder: "Testo visualizzato durante il processo di candidatura."
+        election_message_placeholder: "Testo visualizzato durante il processo di elezione."
+        self_nomination_allowed: "Consenti agli utenti di candidare se stessi"
+        btn_label: "Crea"
+      details_url:
+        label: "Dettagli"
+        placeholder: "url (opzionale)"
+      status:
+        label: "Stato"
+        nominate: "Candidature"
+        electing: "Elezione"
+        closed: "Chiuso"
+      nomination:
+        add:
+          label: "Candida te stesso"
+          body: "Se vuoi candidarti per {{position}}
+                in {{categoryName}}, clicca Candido me stesso qui sotto."
+          btn: "Candido me stesso"
+        manage:
+          label: "Gestione Candidature"
+          body: "Seleziona i candidati per questa elezione."
+          btn: "Salva"
+        remove:
+          label: "Ritira Candidatura"
+          body: "Se vuoi ritirare la candidatura per {{position}}
+                in {{categoryName}} clicca Ritiro la mia candidatura qui sotto.<br><br>"
+          btn: "Ritiro la mia candidatura"
+        notification: "<a><i class='fa fa-info-circle'></i><p>{{description}}</p></a>"
+        statement:
+          add: "Aggiungi Dichiarazione"
+          label: "Dichiarazione Candidatura"
+      post:
+        nominated: "candidato"
