@@ -45,7 +45,10 @@ after_initialize do
     end
   end
 
-  load File.expand_path('../lib/handler.rb', __FILE__)
+  load File.expand_path('../lib/election-post.rb', __FILE__)
+  load File.expand_path('../lib/election-topic.rb', __FILE__)
+  load File.expand_path('../lib/nomination-statement.rb', __FILE__)
+  load File.expand_path('../lib/nomination.rb', __FILE__)
 
   DiscourseElections::Engine.routes.draw do
     post "nominations" => "election#set_nominations"
@@ -72,7 +75,7 @@ after_initialize do
         raise StandardError.new I18n.t("election.errors.not_authorized")
       end
 
-      result = DiscourseElections::Handler.create_election_topic(
+      result = DiscourseElections::ElectionTopic.create(
                 params[:category_id],
                 params[:position],
                 params[:details_url],
@@ -93,7 +96,19 @@ after_initialize do
         raise StandardError.new I18n.t("election.errors.not_authorized")
       end
 
-      result = DiscourseElections::Handler.start_election(params[:topic_id])
+      topic = Topic.find(params[:topic_id])
+
+      if topic.election_nominations.length < 2
+        result = { error_message: I18n.t('election.errors.more_nominations') }
+      else
+        DiscourseElections::ElectionPost.build_poll(topic)
+
+        topic.custom_fields['election_status'] = 'electing'
+        topic.election_status_changed = true
+        topic.save!
+
+        result = { success: true }
+      end
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])
@@ -106,7 +121,7 @@ after_initialize do
       params.require(:topic_id)
       params.permit(:usernames)
 
-      result = DiscourseElections::Handler.set_nominations(params[:topic_id], params[:usernames])
+      result = DiscourseElections::Nomination.set(params[:topic_id], params[:usernames])
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])
@@ -118,7 +133,7 @@ after_initialize do
     def add_nomination
       params.require(:topic_id)
 
-      result = DiscourseElections::Handler.add_nomination(params[:topic_id], current_user.username)
+      result = DiscourseElections::Nomination.add(params[:topic_id], current_user.username)
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])
@@ -130,7 +145,7 @@ after_initialize do
     def remove_nomination
       params.require(:topic_id)
 
-      result = DiscourseElections::Handler.remove_nomination(params[:topic_id], current_user.username)
+      result = DiscourseElections::Nomination.remove(params[:topic_id], current_user.username)
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])
@@ -142,7 +157,7 @@ after_initialize do
     def category_elections
       params.require(:category_id)
 
-      topics = DiscourseElections::Handler.category_elections(params[:category_id])
+      topics = DiscourseElections::ElectionTopic.list_category_elections(params[:category_id])
 
       render_serialized(topics, DiscourseElections::ElectionSerializer)
     end
@@ -174,10 +189,20 @@ after_initialize do
 
   PostRevisor.track_topic_field(:election_status)
 
+  ## When the election status is set manually via admin topic edit
   PostRevisor.class_eval do
     track_topic_field(:election_status) do |tc, status|
       tc.record_change('election_status', tc.topic.custom_fields['election_status'], status)
       tc.topic.custom_fields['election_status'] = status
+
+      if status == 'electing'
+        DiscourseElections::ElectionPost.build_poll(tc.topic)
+      end
+
+      if status == 'nominate'
+        DiscourseElections::ElectionPost.build_nominations(tc.topic)
+      end
+
       tc.topic.election_status_changed = true
     end
   end
@@ -193,14 +218,15 @@ after_initialize do
       poll = JSON.parse(self.value)["poll"]
       post = Post.find(self.post_id)
       election_status = post.topic.election_status
+      poll_closed = poll && poll["status"] == 'closed'
 
-      if poll["status"] == 'closed'
+      if poll_closed
         post.topic.custom_fields['election_status'] = 'closed'
         post.topic.election_status_changed = true
         post.topic.save!
       end
 
-      if election_status == 'closed' && poll["status"] != 'closed'
+      if election_status == 'closed' && !poll_closed
         post.topic.custom_fields['election_status'] = 'electing'
         post.topic.election_status_changed = true
         post.topic.save!
@@ -210,45 +236,34 @@ after_initialize do
 
   Topic.class_eval do
     attr_accessor :election_status_changed
-    after_save :refresh_topic, if: :election_status_changed
-    after_save :notify_nominees, if: :election_status_changed
-    after_save :update_election_post, if: :election_status_changed
+    after_save :handle_election_status_change, if: :election_status_changed
 
     def election_status
-      self.custom_fields['election_status'] || nil
+      self.custom_fields['election_status']
     end
 
-    def refresh_topic
-      MessageBus.publish("/topic/#{self.id}", reload_topic: true, refresh_stream: true)
+    def handle_election_status_change
+      if election_status == 'electing'
+        message = I18n.t('election.notification.electing', title: self.title, status: election_status)
+        notify_nominees(message)
+      end
+
+      if election_status == 'closed'
+        MessageBus.publish("/topic/#{self.id}", reload_topic: true)
+        message = I18n.t('election.notification.closed', title: self.title, status: election_status)
+        notify_nominees(message)
+      end
+
       election_status_changed = false
     end
 
-    def notify_nominees
-      if election_status === 'electing' || election_status === 'closed'
-
-        description = ''
-
-        if election_status === 'electing'
-          description = I18n.t('election.notification.electing', title: self.title, status: election_status)
-        end
-
-        if election_status === 'closed'
-          description = I18n.t('election.notification.closed', title: self.title, status: election_status)
-        end
-
-        election_nominations.each do |username|
-          user = User.find_by(username: username)
-          user.notifications.create(notification_type: Notification.types[:custom],
-                                    data: { topic_id: self.id,
-                                            message: "election.nomination.notification",
-                                            description: description }.to_json)
-        end
-      end
-    end
-
-    def update_election_post
-      if election_status == 'nominate'
-        DiscourseElections::Handler.build_election_post(self)
+    def notify_nominees(message)
+      election_nominations.each do |username|
+        user = User.find_by(username: username)
+        user.notifications.create(notification_type: Notification.types[:custom],
+                                  data: { topic_id: self.id,
+                                          message: "election.nomination.notification",
+                                          description: message }.to_json)
       end
     end
 
@@ -315,26 +330,26 @@ after_initialize do
       post.custom_fields['election_nomination_statement'] = opts[:election_nomination_statement]
       post.save
 
-      DiscourseElections::Handler.update_nomination_statement(post)
+      DiscourseElections::NominationStatement.update(post)
     end
   end
 
   DiscourseEvent.on(:post_edited) do |post, topic_changed|
     user = User.find(post.user_id)
     if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.username)
-      DiscourseElections::Handler.update_nomination_statement(post)
+      DiscourseElections::NominationStatement.update(post)
     end
   end
 
   DiscourseEvent.on(:post_destroyed) do |post, opts, user|
     if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.username)
-      DiscourseElections::Handler.update_nomination_statement(post)
+      DiscourseElections::NominationStatement.update(post)
     end
   end
 
   DiscourseEvent.on(:post_recovered) do |post, opts, user|
     if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.username)
-      DiscourseElections::Handler.update_nomination_statement(post)
+      DiscourseElections::NominationStatement.update(post)
     end
   end
 end

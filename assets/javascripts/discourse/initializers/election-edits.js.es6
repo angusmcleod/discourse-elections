@@ -1,10 +1,11 @@
 import { iconNode } from 'discourse/helpers/fa-icon-node';
 import { withPluginApi } from 'discourse/lib/plugin-api';
 import { escapeExpression } from 'discourse/lib/utilities';
-import { queryRegistry } from 'discourse/widgets/widget';
 import Composer from 'discourse/models/composer';
 import RawHtml from 'discourse/widgets/raw-html';
 import { default as computed } from 'ember-addons/ember-computed-decorators';
+import evenRound from "discourse/plugins/poll/lib/even-round";
+import { h } from 'virtual-dom';
 
 export default {
   name: 'election-edits',
@@ -16,24 +17,37 @@ export default {
     })
 
     withPluginApi('0.8.7', api => {
-      api.reopenWidget('discourse-poll-option', {
+      api.reopenWidget('discourse-poll-container', {
         html(attrs) {
-          let result = [];
+          const { poll } = attrs;
+          const options = poll.get('options');
 
-          const { option, vote } = attrs;
-          const chosen = vote.indexOf(option.id) !== -1;
+          options.forEach((o) => {
+            if (!o.originalHtml) {
+              o.originalHtml = o.html
+            }
+            o.html = o.originalHtml;
+            let usernameOnly = o.html.substring(0, o.html.indexOf('<'));
+            let fullDetails = o.html.replace(usernameOnly, '');
+            o.html = attrs.showResults ? usernameOnly : fullDetails;
+          })
 
-          if (attrs.isMultiple) {
-            result.push(iconNode(chosen ? 'check-square-o' : 'square-o'));
-          } else {
-            result.push(iconNode(chosen ? 'dot-circle-o' : 'circle-o'));
+          if (attrs.showResults) {
+            const type = poll.get('type') === 'number' ? 'number' : 'standard';
+            return this.attach(`discourse-poll-${type}-results`, attrs);
           }
-          result.push(' ');
-          result.push(new RawHtml({ html: `${_.unescape(option.html)}` }));
 
-          return result;
+          if (options) {
+            return h('ul', options.map(option => {
+              return this.attach('discourse-poll-option', {
+                option,
+                isMultiple: attrs.isMultiple,
+                vote: attrs.vote
+              });
+            }));
+          }
         }
-      })
+      });
 
       api.includePostAttributes('election_post')
 

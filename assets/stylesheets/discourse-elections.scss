@@ -77,9 +77,10 @@
 
   .nomination {
     border-bottom: none;
+    display: inline-block;
 
-    td {
-      vertical-align: top;
+    &> span {
+      display: flex;
       padding-bottom: 15px;
     }
   }
@@ -92,5 +93,14 @@
 
   .nomination-user img {
     margin-right: 5px;
+  }
+}
+
+.election-post .poll-container ul:not(.results) li {
+  display: flex;
+
+  i {
+    margin-top: 5px;
+    padding-right: 10px;
   }
 }
