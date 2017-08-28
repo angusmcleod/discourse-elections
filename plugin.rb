@@ -217,19 +217,26 @@ after_initialize do
     def update_election_status
       poll = JSON.parse(self.value)["poll"]
       post = Post.find(self.post_id)
-      election_status = post.topic.election_status
+      topic = post.topic
+      election_status = topic.election_status
+
       poll_closed = poll && poll["status"] == 'closed'
+      poll_reopened = election_status == 'closed' && !poll_closed
 
       if poll_closed
-        post.topic.custom_fields['election_status'] = 'closed'
-        post.topic.election_status_changed = true
-        post.topic.save!
+        topic.custom_fields['election_status'] = 'closed'
+        topic.election_status_changed = true
+        topic.save!
+
+        MessageBus.publish("/topic/#{topic.id}", reload_topic: true)
       end
 
-      if election_status == 'closed' && !poll_closed
-        post.topic.custom_fields['election_status'] = 'electing'
-        post.topic.election_status_changed = true
-        post.topic.save!
+      if poll_reopened
+        topic.custom_fields['election_status'] = 'electing'
+        topic.election_status_changed = true
+        topic.save!
+
+        MessageBus.publish("/topic/#{topic.id}", reload_topic: true)
       end
     end
   end
@@ -249,7 +256,6 @@ after_initialize do
       end
 
       if election_status == 'closed'
-        MessageBus.publish("/topic/#{self.id}", reload_topic: true)
         message = I18n.t('election.notification.closed', title: self.title, status: election_status)
         notify_nominees(message)
       end
