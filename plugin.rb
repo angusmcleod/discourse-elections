@@ -192,7 +192,7 @@ after_initialize do
     def update_election_status
       poll = JSON.parse(self.value)["poll"]
       post = Post.find(self.post_id)
-      election_status = post.topic.custom_fields['election_status']
+      election_status = post.topic.election_status
 
       if poll["status"] == 'closed'
         post.topic.custom_fields['election_status'] = 'closed'
@@ -212,6 +212,11 @@ after_initialize do
     attr_accessor :election_status_changed
     after_save :refresh_topic, if: :election_status_changed
     after_save :notify_nominees, if: :election_status_changed
+    after_save :update_election_post, if: :election_status_changed
+
+    def election_status
+      self.custom_fields['election_status'] || nil
+    end
 
     def refresh_topic
       MessageBus.publish("/topic/#{self.id}", reload_topic: true, refresh_stream: true)
@@ -219,18 +224,16 @@ after_initialize do
     end
 
     def notify_nominees
-      status = self.custom_fields['election_status']
-
-      if status === 'electing' || status === 'closed'
+      if election_status === 'electing' || election_status === 'closed'
 
         description = ''
 
-        if status === 'electing'
-          description = I18n.t('election.notification.electing', title: self.title, status: status)
+        if election_status === 'electing'
+          description = I18n.t('election.notification.electing', title: self.title, status: election_status)
         end
 
-        if status === 'closed'
-          description = I18n.t('election.notification.closed', title: self.title, status: status)
+        if election_status === 'closed'
+          description = I18n.t('election.notification.closed', title: self.title, status: election_status)
         end
 
         election_nominations.each do |username|
@@ -240,6 +243,12 @@ after_initialize do
                                             message: "election.nomination.notification",
                                             description: description }.to_json)
         end
+      end
+    end
+
+    def update_election_post
+      if election_status == 'nominate'
+        DiscourseElections::Handler.build_election_post(self)
       end
     end
 
