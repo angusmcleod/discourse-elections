@@ -54,6 +54,7 @@ after_initialize do
     post "nominations" => "election#set_nominations"
     post "nomination" => "election#add_nomination"
     delete "nomination" => "election#remove_nomination"
+    put "nomination/self" => "election#set_self_nomination"
     post "create" =>"election#create_election"
     put "start" => "election#start_election"
     get ":category_id" => "election#category_elections"
@@ -110,11 +111,7 @@ after_initialize do
         result = { success: true }
       end
 
-      if result[:error_message]
-        render json: failed_json.merge(message: result[:error_message])
-      else
-        render json: success_json
-      end
+      render_result(result)
     end
 
     def set_nominations
@@ -122,44 +119,50 @@ after_initialize do
       params.permit(:usernames)
 
       result = DiscourseElections::Nomination.set(params[:topic_id], params[:usernames])
-
-      if result[:error_message]
-        render json: failed_json.merge(message: result[:error_message])
-      else
-        render json: success_json
-      end
+      render_result(result)
     end
 
     def add_nomination
       params.require(:topic_id)
 
       result = DiscourseElections::Nomination.add(params[:topic_id], current_user.username)
-
-      if result[:error_message]
-        render json: failed_json.merge(message: result[:error_message])
-      else
-        render json: success_json
-      end
+      render_result(result)
     end
 
     def remove_nomination
       params.require(:topic_id)
 
       result = DiscourseElections::Nomination.remove(params[:topic_id], current_user.username)
-
-      if result[:error_message]
-        render json: failed_json.merge(message: result[:error_message])
-      else
-        render json: success_json
-      end
+      render_result(result)
     end
 
     def category_elections
       params.require(:category_id)
 
       topics = DiscourseElections::ElectionTopic.list_category_elections(params[:category_id])
-
       render_serialized(topics, DiscourseElections::ElectionSerializer)
+    end
+
+    def set_self_nomination
+      params.require(:topic_id)
+      params.require(:state)
+
+      result = DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:state])
+      render_result(result)
+    end
+
+    private
+
+    def render_result(result = {})
+      unless result.class == Hash
+        result = {}
+      end
+      
+      if result[:error_message]
+        render json: failed_json.merge(message: result[:error_message])
+      else
+        render json: success_json
+      end
     end
   end
 

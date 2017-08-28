@@ -28,10 +28,6 @@ en:
           body: "If you want to nominate yourself for {{position}}
                 in {{categoryName}}, click I nominate myself below."
           btn: "I nominate myself"
-        manage:
-          label: "Manage Nominations"
-          body: "Select the nominees for this election."
-          btn: "Save"
         remove:
           label: "Withdraw Nomination"
           body: "If you want to withdraw your nomination for {{position}}
@@ -41,5 +37,10 @@ en:
         statement:
           add: "Add Statement"
           label: "Nomination Statement"
+      manage:
+        label: "Manage Election"
+        nominees: "Select the nominees for this election."
+        save: "Save"
+        done: "Done"
       post:
         nominated: "nominated"

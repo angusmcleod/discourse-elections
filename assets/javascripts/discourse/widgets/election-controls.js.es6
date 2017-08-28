@@ -25,7 +25,7 @@ export default createWidget('election-controls', {
     const position = topic.election_position;
     const isNominated = topic.election_is_nominated;
 
-    showModal('nomination-confirmation', {
+    showModal('confirm-nomination', {
       model: {
         isNominated,
         categoryId,
@@ -49,15 +49,17 @@ export default createWidget('election-controls', {
     controller.set('model.electionNominationStatement', true);
   },
 
-  manageNominees() {
+  manage() {
     const topic = this.attrs.topic;
-    const usernames = topic.election_nominations;
     const topicId = topic.id;
+    const currentNominees = topic.election_nominations;
+    const selfNominationAllowed = topic.election_self_nomination_allowed;
 
-    showModal('nomination-manage', {
+    showModal('manage-election', {
       model: {
         topicId,
-        usernames
+        currentNominees,
+        selfNominationAllowed
       }
     });
   },
@@ -100,13 +102,15 @@ export default createWidget('election-controls', {
       }))
     }
 
-    if (user.is_elections_admin && topic.election_status === 'nominate') {
+    if (user.is_elections_admin) {
       contents.push(this.attach('button', {
-        action: 'manageNominees',
-        label: 'election.nomination.manage.label',
+        action: 'manage',
+        label: 'election.manage.label',
         className: 'btn btn-primary'
       }))
+    }
 
+    if (user.is_elections_admin && topic.election_status === 'nominate') {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',

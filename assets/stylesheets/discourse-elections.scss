@@ -104,3 +104,23 @@
     padding-right: 10px;
   }
 }
+
+.manage-election {
+  .ac-wrap {
+    width: 500px !important;
+    min-height: 60px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .controls {
+    float: right;
+    width: 150px;
+    text-align: center;
+
+    .state {
+      width: 30px;
+      display: inline-block;
+    }
+  }
+}

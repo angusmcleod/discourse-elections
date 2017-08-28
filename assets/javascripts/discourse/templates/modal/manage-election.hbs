@@ -1,0 +1,45 @@
+{{#d-modal-body title='election.manage.label' class='manage-election'}}
+  <div class="control-group">
+    <label>{{i18n 'election.manage.nominees'}}</label>
+    {{user-selector usernames=usernames}}
+    <div class="controls">
+      {{d-button action="saveNominations"
+                 title='election.manage.save'
+                 label='election.manage.save'
+                 disabled=nominationSaveDisabled
+                 class='save'}}
+
+      <div class="state">
+        {{#if savingNominations}}
+          {{loading-spinner size='small'}}
+        {{/if}}
+        {{#if savedNominations}}
+          {{d-icon savedNominations}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
+  <div class="control-group">
+    {{input type="checkbox" checked=selfNominationAllowed}}
+    <span>{{i18n 'election.create.self_nomination_allowed'}}</span>
+    <div class="controls">
+      {{d-button action="saveSelfNomination"
+                 title='election.manage.save'
+                 label='election.manage.save'
+                 disabled=selfNominationSaveDisabled
+                 class='save'}}
+      <div class="state">
+        {{#if savingSelfNomination}}
+          {{loading-spinner size='small'}}
+        {{/if}}
+        {{#if savedSelfNomination}}
+          {{d-icon savedSelfNomination}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
+{{/d-modal-body}}
+
+<div class="modal-footer">
+  {{d-button title='election.manage.done' label='election.manage.done' action='close' class='btn btn-primary'}}
+</div>

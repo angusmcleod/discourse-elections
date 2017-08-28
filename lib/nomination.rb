@@ -5,9 +5,7 @@ class DiscourseElections::Nomination
     nominations = usernames
     existing_nominations = topic.election_nominations
 
-    if Set.new(existing_nominations) == Set.new(usernames)
-      return { success: true }
-    end
+    return if Set.new(existing_nominations) == Set.new(usernames)
 
     self.save(topic, nominations)
 
@@ -65,5 +63,15 @@ class DiscourseElections::Nomination
     else
       DiscourseElections::ElectionPost.build_nominations(topic)
     end
+  end
+
+  def self.set_self_nomination(topic_id, state)
+    topic = Topic.find(topic_id)
+    topic.custom_fields['election_self_nomination_allowed'] = state
+    result = topic.save!
+
+    MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
+
+    { success: result }
   end
 end
