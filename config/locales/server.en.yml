@@ -11,7 +11,7 @@ en:
       seperate_poll: "You can't post a poll in an election topic."
       not_authorized: "You are not authorized to perform this action."
     post:
-      nominated: "Nominated"
+      nominated: "Nominees"
 
   site_settings:
     elections_admin_moderator: "Allow moderators to administer elections"
