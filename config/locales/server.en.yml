@@ -12,7 +12,7 @@ en:
       not_authorized: "You are not authorized to perform this action."
     post:
       nominated: "Nominees"
-      nominee_title: "<a href='%{url}'>Nomineee for %{position}</a>"
+      nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"
 
   site_settings:
     elections_admin_moderator: "Allow moderators to administer elections"
