@@ -11,7 +11,6 @@ class DiscourseElections::ElectionTopic
     topic.subtype = 'election'
     topic.custom_fields['election_status'] = 'nominate'
     topic.custom_fields['election_position'] = position
-    topic.custom_fields['election_nominations'] = []
     topic.custom_fields['election_self_nomination_allowed'] = self_nomination_allowed || false
 
     if details_url

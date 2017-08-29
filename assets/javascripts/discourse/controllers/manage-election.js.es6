@@ -1,5 +1,6 @@
 import { ajax } from 'discourse/lib/ajax';
 import { on, observes, default as computed } from 'ember-addons/ember-computed-decorators';
+import User from 'discourse/models/user';
 
 export default Ember.Controller.extend({
   nominationSaveDisabled: Ember.computed.or('nominationsUnchanged', 'savingNominations'),
@@ -8,33 +9,35 @@ export default Ember.Controller.extend({
   savingSelfNomination: false,
   savedNominations: null,
   savedSelfNomination: null,
+  usernames: [],
 
   @observes('model')
   setup() {
+    this.clear();
+    
     const model = this.get('model');
-
     if (model) {
       this.setProperties({
-        usernames: model.currentNominees,
+        usernames: model.nomineeUsernames,
         selfNominationAllowed: model.selfNominationAllowed == 'true'
       })
     }
   },
 
-  @computed('usernames', 'model.currentNominees')
-  nominationsUnchanged(usernames, currentNominees) {
+  @computed('usernames', 'model.nomineeUsernames')
+  nominationsUnchanged(usernames, nomineeUsernames) {
     if (typeof usernames === 'string') {
       usernames = usernames.split(',');
     };
 
     let unchanged = true;
 
-    if (usernames.length !== currentNominees.length) {
+    if (usernames.length !== nomineeUsernames.length) {
       unchanged = false;
     }
 
-    for (var i = 0; i < usernames.length; i++) {
-      if (currentNominees.indexOf(usernames[i]) === -1) {
+    for (let i = 0; i < usernames.length; i++) {
+      if (nomineeUsernames.indexOf(usernames[i]) === -1) {
         unchanged = false;
       }
     }
@@ -70,13 +73,16 @@ export default Ember.Controller.extend({
     this.set(`saving${property}`, false);
   },
 
+  clear() {
+    this.setProperties({
+      savedNominations: null,
+      savedSelfNomination: null
+    })
+  },
+
   actions: {
     close() {
-      this.setProperties({
-        savedNominations: null,
-        savedSelfNomination: null
-      })
-      
+      this.clear();
       this.send('closeModal');
     },
 
@@ -98,9 +104,9 @@ export default Ember.Controller.extend({
         this.resolve(result, 'Nominations');
 
         if (result.error_message) {
-          this.set('usernames', this.get('model.currentNominees'));
+          this.set('usernames', this.get('model.nomineeUsernames'));
         } else {
-          this.set('model.currentNominees', usernames);
+          this.set('model.nomineeUsernames', usernames);
         }
       })
     },

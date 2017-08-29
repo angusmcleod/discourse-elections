@@ -10,9 +10,9 @@ export default Ember.Controller.extend({
     });
   },
 
-  @computed('model.isNominated')
-  prefix(isNominated) {
-    return `election.nomination.${isNominated ? 'remove' : 'add'}.`;
+  @computed('model.isNominee')
+  prefix(isNominee) {
+    return `election.nomination.${isNominee ? 'remove' : 'add'}.`;
   },
 
   @computed('model.categoryId')
@@ -23,7 +23,7 @@ export default Ember.Controller.extend({
   actions: {
     toggleNomination() {
       const topicId = this.get('model.topicId');
-      const type = this.get('model.isNominated') ? 'DELETE' : 'POST';
+      const type = this.get('model.isNominee') ? 'DELETE' : 'POST';
 
       this.set('loading', true);
       ajax('/election/nomination', {

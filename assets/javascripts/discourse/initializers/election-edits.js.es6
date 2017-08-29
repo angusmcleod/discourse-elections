@@ -5,6 +5,7 @@ import Composer from 'discourse/models/composer';
 import RawHtml from 'discourse/widgets/raw-html';
 import { default as computed } from 'ember-addons/ember-computed-decorators';
 import evenRound from "discourse/plugins/poll/lib/even-round";
+import Topic from 'discourse/models/topic';
 import { h } from 'virtual-dom';
 
 export default {
@@ -55,11 +56,38 @@ export default {
         if (attrs.election_post) return ["election-post"];
       })
 
-      api.decorateWidget('post-meta-data:after', (helper) => {
-        const post = helper.widget.parentWidget.parentWidget.parentWidget.model;
-        if (post.election_is_nominee) {
-          return helper.h('span.nominated', I18n.t('election.post.nominated'))
+      api.decorateWidget('poster-name:after', (helper) => {
+        const post = helper.widget.parentWidget.parentWidget.parentWidget.parentWidget.model;
+        const topic = post.topic;
+        let contents = [];
+
+        if (post.election_nomination_statement) {
+          contents.push(helper.h('span.post-label', I18n.t('election.post.nomination_statement')))
         }
+
+        if (!post.election_is_nominee && post.election_nominee_title) {
+          contents.push(helper.h('span.nominee-title',
+            new RawHtml({ html: post.election_nominee_title })
+          ))
+        }
+
+        return contents;
+      })
+
+      api.decorateWidget('post-avatar:after', (helper) => {
+        const post = helper.widget.parentWidget.parentWidget.model;
+        let contents = [];
+
+        if (post.election_is_nominee) {
+          contents.push(helper.h('div.avatar-flair.nominee', helper.h('i', {
+            href: post.url,
+            className: 'fa fa-certificate',
+            title: I18n.t('election.post.nominee'),
+            icon: 'certificate'
+          })))
+        }
+
+        return contents;
       })
 
       api.decorateWidget('post-contents:after-cooked', (helper) => {

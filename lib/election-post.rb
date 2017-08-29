@@ -16,8 +16,9 @@ class DiscourseElections::ElectionPost
       # which leads to the md5Hash being identical for each option.
       # the username placeholder is removed on the client before render.
 
-      poll_options << "\n- #{n}"
-      poll_options << build_nominee(topic, n)
+      user = User.find(n)
+      poll_options << "\n- #{user.username}"
+      poll_options << build_nominee(topic, user)
     end
 
     content = "[poll type=regular]#{poll_options}\n[/poll]"
@@ -35,7 +36,8 @@ class DiscourseElections::ElectionPost
       content << "<div class='nomination-list'>"
 
       nominations.each do |n|
-        content << build_nominee(topic, n)
+        user = User.find(n)
+        content << build_nominee(topic, user)
       end
 
       content << "</div>"
@@ -50,22 +52,21 @@ class DiscourseElections::ElectionPost
     update_election_post(topic.id, content, { skip_validations: true })
   end
 
-  def self.build_nominee(topic, n)
+  def self.build_nominee(topic, user)
     nomination_statements = topic.election_nomination_statements
-    user = User.find_by(username: n)
     avatar_url = user.avatar_template_url.gsub("{size}", "50")
 
     html = "<div class='nomination'><span>"
 
     html << "<div class='nomination-user'>"
-    html << "<div class='trigger-user-card' href='/u/#{n}' data-user-card='#{n}'>"
+    html << "<div class='trigger-user-card' href='/u/#{user.username}' data-user-card='#{user.username}'>"
     html << "<img alt='' width='25' height='25' src='#{avatar_url}' class='avatar'>"
-    html << "<a class='mention'>@#{n}</a>"
+    html << "<a class='mention'>@#{user.username}</a>"
     html << "</div>"
     html << "</div>"
 
     html << "<div class='nomination-statement'>"
-    statement = nomination_statements.find{ |s| s['username'] == n }
+    statement = nomination_statements.find{ |s| s['user_id'] == user.id }
     if statement
       post = Post.find(statement['post_id'])
       html << "<a href='#{post.url}'>#{statement['excerpt']}</a>"

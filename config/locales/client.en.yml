@@ -43,4 +43,5 @@ en:
         save: "Save"
         done: "Done"
       post:
-        nominated: "nominated"
+        nominee: "Nominee in this election"
+        nomination_statement: "nomination statement"

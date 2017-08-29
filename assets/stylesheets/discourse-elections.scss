@@ -60,8 +60,9 @@
   }
 }
 
-.nominated {
+.post-label {
   @extend a.mention;
+  padding: 0 6px;
   font-weight: normal;
 }
 
@@ -102,6 +103,15 @@
   i {
     margin-top: 5px;
     padding-right: 10px;
+  }
+}
+
+.avatar-flair.nominee {
+  top: 14px;
+  bottom: initial;
+
+  .fa {
+    color: $tertiary;
   }
 }
 

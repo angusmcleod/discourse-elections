@@ -15,12 +15,12 @@ class DiscourseElections::NominationStatement
     unless existing
       statements.push({
         post_id: post.id,
-        username: post.user.username,
+        user_id: post.user.id,
         excerpt: excerpt
       })
     end
 
-    self.save(post.topic, statements)
+    self.save_and_update(post.topic, statements)
   end
 
   def self.remove(topic, removed_nominations)
@@ -29,30 +29,33 @@ class DiscourseElections::NominationStatement
 
     removed_nominations.each do |rn|
       statements = statements.reject do |s|
-        if s['username'] == rn
+        if s['user_id'] == rn
           removed_statements.push(s)
           true
         end
       end
     end
 
-    self.save(topic, statements)
-    update_posts(removed_statements)
+    puts "REMOVE _ ELECTION NOMINATIONS: #{topic.election_nominations}"
+
+    self.save_and_update(topic, statements)
   end
 
-  def self.save(topic, statements)
+  def self.save_and_update(topic, statements)
     topic.custom_fields['election_nomination_statements'] = JSON.generate(statements)
     topic.save!
+
+    puts "SAVED NEW STATEMENTS: #{topic.election_nominations}"
 
     DiscourseElections::ElectionPost.build_nominations(topic)
     update_posts(statements)
   end
 
-  def self.retrieve(topic_id, usernames)
+  def self.retrieve(topic_id, nominees)
     existing_statements = []
 
-    usernames.each do |u|
-      user = User.find_by(username: u)
+    nominees.each do |u|
+      user = User.find(u)
       user_posts = Post.where(user_id: user.id, topic_id: topic_id)
 
       if user_posts.any?

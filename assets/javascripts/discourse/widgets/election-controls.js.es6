@@ -23,11 +23,11 @@ export default createWidget('election-controls', {
     const categoryId = topic.category_id;
     const topicId = topic.id;
     const position = topic.election_position;
-    const isNominated = topic.election_is_nominated;
+    const isNominee = topic.election_is_nominee;
 
     showModal('confirm-nomination', {
       model: {
-        isNominated,
+        isNominee,
         categoryId,
         topicId,
         position
@@ -52,13 +52,13 @@ export default createWidget('election-controls', {
   manage() {
     const topic = this.attrs.topic;
     const topicId = topic.id;
-    const currentNominees = topic.election_nominations;
+    const nomineeUsernames = topic.election_nominations_usernames;
     const selfNominationAllowed = topic.election_self_nomination_allowed;
 
     showModal('manage-election', {
       model: {
         topicId,
-        currentNominees,
+        nomineeUsernames,
         selfNominationAllowed
       }
     });
@@ -83,18 +83,18 @@ export default createWidget('election-controls', {
   html(attrs, state) {
     const topic = attrs.topic;
     const user = this.currentUser;
-    const isNominated = topic.election_is_nominated;
+    const isNominee = topic.election_is_nominee;
     let contents = [];
 
     if (topic.election_status === 'nominate' && topic.election_self_nomination_allowed === "true") {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
-        label: `election.nomination.${isNominated ? 'remove.label' : 'add.label'}`,
+        label: `election.nomination.${isNominee ? 'remove.label' : 'add.label'}`,
         className: 'btn btn-primary'
       }))
     }
 
-    if (isNominated && !topic.election_made_statement) {
+    if (isNominee && !topic.election_made_statement) {
       contents.push(this.attach('button', {
         action: 'makeStatement',
         label: `election.nomination.statement.add`,

@@ -2,20 +2,31 @@ class DiscourseElections::Nomination
 
   def self.set(topic_id, usernames)
     topic = Topic.find(topic_id)
-    nominations = usernames
     existing_nominations = topic.election_nominations
 
-    return if Set.new(existing_nominations) == Set.new(usernames)
+    nominations = []
+    usernames.each do |u|
+      user = User.find_by(username: u)
+      nominations.push(user.id)
+    end
+
+    return if Set.new(existing_nominations) == Set.new(nominations)
 
     self.save(topic, nominations)
 
-    removed_nominations = existing_nominations.reject{ |n| n.empty? || nominations.include?(n) }
+    puts "NOMINATIONS: #{nominations}"
+    puts "EXISTING NOMINATIONS: #{existing_nominations}"
+    puts "EXISTING NOMINATIONS REJECT: #{existing_nominations.reject{ |n| !n || nominations.include?(n) }}"
+
+    removed_nominations = existing_nominations.reject{ |n| !n || nominations.include?(n) }
 
     if removed_nominations.any?
       DiscourseElections::NominationStatement.remove(topic, removed_nominations)
     end
 
-    added_nominations = usernames.reject{ |u| u.empty? || existing_nominations.include?(u) }
+    added_nominations = nominations.reject{ |u| !u || existing_nominations.include?(u) }
+
+    puts "ADDED NOMINATIONS: #{added_nominations}"
 
     if added_nominations.any?
       self.handle_new(topic, added_nominations)
@@ -24,32 +35,31 @@ class DiscourseElections::Nomination
     { success: true }
   end
 
-  def self.add(topic_id, username)
+  def self.add(topic_id, user_id)
     topic = Topic.find(topic_id)
     nominations = topic.election_nominations
-    nominations.push(username) unless nominations.include?(username)
+    nominations.push(user_id) unless nominations.include?(user_id)
 
     self.save(topic, nominations)
 
-    self.handle_new(topic, [username])
+    self.handle_new(topic, [user_id])
 
     { success: true }
   end
 
-  def self.remove(topic_id, username)
+  def self.remove(topic_id, user_id)
     topic = Topic.find(topic_id)
 
-    self.save(topic, topic.election_nominations - [username])
+    self.save(topic, topic.election_nominations - [user_id])
 
-    DiscourseElections::NominationStatement.remove(topic, [username])
-
+    DiscourseElections::NominationStatement.remove(topic, [user_id])
     DiscourseElections::ElectionPost.build_nominations(topic)
 
     { success: true }
   end
 
   def self.save(topic, nominations)
-    topic.custom_fields['election_nominations'] = nominations.join('|')
+    topic.custom_fields['election_nominations'] = nominations.length < 2 ? nominations[0] : nominations
     topic.save!
   end
 
