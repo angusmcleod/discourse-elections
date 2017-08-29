@@ -1,0 +1,17 @@
+it:
+  election:
+    title: "Elezione %{position}"
+    nominate:
+      desc: "Le candidature per questa elezione sono attualmente in corso."
+    notification:
+      electing: "L'elezione \"%{title}\" è iniziata"
+      closed: "L'elezione \"%{title}\" è stata chiusa"
+    errors:
+      more_nominations: "Sono necessarie altre candidature per iniziare l'elezione."
+      seperate_poll: "Non puoi pubblicare un sondaggio in un argomento con elezioni."
+      not_authorized: "Non sei autorizzato ad eseguire questa azione."
+    post:
+      nominated: "Candidati"
+
+  site_settings:
+    elections_admin_moderator: "Consenti ai moderatori di gestire le elezioni"
