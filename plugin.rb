@@ -40,7 +40,7 @@ after_initialize do
     object.user && object.user.election_nominations && object.user.election_nominee_title
   }
 
-  add_to_serializer(:current_user, :is_elections_admin) {object.elections_admin?}
+  add_to_serializer(:current_user, :is_elections_admin) {object.try(:elections_admin?)}
 
   require_dependency "application_controller"
   module ::DiscourseElections
@@ -123,28 +123,37 @@ after_initialize do
       params.require(:topic_id)
       params.require(:usernames)
 
-      result = DiscourseElections::Nomination.set(params[:topic_id], params[:usernames])
+      if params[:usernames].length < 2
+        result = { error_message: I18n.t('election.errors.more_nominations') }
+      else
+        DiscourseElections::Nomination.set(params[:topic_id], params[:usernames])
+        result = { success: true }
+      end
+
       render_result(result)
     end
 
     def add_nomination
       params.require(:topic_id)
 
-      result = DiscourseElections::Nomination.add(params[:topic_id], current_user.id)
-      render_result(result)
+      DiscourseElections::Nomination.add(params[:topic_id], current_user.id)
+
+      render_result({ success: true })
     end
 
     def remove_nomination
       params.require(:topic_id)
 
-      result = DiscourseElections::Nomination.remove(params[:topic_id], current_user.id)
-      render_result(result)
+      DiscourseElections::Nomination.remove(params[:topic_id], current_user.id)
+
+      render_result({ success: true })
     end
 
     def category_elections
       params.require(:category_id)
 
       topics = DiscourseElections::ElectionTopic.list_category_elections(params[:category_id])
+
       render_serialized(topics, DiscourseElections::ElectionSerializer)
     end
 
@@ -152,17 +161,14 @@ after_initialize do
       params.require(:topic_id)
       params.require(:state)
 
-      result = DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:state])
-      render_result(result)
+      DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:state])
+
+      render_result({ success: true })
     end
 
     private
 
     def render_result(result = {})
-      unless result.class == Hash
-        result = {}
-      end
-
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])
       else

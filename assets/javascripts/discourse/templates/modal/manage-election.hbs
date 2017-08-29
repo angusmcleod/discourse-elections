@@ -1,7 +1,9 @@
 {{#d-modal-body title='election.manage.label' class='manage-election'}}
   <div class="control-group">
     <label>{{i18n 'election.manage.nominees'}}</label>
-    {{user-selector usernames=usernames}}
+    {{#if showSelector}}
+      {{user-selector usernames=usernames}}
+    {{/if}}
     <div class="controls">
       {{d-button action="saveNominations"
                  title='election.manage.save'

@@ -3,6 +3,18 @@ require_dependency 'post_creator'
 
 class DiscourseElections::ElectionPost
 
+  def self.rebuild_election_post(topic)
+    status = topic.election_status
+
+    if status == 'nominate'
+      build_nominations(topic)
+    end
+
+    if status == 'electing' || status == 'closed'
+      build_poll(topic)
+    end
+  end
+
   def self.build_poll(topic)
     nominations = topic.election_nominations
 

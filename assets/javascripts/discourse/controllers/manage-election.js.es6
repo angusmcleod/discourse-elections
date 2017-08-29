@@ -1,24 +1,27 @@
+import ModalFunctionality from 'discourse/mixins/modal-functionality';
 import { ajax } from 'discourse/lib/ajax';
 import { on, observes, default as computed } from 'ember-addons/ember-computed-decorators';
 import User from 'discourse/models/user';
 
-export default Ember.Controller.extend({
+export default Ember.Controller.extend(ModalFunctionality, {
   nominationSaveDisabled: Ember.computed.or('nominationsUnchanged', 'savingNominations'),
   selfNominationSaveDisabled: Ember.computed.or('selfNominationUnchanged', 'savingSelfNomination'),
   savingNominations: false,
   savingSelfNomination: false,
   savedNominations: null,
   savedSelfNomination: null,
-  usernames: [],
+  usernames: null,
+  showSelector: false,
 
   @observes('model')
   setup() {
     this.clear();
-    
+
     const model = this.get('model');
     if (model) {
       this.setProperties({
-        usernames: model.nomineeUsernames,
+        usernames: model.nomineeUsernames.join(','),
+        showSelector: true,
         selfNominationAllowed: model.selfNominationAllowed == 'true'
       })
     }
@@ -65,8 +68,9 @@ export default Ember.Controller.extend({
   },
 
   resolve(result, property) {
-    if (result.error_message) {
-      this.set(`saved${property}`, 'cross');
+    if (result.failed) {
+      this.set(`saved${property}`, 'times');
+      this.flash(result.message, 'error');
     } else {
       this.set(`saved${property}`, 'check');
     }
@@ -103,8 +107,13 @@ export default Ember.Controller.extend({
       }).then((result) => {
         this.resolve(result, 'Nominations');
 
-        if (result.error_message) {
-          this.set('usernames', this.get('model.nomineeUsernames'));
+        if (result.failed) {
+          const existing = this.get('model.nomineeUsernames');
+          this.set('usernames', existing.join(','));
+
+          // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
+          this.set('showSelector', false);
+          Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
         } else {
           this.set('model.nomineeUsernames', usernames);
         }

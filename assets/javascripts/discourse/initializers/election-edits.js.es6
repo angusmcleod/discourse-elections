@@ -61,7 +61,7 @@ export default {
         const topic = post.topic;
         let contents = [];
 
-        if (post.election_nomination_statement) {
+        if (post.election_is_nominee && post.election_nomination_statement) {
           contents.push(helper.h('span.post-label', I18n.t('election.post.nomination_statement')))
         }
 

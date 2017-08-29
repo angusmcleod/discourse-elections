@@ -7,7 +7,7 @@ en:
       electing: "The election \"%{title}\" has started"
       closed: "The election \"%{title}\" has been closed"
     errors:
-      more_nominations: "More nominations are needed to start the election."
+      more_nominations: "More nominations are needed to run an election."
       seperate_poll: "You can't post a poll in an election topic."
       not_authorized: "You are not authorized to perform this action."
     post:

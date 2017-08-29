@@ -36,8 +36,6 @@ class DiscourseElections::NominationStatement
       end
     end
 
-    puts "REMOVE _ ELECTION NOMINATIONS: #{topic.election_nominations}"
-
     self.save_and_update(topic, statements)
   end
 
@@ -45,9 +43,7 @@ class DiscourseElections::NominationStatement
     topic.custom_fields['election_nomination_statements'] = JSON.generate(statements)
     topic.save!
 
-    puts "SAVED NEW STATEMENTS: #{topic.election_nominations}"
-
-    DiscourseElections::ElectionPost.build_nominations(topic)
+    DiscourseElections::ElectionPost.rebuild_election_post(topic)
     update_posts(statements)
   end
 

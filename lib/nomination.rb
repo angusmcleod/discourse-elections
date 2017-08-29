@@ -14,10 +14,6 @@ class DiscourseElections::Nomination
 
     self.save(topic, nominations)
 
-    puts "NOMINATIONS: #{nominations}"
-    puts "EXISTING NOMINATIONS: #{existing_nominations}"
-    puts "EXISTING NOMINATIONS REJECT: #{existing_nominations.reject{ |n| !n || nominations.include?(n) }}"
-
     removed_nominations = existing_nominations.reject{ |n| !n || nominations.include?(n) }
 
     if removed_nominations.any?
@@ -26,36 +22,30 @@ class DiscourseElections::Nomination
 
     added_nominations = nominations.reject{ |u| !u || existing_nominations.include?(u) }
 
-    puts "ADDED NOMINATIONS: #{added_nominations}"
-
     if added_nominations.any?
       self.handle_new(topic, added_nominations)
     end
-
-    { success: true }
   end
 
   def self.add(topic_id, user_id)
     topic = Topic.find(topic_id)
+
     nominations = topic.election_nominations
     nominations.push(user_id) unless nominations.include?(user_id)
 
     self.save(topic, nominations)
-
     self.handle_new(topic, [user_id])
-
-    { success: true }
   end
 
   def self.remove(topic_id, user_id)
     topic = Topic.find(topic_id)
 
-    self.save(topic, topic.election_nominations - [user_id])
+    nominations = topic.election_nominations - [user_id]
+
+    self.save(topic, nominations)
 
     DiscourseElections::NominationStatement.remove(topic, [user_id])
-    DiscourseElections::ElectionPost.build_nominations(topic)
-
-    { success: true }
+    DiscourseElections::ElectionPost.rebuild_election_post(topic)
   end
 
   def self.save(topic, nominations)
@@ -71,7 +61,7 @@ class DiscourseElections::Nomination
         DiscourseElections::NominationStatement.update(statement)
       end
     else
-      DiscourseElections::ElectionPost.build_nominations(topic)
+      DiscourseElections::ElectionPost.rebuild_election_post(topic)
     end
   end
 
