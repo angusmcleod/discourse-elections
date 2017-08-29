@@ -28,10 +28,6 @@ it:
           body: "Se vuoi candidarti per {{position}}
                 in {{categoryName}}, clicca Candido me stesso qui sotto."
           btn: "Candido me stesso"
-        manage:
-          label: "Gestione Candidature"
-          body: "Seleziona i candidati per questa elezione."
-          btn: "Salva"
         remove:
           label: "Ritira Candidatura"
           body: "Se vuoi ritirare la candidatura per {{position}}
@@ -41,5 +37,11 @@ it:
         statement:
           add: "Aggiungi Dichiarazione"
           label: "Dichiarazione Candidatura"
+      manage:
+        label: "Gestione Candidature"
+        nominees: "Seleziona i candidati per questa elezione."
+        save: "Salva"
+        done: "Fatto"
       post:
-        nominated: "candidato"
+        nominated: "Candidato in questa elezione"
+        nomination_statement: "dichiarazione di candidatura"
