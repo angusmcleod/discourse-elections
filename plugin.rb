@@ -300,7 +300,6 @@ after_initialize do
     end
 
     def election_nominations
-      puts "ELECTION NOMINATIONS: #{self.custom_fields['election_nominations']}"
       if self.custom_fields["election_nominations"]
         [*self.custom_fields["election_nominations"]]
       else
