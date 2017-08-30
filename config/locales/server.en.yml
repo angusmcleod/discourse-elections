@@ -4,13 +4,15 @@ en:
     nomination:
       default_message: "This election is currently taking nominations."
     notification:
-      electing: "The election \"%{title}\" has started"
-      closed: "The election \"%{title}\" has been closed"
+      poll: "The election \"%{title}\" has started"
+      closed_poll: "The election \"%{title}\" has been closed"
     errors:
       create_failed: "Election creation failed"
       more_nominations: "More nominations are needed to run an election."
       seperate_poll: "You can't post a poll in an election topic."
       not_authorized: "You are not authorized to perform this action."
+      revisor_failed: "Post Revisor failed to update the Election Post"
+      set_status_failed: "Failed to set status"
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"

@@ -53,14 +53,19 @@ export default createWidget('election-controls', {
   manage() {
     const topic = this.attrs.topic;
     const topicId = topic.id;
-    const nomineeUsernames = topic.election_nominations_usernames;
-    const selfNominationAllowed = topic.election_self_nomination_allowed;
+    const nominations = topic.election_nominations_usernames;
+    const selfNomination = topic.election_self_nomination_allowed;
+    const status = topic.election_status;
 
     showModal('manage-election', {
       model: {
         topicId,
-        nomineeUsernames,
-        selfNominationAllowed
+        nominations,
+        selfNomination,
+        status,
+        setTopicStatus: (status) => {
+          this.attrs.topic.set('election_status', status)
+        }
       }
     });
   },
@@ -73,6 +78,7 @@ export default createWidget('election-controls', {
         bootbox.alert(result.message);
       }
 
+      this.attrs.topic.set('election_status', ElectionStatuses['poll'])
       this.state.startingElection = false;
       this.scheduleRerender();
     })

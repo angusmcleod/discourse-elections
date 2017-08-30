@@ -6,14 +6,16 @@ class DiscourseElections::ElectionPost
   def self.rebuild_election_post(topic)
     status = topic.election_status
 
-    if status.to_i == Topic.election_statuses[:nomination]
+    if status == Topic.election_statuses[:nomination]
       build_nominations(topic)
     end
 
-    if status.to_i == Topic.election_statuses[:poll] || status.to_i == Topic.election_statuses[:closed_poll]
+    if status == Topic.election_statuses[:poll] || status == Topic.election_statuses[:closed_poll]
       build_poll(topic)
     end
   end
+
+  private
 
   def self.build_poll(topic)
     nominations = topic.election_nominations
@@ -35,6 +37,12 @@ class DiscourseElections::ElectionPost
 
     content = "[poll type=regular]#{poll_options}\n[/poll]"
 
+    message = topic.custom_fields['election_poll_message']
+
+    if message
+      content << "\n\n #{message}"
+    end
+
     update_election_post(topic.id, content)
   end
 
@@ -55,13 +63,15 @@ class DiscourseElections::ElectionPost
       content << "</div>"
     end
 
-    message = topic.custom_fields['election_message']
+    message = topic.custom_fields['election_nomination_message']
 
     if message
       content << "\n\n #{message}"
     end
 
-    update_election_post(topic.id, content, { skip_validations: true })
+    revisor_opts = { skip_validations: true }
+
+    update_election_post(topic.id, content, revisor_opts)
   end
 
   def self.build_nominee(topic, user)
@@ -90,14 +100,20 @@ class DiscourseElections::ElectionPost
     html
   end
 
-  def self.update_election_post(topic_id, content, opts = {})
+  def self.update_election_post(topic_id, content, revisor_opts = {})
     election_post = Post.find_by(topic_id: topic_id, post_number: 1)
+
+    return if election_post.raw == content
+
     revisor = PostRevisor.new(election_post, election_post.topic)
 
-    opts.merge!({ skip_revision: true })
+    ## We always skip the revision as these are all system edits to a single post.
+    revisor_opts.merge!({ skip_revision: true })
 
-    result = revisor.revise!(election_post.user, { raw: content }, opts)
-
-    election_post.publish_change_to_clients!(:revised, { reload_topic: true })
+    if revisor.revise!(election_post.user, { raw: content }, revisor_opts)
+      election_post.publish_change_to_clients!(:revised, { reload_topic: true })
+    else
+      raise StandardError.new I18n.t("election.errors.revisor_failed")
+    end
   end
 end

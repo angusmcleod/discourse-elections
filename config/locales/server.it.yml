@@ -4,8 +4,8 @@ it:
     nominate:
       desc: "Le candidature per questa elezione sono attualmente in corso."
     notification:
-      electing: "L'elezione \"%{title}\" è iniziata"
-      closed: "L'elezione \"%{title}\" è stata chiusa"
+      poll: "L'elezione \"%{title}\" è iniziata"
+      closed_poll: "L'elezione \"%{title}\" è stata chiusa"
     errors:
       more_nominations: "Sono necessarie altre candidature per iniziare l'elezione."
       seperate_poll: "Non puoi pubblicare un sondaggio in un argomento con elezioni."

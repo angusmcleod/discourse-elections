@@ -16,8 +16,8 @@ it:
       status:
         label: "Stato"
         nominate: "Candidature"
-        electing: "Elezione"
-        closed: "Chiuso"
+        poll: "Elezione"
+        closed_poll: "Chiuso"
       nomination:
         add:
           label: "Candida te stesso"

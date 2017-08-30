@@ -2,7 +2,7 @@ class DiscourseElections::ElectionController < ::ApplicationController
   def create_election
     params.require(:category_id)
     params.require(:position)
-    params.permit(:nomination_message, :election_message, :self_nomination)
+    params.permit(:nomination_message, :poll_message, :self_nomination)
 
     unless current_user.try(:elections_admin?)
       raise StandardError.new I18n.t("election.errors.not_authorized")
@@ -10,9 +10,9 @@ class DiscourseElections::ElectionController < ::ApplicationController
 
     opts = {
       category_id: params[:category_id],
-      postiion: params[:position],
+      position: params[:position],
       nomination_message: params[:nomination_message],
-      election_message: params[:election_message],
+      poll_message: params[:poll_message],
       self_nomination_allowed: params[:self_nomination_allowed]
     }
 
@@ -37,13 +37,8 @@ class DiscourseElections::ElectionController < ::ApplicationController
     if topic.election_nominations.length < 2
       result = { error_message: I18n.t('election.errors.more_nominations') }
     else
-      DiscourseElections::ElectionPost.build_poll(topic)
-
-      topic.custom_fields['election_status'] = Topic.election_statuses[:poll]
-      topic.election_status_changed = true
-      topic.save!
-
-      result = { success: true }
+      set_result = DiscourseElections::ElectionTopic.set_status(params[:topic_id], Topic.election_statuses[:poll], current_user.id)
+      result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_status_failed') }
     end
 
     render_result(result)
@@ -51,13 +46,13 @@ class DiscourseElections::ElectionController < ::ApplicationController
 
   def set_nominations
     params.require(:topic_id)
-    params.require(:usernames)
+    params.require(:nominations)
 
     topic = Topic.find(params[:topic_id])
-    if topic.election_status != Topic.election_statuses[:nomination] && params[:usernames].length < 2
+    if topic.election_status != Topic.election_statuses[:nomination] && params[:nominations].length < 2
       result = { error_message: I18n.t('election.errors.more_nominations') }
     else
-      DiscourseElections::Nomination.set(params[:topic_id], params[:usernames])
+      DiscourseElections::Nomination.set(params[:topic_id], params[:nominations])
       result = { success: true }
     end
 
@@ -88,11 +83,27 @@ class DiscourseElections::ElectionController < ::ApplicationController
     render_serialized(topics, DiscourseElections::ElectionSerializer)
   end
 
+  def set_status
+    params.require(:topic_id)
+    params.require(:status)
+
+    topic = Topic.find(params[:topic_id])
+
+    if params[:status].to_i != Topic.election_statuses[:nomination] && topic.election_nominations.length < 2
+      result = { error_message: I18n.t('election.errors.more_nominations') }
+    else
+      set_result = DiscourseElections::ElectionTopic.set_status(params[:topic_id], params[:status].to_i, current_user.id)
+      result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_status_failed') }
+    end
+
+    render_result(result)
+  end
+
   def set_self_nomination
     params.require(:topic_id)
-    params.require(:state)
+    params.require(:selfNomination)
 
-    DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:state])
+    DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:selfNomination])
 
     render_result({ success: true })
   end

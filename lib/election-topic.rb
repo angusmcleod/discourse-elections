@@ -14,8 +14,8 @@ class DiscourseElections::ElectionTopic
     nomination_message = opts[:nomination_message] ? opts[:nomination_message] : I18n.t('election.nomination.default_message')
     topic.custom_fields['election_nomination_message'] = nomination_message
 
-    if opts[:election_message]
-      topic.custom_fields['election_message'] = opts[:election_message]
+    if opts[:election_poll_message]
+      topic.custom_fields['election_poll_message'] = opts[:election_poll_message]
     end
 
     topic.save!(validate: false)
@@ -32,6 +32,25 @@ class DiscourseElections::ElectionTopic
     else
       { error_message: I18n.t('election.errors.create_failed') }
     end
+  end
+
+  def self.set_status(topic_id, status, user_id)
+    topic = Topic.find(topic_id)
+    current_status = topic.election_status
+
+    topic.custom_fields['election_status'] = status
+    topic.election_status_changed = status != topic.election_status
+    saved = topic.save!
+
+    if saved && (current_status == Topic.election_statuses[:nomination] || status == Topic.election_statuses[:nomination])
+      DiscourseElections::ElectionPost.rebuild_election_post(topic)
+    elsif saved
+      election_post = Post.find_by(topic_id: topic_id, post_number: 1)
+      poll_status = status == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
+      DiscoursePoll::Poll.toggle_status(election_post.id, "poll", poll_status, user_id)
+    end
+
+    saved
   end
 
   def self.list_category_elections(category_id, opts = {})

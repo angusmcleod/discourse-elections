@@ -52,6 +52,7 @@ after_initialize do
     post "nomination" => "election#add_nomination"
     delete "nomination" => "election#remove_nomination"
     put "nomination/self" => "election#set_self_nomination"
+    put "set-status" => "election#set_status"
     post "create" =>"election#create_election"
     put "start" => "election#start_election"
     get ":category_id" => "election#category_elections"
@@ -103,26 +104,6 @@ after_initialize do
     end
   end
 
-  PostRevisor.track_topic_field(:election_status)
-
-  ## When the election status is set manually via admin topic edit
-  PostRevisor.class_eval do
-    track_topic_field(:election_status) do |tc, status|
-      tc.record_change('election_status', tc.topic.custom_fields['election_status'], status)
-      tc.topic.custom_fields['election_status'] = status
-
-      if status.to_i == Topic.election_statuses[:poll]
-        DiscourseElections::ElectionPost.build_poll(tc.topic)
-      end
-
-      if status.to_i == Topic.election_statuses[:nomination]
-        DiscourseElections::ElectionPost.build_nominations(tc.topic)
-      end
-
-      tc.topic.election_status_changed = true
-    end
-  end
-
   PostCustomField.class_eval do
     after_save :update_election_status, if: :polls_updated
 
@@ -133,26 +114,13 @@ after_initialize do
     def update_election_status
       poll = JSON.parse(self.value)["poll"]
       post = Post.find(self.post_id)
-      topic = post.topic
-      election_status = topic.election_status
 
-      poll_closed = poll && poll["status"].to_i == Topic.election_statuses[:poll]
-      poll_reopened = election_status == Topic.election_statuses[:closed_poll] && !poll_closed
-
-      if poll_closed
-        topic.custom_fields['election_status'].to_i = Topic.election_statuses[:closed_poll]
-        topic.election_status_changed = true
-        topic.save!
-
-        MessageBus.publish("/topic/#{topic.id}", reload_topic: true)
+      if poll["status"] == 'closed' && post.topic.election_status != Topic.election_statuses[:closed_poll]
+        DiscourseElections::ElectionTopic.set_status(post.topic_id, Topic.election_statuses[:closed_poll])
       end
 
-      if poll_reopened
-        topic.custom_fields['election_status'].to_i = Topic.election_statuses[:poll]
-        topic.election_status_changed = true
-        topic.save!
-
-        MessageBus.publish("/topic/#{topic.id}", reload_topic: true)
+      if poll["status"] == 'open' && post.topic.election_status != Topic.election_statuses[:poll]
+        DiscourseElections::ElectionTopic.set_status(post.topic_id, Topic.election_statuses[:poll])
       end
     end
   end
@@ -167,12 +135,12 @@ after_initialize do
 
     def handle_election_status_change
       if election_status.to_i == Topic.election_statuses[:poll]
-        message = I18n.t('election.notification.electing', title: self.title, status: election_status)
+        message = I18n.t('election.notification.poll', title: self.title)
         notify_nominees(message)
       end
 
       if election_status.to_i == Topic.election_statuses[:closed_poll]
-        message = I18n.t('election.notification.closed', title: self.title, status: election_status)
+        message = I18n.t('election.notification.closed_poll', title: self.title)
         notify_nominees(message)
       end
 

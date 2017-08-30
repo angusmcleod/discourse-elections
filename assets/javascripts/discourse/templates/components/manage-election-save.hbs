@@ -1,0 +1,14 @@
+{{d-button action='save'
+           title='election.manage.save'
+           label='election.manage.save'
+           disabled=disabled
+           class='save'}}
+
+<div class="state">
+  {{#if saving}}
+    {{loading-spinner size='small'}}
+  {{/if}}
+  {{#if icon}}
+    {{d-icon icon}}
+  {{/if}}
+</div>

@@ -1,48 +1,39 @@
 {{#d-modal-body title='election.manage.label' class='manage-election'}}
   <div class="control-group">
+    <label>{{i18n 'election.status.label'}}</label>
+    {{combo-box content=electionStatuses value=status}}
+    <div class="controls">
+      {{manage-election-save save='statusSave'
+                             saving=statusSaving
+                             icon=statusIcon
+                             disabled=statusDisabled}}
+    </div>
+  </div>
+  <div class="control-group">
     <label>{{i18n 'election.manage.nominees'}}</label>
     {{#if showSelector}}
       {{user-selector usernames=usernames}}
     {{/if}}
     <div class="controls">
-      {{d-button action="saveNominations"
-                 title='election.manage.save'
-                 label='election.manage.save'
-                 disabled=nominationSaveDisabled
-                 class='save'}}
-
-      <div class="state">
-        {{#if savingNominations}}
-          {{loading-spinner size='small'}}
-        {{/if}}
-        {{#if savedNominations}}
-          {{d-icon savedNominations}}
-        {{/if}}
-      </div>
+      {{manage-election-save save='nominationsSave'
+                             saving=nominationsSaving
+                             icon=nominationsIcon
+                             disabled=nominationsDisabled}}
     </div>
   </div>
 
   <div class="control-group">
-    {{input type="checkbox" checked=selfNominationAllowed}}
+    {{input type="checkbox" checked=selfNomination}}
     <span>{{i18n 'election.create.self_nomination_allowed'}}</span>
     <div class="controls">
-      {{d-button action="saveSelfNomination"
-                 title='election.manage.save'
-                 label='election.manage.save'
-                 disabled=selfNominationSaveDisabled
-                 class='save'}}
-      <div class="state">
-        {{#if savingSelfNomination}}
-          {{loading-spinner size='small'}}
-        {{/if}}
-        {{#if savedSelfNomination}}
-          {{d-icon savedSelfNomination}}
-        {{/if}}
-      </div>
+      {{manage-election-save save='selfNominationSave'
+                             saving=selfNominationSaving
+                             icon=selfNominationIcon
+                             disabled=selfNominationDisabled}}
     </div>
   </div>
 {{/d-modal-body}}
 
 <div class="modal-footer">
-  {{d-button title='election.manage.done' label='election.manage.done' action='close' class='btn btn-primary'}}
+  {{d-button title='election.manage.done' label='election.manage.done' action='close' class='btn btn-primary' disabled=doneDisabled}}
 </div>

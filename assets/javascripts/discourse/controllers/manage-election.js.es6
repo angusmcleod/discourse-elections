@@ -1,15 +1,21 @@
 import ModalFunctionality from 'discourse/mixins/modal-functionality';
+import { ElectionStatuses } from '../lib/election';
 import { ajax } from 'discourse/lib/ajax';
 import { on, observes, default as computed } from 'ember-addons/ember-computed-decorators';
 import User from 'discourse/models/user';
+import { extractError } from 'discourse/lib/ajax-error';
 
 export default Ember.Controller.extend(ModalFunctionality, {
-  nominationSaveDisabled: Ember.computed.or('nominationsUnchanged', 'savingNominations'),
-  selfNominationSaveDisabled: Ember.computed.or('selfNominationUnchanged', 'savingSelfNomination'),
-  savingNominations: false,
-  savingSelfNomination: false,
-  savedNominations: null,
-  savedSelfNomination: null,
+  nominationsDisabled: Ember.computed.or('nominationsUnchanged', 'nominationsSaving'),
+  selfNominationDisabled: Ember.computed.or('selfNominationUnchanged', 'selfNominationSaving'),
+  statusDisabled: Ember.computed.or('statusUnchanged', 'statusSaving'),
+  doneDisabled: Ember.computed.or('nominationsSaving', 'selfNominationSaving', 'statusSaving'),
+  nominationsSaving: false,
+  selfNominationSaving: false,
+  statusSaving: false,
+  nominationsIcon: null,
+  selfNominationIcon: null,
+  statusIcon: null,
   usernames: null,
   showSelector: false,
 
@@ -20,68 +26,90 @@ export default Ember.Controller.extend(ModalFunctionality, {
     const model = this.get('model');
     if (model) {
       this.setProperties({
-        usernames: model.nomineeUsernames.join(','),
+        usernames: model.nominations.join(','),
         showSelector: true,
-        selfNominationAllowed: model.selfNominationAllowed == 'true'
+        selfNomination: model.selfNomination == 'true',
+        status: model.status
       })
     }
   },
 
-  @computed('usernames', 'model.nomineeUsernames')
-  nominationsUnchanged(usernames, nomineeUsernames) {
-    if (typeof usernames === 'string') {
-      usernames = usernames.split(',');
-    };
+  @computed()
+  electionStatuses() {
+    return Object.keys(ElectionStatuses).map(function(k, i){
+      return {
+        name: k,
+        id: ElectionStatuses[k]
+      }
+    })
+  },
 
+  @computed('usernames')
+  nominations() {
+    return this.get('usernames').split(',');
+  },
+
+  @computed('nominations', 'model.nominations')
+  nominationsUnchanged(newNominations, currentNominations) {
     let unchanged = true;
 
-    if (usernames.length !== nomineeUsernames.length) {
+    if (newNominations.length !== currentNominations.length) {
       unchanged = false;
     }
 
-    for (let i = 0; i < usernames.length; i++) {
-      if (nomineeUsernames.indexOf(usernames[i]) === -1) {
+    for (let i = 0; i < newNominations.length; i++) {
+      if (currentNominations.indexOf(newNominations[i]) === -1) {
         unchanged = false;
       }
     }
 
-    if (!unchanged) {
-      this.set('savedNominations', null);
-    }
-
     return unchanged;
   },
 
-  @computed('selfNominationAllowed', 'model.selfNominationAllowed')
-  selfNominationUnchanged(allowed, original) {
+  @computed('status', 'model.status')
+  statusUnchanged(current, original) {
+    return current == original;
+  },
+
+  @computed('selfNomination', 'model.selfNomination')
+  selfNominationUnchanged(current, original) {
     if (typeof original === 'string') {
       original = original == 'true';
     }
 
-    let unchanged = allowed == original;
-
-    if (!unchanged) {
-      this.set('savedSelfNomination', null);
-    }
-
-    return unchanged;
+    return current == original;
   },
 
-  resolve(result, property) {
+  resolve(result, type) {
     if (result.failed) {
-      this.set(`saved${property}`, 'times');
+      this.set(`${type}Icon`, 'times');
       this.flash(result.message, 'error');
     } else {
-      this.set(`saved${property}`, 'check');
+      this.set(`${type}Icon`, 'check');
     }
-    this.set(`saving${property}`, false);
+    this.set(`${type}Saving`, false);
   },
 
   clear() {
     this.setProperties({
-      savedNominations: null,
-      savedSelfNomination: null
+      nominationsIcon: null,
+      selfNominationIcon: null,
+      statusIcon: null
     })
+  },
+
+  prepare(type) {
+    if (this.get(`${type}SaveDisabled`)) return false;
+    this.set(`${type}Saving`, true);
+
+    $('#modal-alert').hide();
+
+    const topicId = this.get('model.topicId');
+    let data = { topic_id: topicId};
+
+    data[type] = this.get(type);
+
+    return data;
   },
 
   actions: {
@@ -90,55 +118,59 @@ export default Ember.Controller.extend(ModalFunctionality, {
       this.send('closeModal');
     },
 
-    saveNominations() {
-      if (this.get('nominationSaveDisabled')) return;
+    statusSave() {
+      const data = this.prepare('status');
+      if (!data) return;
 
-      const topicId = this.get('model.topicId');
-      const usernames = this.get('usernames').split(',');
-
-      this.set('savingNominations', true);
-
-      ajax('/election/nominations', {
-        type: 'POST',
-        data: {
-          topic_id: topicId,
-          usernames
-        }
-      }).then((result) => {
-        this.resolve(result, 'Nominations');
+      ajax('/election/set-status', { type: 'PUT', data }).then((result) => {
+        this.resolve(result, 'status');
 
         if (result.failed) {
-          const existing = this.get('model.nomineeUsernames');
+          const existing = this.get('model.status');
+          this.set('status', existing);
+        } else {
+          this.set('model.status', data['status']);
+          this.get('model.setTopicStatus')(data['status']);
+        }
+      }).catch((e) => {
+        if (e.jqXHR && e.jqXHR.responseText) {
+          let message = e.jqXHR.responseText.substring(0, e.jqXHR.responseText.indexOf('----'));
+          this.resolve({ failed: true, message })
+        }
+      })
+    },
+
+    nominationsSave() {
+      const data = this.prepare('nominations');
+      if (!data) return;
+
+      ajax('/election/nominations', { type: 'POST', data }).then((result) => {
+        this.resolve(result, 'nominations');
+
+        if (result.failed) {
+          const existing = this.get('model.nominations');
           this.set('usernames', existing.join(','));
 
           // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
           this.set('showSelector', false);
           Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
         } else {
-          this.set('model.nomineeUsernames', usernames);
+          this.set('model.nominations', data['nominations']);
         }
       })
     },
 
-    saveSelfNomination() {
-      const topicId = this.get('model.topicId');
-      const selfNominationAllowed = this.get('selfNominationAllowed');
+    selfNominationSave() {
+      const data = this.prepare('selfNomination');
+      if (!data) return;
 
-      this.set('savingSelfNomination', true);
-
-      ajax('/election/nomination/self', {
-        type: 'PUT',
-        data: {
-          topic_id: topicId,
-          state: selfNominationAllowed
-        }
-      }).then((result) => {
-        this.resolve(result, 'SelfNomination');
+      ajax('/election/nomination/self', { type: 'PUT', data }).then((result) => {
+        this.resolve(result, 'selfNomination');
 
         if (result.error_message) {
-          this.set('selfNominationAllowed', !selfNominationAllowed);
+          this.set('selfNomination', !data['selfNomination']);
         } else {
-          this.set('model.selfNominationAllowed', selfNominationAllowed);
+          this.set('model.selfNomination', data['selfNomination']);
         }
       })
     }

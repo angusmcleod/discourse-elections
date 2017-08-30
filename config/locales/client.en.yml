@@ -11,9 +11,9 @@ en:
         position: "Position"
         nomination_message: "Nomination Message"
         nomination_message_placeholder: "Added to the first post of topic during the nomination process."
-        same_message: "Use the same message for nomination and electing"
-        election_message: "Election Message"
-        election_message_placeholder: "Added to the first post of topic during the electing process."
+        same_message: "Use the same message for nomination and poll"
+        poll_message: "Poll Message"
+        poll_message_placeholder: "Added to the first post of topic during the poll process."
         self_nomination_allowed: "Allow users to nominate themselves"
         btn_label: "Create"
       status:
