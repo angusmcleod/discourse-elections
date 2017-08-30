@@ -1,10 +1,9 @@
-import { iconNode } from 'discourse/helpers/fa-icon-node';
 import { withPluginApi } from 'discourse/lib/plugin-api';
 import { escapeExpression } from 'discourse/lib/utilities';
 import Composer from 'discourse/models/composer';
+import { ElectionStatuses } from '../lib/election';
 import RawHtml from 'discourse/widgets/raw-html';
 import { default as computed } from 'ember-addons/ember-computed-decorators';
-import evenRound from "discourse/plugins/poll/lib/even-round";
 import Topic from 'discourse/models/topic';
 import { h } from 'virtual-dom';
 
@@ -13,11 +12,20 @@ export default {
   initialize(container) {
     Composer.serializeOnCreate('election_nomination_statement', 'electionNominationStatement')
 
-    Composer.reopen({
-      electionNominationStatement: Ember.computed.alias('election_nomination_statement')
-    })
-
     withPluginApi('0.8.7', api => {
+      api.modifyClass('model:topic', {
+        @computed('election_status')
+        electionStatusName(status) {
+          return Object.keys(ElectionStatuses).find((k) => {
+            return ElectionStatuses[k] == status;
+          });
+        }
+      })
+
+      api.modifyClass('model:composer', {
+        electionNominationStatement: Ember.computed.alias('election_nomination_statement')
+      })
+
       api.reopenWidget('discourse-poll-container', {
         html(attrs) {
           const { poll } = attrs;

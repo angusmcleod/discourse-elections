@@ -1,11 +1,3 @@
 {{#if showStatus}}
-  <span>{{i18n (concat 'election.status.' model.election_status)}}</span>
-  {{#if model.election_details_url}}
-    <span>
-      <a href='{{model.election_details_url}}' target='_blank'>
-        {{d-icon 'external-link'}}
-        {{i18n 'election.details_url.label'}}
-      </a>
-    </span>
-  {{/if}}
+  <span>{{i18n (concat 'election.status.' model.electionStatusName)}}</span>
 {{/if}}

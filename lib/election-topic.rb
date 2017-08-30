@@ -1,36 +1,27 @@
 class DiscourseElections::ElectionTopic
-  def self.create(category_id, position, details_url, message, self_nomination_allowed)
-    category = Category.find(category_id)
-    title = I18n.t('election.title', position: position)
-
-    topic = Topic.new(title: title, user: Discourse.system_user, category_id: category.id)
+  def self.create(opts)
+    title = I18n.t('election.title', position: opts[:position])
+    topic = Topic.new(title: title, user: Discourse.system_user, category_id: opts[:category_id])
     topic.skip_callbacks = true
     topic.ignore_category_auto_close = true
     topic.set_or_create_timer(TopicTimer.types[:close], nil)
 
     topic.subtype = 'election'
-    topic.custom_fields['election_status'] = 'nominate'
-    topic.custom_fields['election_position'] = position
-    topic.custom_fields['election_self_nomination_allowed'] = self_nomination_allowed || false
+    topic.custom_fields['election_status'] = Topic.election_statuses[:nomination]
+    topic.custom_fields['election_position'] = opts[:position]
+    topic.custom_fields['election_self_nomination_allowed'] = opts[:self_nomination_allowed] || false
 
-    if details_url
-      topic.custom_fields['election_details_url'] = details_url
-    end
+    nomination_message = opts[:nomination_message] ? opts[:nomination_message] : I18n.t('election.nomination.default_message')
+    topic.custom_fields['election_nomination_message'] = nomination_message
 
-    if message
-      topic.custom_fields['election_nomination_message'] = message
+    if opts[:election_message]
+      topic.custom_fields['election_message'] = opts[:election_message]
     end
 
     topic.save!(validate: false)
 
-    raw = "#{I18n.t('election.nominate.desc')}\n\n"
-
-    if message
-      raw << message
-    end
-
     manager = NewPostManager.new(Discourse.system_user, {
-      raw: raw,
+      raw: nomination_message,
       topic_id: topic.id,
       cook_method: Post.cook_methods[:raw_html]
     })
@@ -39,7 +30,7 @@ class DiscourseElections::ElectionTopic
     if result.success?
       { topic_url: topic.url }
     else
-      { error_message: "Election creation failed" }
+      { error_message: I18n.t('election.errors.create_failed') }
     end
   end
 

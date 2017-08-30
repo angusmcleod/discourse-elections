@@ -9,19 +9,18 @@ en:
       create:
         label: "New Election"
         position: "Position"
-        details_url: "Details url (optional)"
-        nomination_message_placeholder: "Text shown during nominating process."
-        election_message_placeholder: "Text shown during electing process."
+        nomination_message: "Nomination Message"
+        nomination_message_placeholder: "Added to the first post of topic during the nomination process."
+        same_message: "Use the same message for nomination and electing"
+        election_message: "Election Message"
+        election_message_placeholder: "Added to the first post of topic during the electing process."
         self_nomination_allowed: "Allow users to nominate themselves"
         btn_label: "Create"
-      details_url:
-        label: "Details"
-        placeholder: "url (optional)"
       status:
         label: "Status"
-        nominate: "Taking Nominations"
-        electing: "Electing"
-        closed: "Closed"
+        nomination: "Taking Nominations"
+        poll: "Electing"
+        closed_poll: "Closed"
       nomination:
         add:
           label: "Nominate Yourself"

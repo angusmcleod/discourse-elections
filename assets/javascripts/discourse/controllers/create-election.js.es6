@@ -4,6 +4,7 @@ import { ajax } from 'discourse/lib/ajax';
 
 export default Ember.Controller.extend({
   emojiPickerIsActive: false,
+  sameMessage: true,
 
   @computed('position')
   disabled(position) {
@@ -12,13 +13,17 @@ export default Ember.Controller.extend({
 
   actions: {
     createElection() {
-      const data = {
+      let data = {
         category_id: this.get('model.categoryId'),
         position: this.get('position'),
-        details_url: this.get('detailsUrl'),
-        message: this.get('message'),
+        nomination_message: this.get('nominationMessage'),
+        election_message: this.get('electionMessage'),
         self_nomination_allowed: this.get('selfNominationAllowed')
       };
+
+      if (this.get('sameMessage')) {
+        data['election_message'] = data['nomination_message']
+      }
 
       this.set('loading', true);
       ajax(`/election/create`, {type: 'POST', data}).then((result) => {

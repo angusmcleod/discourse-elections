@@ -6,11 +6,11 @@ class DiscourseElections::ElectionPost
   def self.rebuild_election_post(topic)
     status = topic.election_status
 
-    if status == 'nominate'
+    if status.to_i == Topic.election_statuses[:nomination]
       build_nominations(topic)
     end
 
-    if status == 'electing' || status == 'closed'
+    if status.to_i == Topic.election_statuses[:poll] || status.to_i == Topic.election_statuses[:closed_poll]
       build_poll(topic)
     end
   end

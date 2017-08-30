@@ -7,13 +7,10 @@ register_asset 'stylesheets/discourse-elections.scss'
 
 after_initialize do
   Topic.register_custom_field_type('election_self_nomination', :boolean)
-
-  SiteSetting.enable_badge_sql = true
-
   Topic.register_custom_field_type('election_nominations', :integer)
-  add_to_serializer(:topic_view, :election_status) {object.topic.custom_fields['election_status']}
+  Topic.register_custom_field_type('election_status', :integer)
+  add_to_serializer(:topic_view, :election_status) {object.topic.election_status}
   add_to_serializer(:topic_view, :election_position) {object.topic.custom_fields['election_position']}
-  add_to_serializer(:topic_view, :election_details_url) {object.topic.custom_fields['election_details_url']}
   add_to_serializer(:topic_view, :election_nominations) {object.topic.election_nominations}
   add_to_serializer(:topic_view, :election_nominations_usernames) {object.topic.election_nominations_usernames}
   add_to_serializer(:topic_view, :election_self_nomination_allowed) {object.topic.custom_fields['election_self_nomination_allowed']}
@@ -50,11 +47,6 @@ after_initialize do
     end
   end
 
-  load File.expand_path('../lib/election-post.rb', __FILE__)
-  load File.expand_path('../lib/election-topic.rb', __FILE__)
-  load File.expand_path('../lib/nomination-statement.rb', __FILE__)
-  load File.expand_path('../lib/nomination.rb', __FILE__)
-
   DiscourseElections::Engine.routes.draw do
     post "nominations" => "election#set_nominations"
     post "nomination" => "election#add_nomination"
@@ -69,113 +61,11 @@ after_initialize do
     mount ::DiscourseElections::Engine, at: "election"
   end
 
-  class DiscourseElections::ElectionController < ::ApplicationController
-    def create_election
-      params.require(:category_id)
-      params.require(:position)
-      params.permit(:details_url)
-      params.permit(:message)
-      params.permit(:self_nomination)
-
-      unless current_user.try(:elections_admin?)
-        raise StandardError.new I18n.t("election.errors.not_authorized")
-      end
-
-      result = DiscourseElections::ElectionTopic.create(
-                params[:category_id],
-                params[:position],
-                params[:details_url],
-                params[:message],
-                params[:self_nomination_allowed])
-
-      if result[:error_message]
-        render json: failed_json.merge(message: result[:error_message])
-      else
-        render json: success_json.merge(topic_url: result[:topic_url])
-      end
-    end
-
-    def start_election
-      params.require(:topic_id)
-
-      unless current_user.try(:elections_admin?)
-        raise StandardError.new I18n.t("election.errors.not_authorized")
-      end
-
-      topic = Topic.find(params[:topic_id])
-
-      if topic.election_nominations.length < 2
-        result = { error_message: I18n.t('election.errors.more_nominations') }
-      else
-        DiscourseElections::ElectionPost.build_poll(topic)
-
-        topic.custom_fields['election_status'] = 'electing'
-        topic.election_status_changed = true
-        topic.save!
-
-        result = { success: true }
-      end
-
-      render_result(result)
-    end
-
-    def set_nominations
-      params.require(:topic_id)
-      params.require(:usernames)
-
-      if params[:usernames].length < 2
-        result = { error_message: I18n.t('election.errors.more_nominations') }
-      else
-        DiscourseElections::Nomination.set(params[:topic_id], params[:usernames])
-        result = { success: true }
-      end
-
-      render_result(result)
-    end
-
-    def add_nomination
-      params.require(:topic_id)
-
-      DiscourseElections::Nomination.add(params[:topic_id], current_user.id)
-
-      render_result({ success: true })
-    end
-
-    def remove_nomination
-      params.require(:topic_id)
-
-      DiscourseElections::Nomination.remove(params[:topic_id], current_user.id)
-
-      render_result({ success: true })
-    end
-
-    def category_elections
-      params.require(:category_id)
-
-      topics = DiscourseElections::ElectionTopic.list_category_elections(params[:category_id])
-
-      render_serialized(topics, DiscourseElections::ElectionSerializer)
-    end
-
-    def set_self_nomination
-      params.require(:topic_id)
-      params.require(:state)
-
-      DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:state])
-
-      render_result({ success: true })
-    end
-
-    private
-
-    def render_result(result = {})
-      if result[:error_message]
-        render json: failed_json.merge(message: result[:error_message])
-      else
-        render json: success_json
-      end
-    end
-  end
+  load File.expand_path('../controllers/election.rb', __FILE__)
+  load File.expand_path('../lib/election-post.rb', __FILE__)
+  load File.expand_path('../lib/election-topic.rb', __FILE__)
+  load File.expand_path('../lib/nomination-statement.rb', __FILE__)
+  load File.expand_path('../lib/nomination.rb', __FILE__)
 
   class DiscourseElections::ElectionSerializer < ApplicationSerializer
     attributes :position, :url, :status
@@ -185,7 +75,7 @@ after_initialize do
     end
 
     def status
-      object.custom_fields['election_status']
+      object.election_status
     end
   end
 
@@ -221,11 +111,11 @@ after_initialize do
       tc.record_change('election_status', tc.topic.custom_fields['election_status'], status)
       tc.topic.custom_fields['election_status'] = status
 
-      if status == 'electing'
+      if status.to_i == Topic.election_statuses[:poll]
         DiscourseElections::ElectionPost.build_poll(tc.topic)
       end
 
-      if status == 'nominate'
+      if status.to_i == Topic.election_statuses[:nomination]
         DiscourseElections::ElectionPost.build_nominations(tc.topic)
       end
 
@@ -246,11 +136,11 @@ after_initialize do
       topic = post.topic
       election_status = topic.election_status
 
-      poll_closed = poll && poll["status"] == 'closed'
-      poll_reopened = election_status == 'closed' && !poll_closed
+      poll_closed = poll && poll["status"].to_i == Topic.election_statuses[:poll]
+      poll_reopened = election_status == Topic.election_statuses[:closed_poll] && !poll_closed
 
       if poll_closed
-        topic.custom_fields['election_status'] = 'closed'
+        topic.custom_fields['election_status'].to_i = Topic.election_statuses[:closed_poll]
         topic.election_status_changed = true
         topic.save!
 
@@ -258,7 +148,7 @@ after_initialize do
       end
 
       if poll_reopened
-        topic.custom_fields['election_status'] = 'electing'
+        topic.custom_fields['election_status'].to_i = Topic.election_statuses[:poll]
         topic.election_status_changed = true
         topic.save!
 
@@ -276,12 +166,12 @@ after_initialize do
     end
 
     def handle_election_status_change
-      if election_status == 'electing'
+      if election_status.to_i == Topic.election_statuses[:poll]
         message = I18n.t('election.notification.electing', title: self.title, status: election_status)
         notify_nominees(message)
       end
 
-      if election_status == 'closed'
+      if election_status.to_i == Topic.election_statuses[:closed_poll]
         message = I18n.t('election.notification.closed', title: self.title, status: election_status)
         notify_nominees(message)
       end
@@ -328,14 +218,12 @@ after_initialize do
         []
       end
     end
-  end
 
-  PostRevisor.track_topic_field(:election_details_url)
-
-  PostRevisor.class_eval do
-    track_topic_field(:election_details_url) do |tc, url|
-      tc.record_change('election_details_url', tc.topic.custom_fields['election_details_url'], url)
-      tc.topic.custom_fields['election_details_url'] = url
+    def self.election_statuses
+      @types ||= Enum.new(nomination: 1,
+                          poll: 2,
+                          closed_poll: 3
+                         )
     end
   end
 
@@ -349,9 +237,7 @@ after_initialize do
 
         if extracted_polls.length > 0
           result = NewPostResult.new(:poll, false)
-
           result.errors[:base] = I18n.t("election.errors.seperate_poll")
-
           result
         end
       end

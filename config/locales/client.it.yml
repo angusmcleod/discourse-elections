@@ -9,14 +9,10 @@ it:
       create:
         label: "Nuova Elezione"
         position: "Posizione"
-        details_url: "Dettagli url (opzionale)"
         nomination_message_placeholder: "Testo visualizzato durante il processo di candidatura."
         election_message_placeholder: "Testo visualizzato durante il processo di elezione."
         self_nomination_allowed: "Consenti agli utenti di candidare se stessi"
         btn_label: "Crea"
-      details_url:
-        label: "Dettagli"
-        placeholder: "url (opzionale)"
       status:
         label: "Stato"
         nominate: "Candidature"

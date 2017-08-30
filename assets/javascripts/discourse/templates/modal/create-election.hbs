@@ -1,13 +1,22 @@
 {{#d-modal-body title='election.create.label' class='create-election-modal'}}
   <div class="control-group">
-    {{input value=position placeholder=(i18n 'election.create.position') class='input-medium'}}
+    <label>{{i18n 'election.create.position'}}</label>
+    {{input value=position class='input-medium'}}
   </div>
   <div class="control-group">
-    {{input value=detailsUrl placeholder=(i18n 'election.create.details_url') class='input-xxlarge'}}
+    <label>{{i18n 'election.create.nomination_message'}}</label>
+    {{d-editor value=nominationMessage placeholder='election.create.nomination_message_placeholder'}}
   </div>
   <div class="control-group">
-    {{d-editor value=message placeholder='election.create.nomination_message_placeholder'}}
+    {{input type="checkbox" checked=sameMessage}}
+    <span>{{i18n 'election.create.same_message'}}</span>
   </div>
+  {{#unless sameMessage}}
+    <div class="control-group">
+      <label>{{i18n 'election.create.election_message'}}</label>
+      {{d-editor value=electionMessage placeholder='election.create.election_message_placeholder'}}
+    </div>
+  {{/unless}}
   <div class="control-group">
     {{input type="checkbox" checked=selfNominationAllowed}}
     <span>{{i18n 'election.create.self_nomination_allowed'}}</span>

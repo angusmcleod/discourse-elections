@@ -1,6 +1,7 @@
 import { createWidget } from 'discourse/widgets/widget';
 import { getOwner } from 'discourse-common/lib/get-owner';
 import showModal from 'discourse/lib/show-modal';
+import { ElectionStatuses } from '../lib/election';
 import { ajax } from 'discourse/lib/ajax';
 import { h } from 'virtual-dom';
 
@@ -86,7 +87,7 @@ export default createWidget('election-controls', {
     const isNominee = topic.election_is_nominee;
     let contents = [];
 
-    if (topic.election_status === 'nominate' && topic.election_self_nomination_allowed === "true") {
+    if (topic.election_status === ElectionStatuses['nomination'] && topic.election_self_nomination_allowed === "true") {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
         label: `election.nomination.${isNominee ? 'remove.label' : 'add.label'}`,
@@ -110,7 +111,7 @@ export default createWidget('election-controls', {
       }))
     }
 
-    if (user.is_elections_admin && topic.election_status === 'nominate') {
+    if (user.is_elections_admin && topic.election_status === ElectionStatuses['nomination']) {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',
