@@ -23,7 +23,10 @@ export default {
       })
 
       api.modifyClass('model:composer', {
-        electionNominationStatement: Ember.computed.alias('election_nomination_statement')
+        @computed('election_nomination_statement', 'post.election_nomination_statement')
+        isNominationStatement(newStatement, existingStatement) {
+          return newStatement || existingStatement;
+        }
       })
 
       api.reopenWidget('discourse-poll-container', {
