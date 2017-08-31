@@ -17,12 +17,12 @@ export default Ember.Controller.extend({
         category_id: this.get('model.categoryId'),
         position: this.get('position'),
         nomination_message: this.get('nominationMessage'),
-        election_message: this.get('electionMessage'),
+        poll_message: this.get('electionMessage'),
         self_nomination_allowed: this.get('selfNominationAllowed')
       };
 
       if (this.get('sameMessage')) {
-        data['election_message'] = data['nomination_message']
+        data['poll_message'] = data['nomination_message']
       }
 
       this.set('loading', true);
