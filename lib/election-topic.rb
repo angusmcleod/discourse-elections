@@ -15,10 +15,15 @@ class DiscourseElections::ElectionTopic
 
     topic.save!(validate: false)
 
+    raw = opts[:nomination_message]
+    if raw.blank?
+      raw = I18n.t('election.nomination.default_message')
+    end
+
     manager = NewPostManager.new(Discourse.system_user, {
-      raw: opts[:nomination_message],
+      raw: raw,
       topic_id: topic.id,
-      cook_method: Post.cook_methods[:raw_html]
+      skip_validations: true
     })
     result = manager.perform
 
@@ -53,14 +58,7 @@ class DiscourseElections::ElectionTopic
     topic.custom_fields["election_#{type}_message"] = message
     saved = topic.save!
 
-    puts "STATUS: #{topic.election_status}"
-
-    puts "TYPE: #{type.to_sym}"
-
-    puts "TYPE STATUS: #{Topic.election_statuses[type.to_sym]}"
-
     if saved && topic.election_status == Topic.election_statuses[type.to_sym]
-      puts "REBUILDING POST"
       DiscourseElections::ElectionPost.rebuild_election_post(topic)
     end
 

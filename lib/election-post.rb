@@ -63,11 +63,13 @@ class DiscourseElections::ElectionPost
       content << "</div>"
     end
 
-    message = topic.custom_fields['election_nomination_message'] || I18n.t('election.nomination.default_message')
+    message = topic.custom_fields['election_nomination_message']
 
-    if message
-      content << "\n\n #{message}"
+    if message.blank?
+      message = I18n.t('election.nomination.default_message')
     end
+
+    content << "\n\n #{message}"
 
     revisor_opts = { skip_validations: true }
 
