@@ -49,14 +49,14 @@
   display: inline-block;
 }
 
-.nomination-statement-label span {
+.statement-composer-label span {
   padding: 6px 12px;
   background: $secondary;
   display: inline-block;
   vertical-align: middle;
 }
 
-.post-label {
+.statement-post-label {
   @extend a.mention;
   padding: 0 6px;
   font-weight: normal;

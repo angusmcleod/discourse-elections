@@ -61,19 +61,22 @@ export default {
         }
       });
 
-      api.includePostAttributes('election_post')
+      api.includePostAttributes("topic",
+                                "election_post",
+                                "election_is_nominee",
+                                "election_nomination_statement",
+                                "election_nominee_title");
 
       api.addPostClassesCallback((attrs) => {
         if (attrs.election_post) return ["election-post"];
       })
 
       api.decorateWidget('poster-name:after', (helper) => {
-        const post = helper.widget.parentWidget.parentWidget.parentWidget.parentWidget.model;
-        const topic = post.topic;
+        const post = helper.attrs;
         let contents = [];
 
         if (post.election_is_nominee && post.election_nomination_statement) {
-          contents.push(helper.h('span.post-label', I18n.t('election.post.nomination_statement')))
+          contents.push(helper.h('span.statement-post-label', I18n.t('election.post.nomination_statement')))
         }
 
         if (!post.election_is_nominee && post.election_nominee_title) {
@@ -86,12 +89,11 @@ export default {
       })
 
       api.decorateWidget('post-avatar:after', (helper) => {
-        const post = helper.widget.parentWidget.parentWidget.model;
+        const post = helper.attrs;
         let contents = [];
 
         if (post.election_is_nominee) {
           contents.push(helper.h('div.avatar-flair.nominee', helper.h('i', {
-            href: post.url,
             className: 'fa fa-certificate',
             title: I18n.t('election.post.nominee'),
             icon: 'certificate'
@@ -105,9 +107,10 @@ export default {
         const user = helper.widget.currentUser;
         if (!user) return;
 
-        const post = helper.widget.parentWidget.parentWidget.parentWidget.model;
+        const post = helper.attrs;
         const topic = post.topic;
-        if (!topic.closed && topic.subtype === 'election' && post.post_number === 1) {
+
+        if (topic.subtype === 'election' && post.firstPost) {
           return helper.attach('election-controls', { topic });
         }
       })

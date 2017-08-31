@@ -86,7 +86,7 @@ export default createWidget('election-controls', {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
         label: `election.nomination.${isNominee ? 'remove.label' : 'add.label'}`,
-        className: 'btn btn-primary'
+        className: 'btn btn-primary toggle-nomination'
       }))
     }
 
@@ -94,7 +94,7 @@ export default createWidget('election-controls', {
       contents.push(this.attach('button', {
         action: 'makeStatement',
         label: `election.nomination.statement.add`,
-        className: 'btn btn-primary'
+        className: 'btn btn-primary add-statement'
       }))
     }
 
@@ -102,7 +102,7 @@ export default createWidget('election-controls', {
       contents.push(this.attach('button', {
         action: 'manage',
         label: 'election.manage.label',
-        className: 'btn btn-primary'
+        className: 'btn btn-primary manage-election'
       }))
     }
 
@@ -110,7 +110,7 @@ export default createWidget('election-controls', {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',
-        className: 'btn btn-primary'
+        className: 'btn btn-primary start-election'
       }))
 
       if (state.startingElection) {
