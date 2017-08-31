@@ -14,6 +14,8 @@ en:
       revisor_failed: "Post Revisor failed to update the Election Post"
       set_status_failed: "Failed to set status"
       set_message_failed: "Failed to set message"
+      set_position_failed: "Failed to set position"
+      position_too_short: "Position is too short"
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"

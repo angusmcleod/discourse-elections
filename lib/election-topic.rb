@@ -61,6 +61,19 @@ class DiscourseElections::ElectionTopic
     saved
   end
 
+  def self.set_position(topic_id, position)
+    topic = Topic.find(topic_id)
+    topic.title = I18n.t('election.title', position: position)
+    topic.custom_fields["election_position"] = position
+    saved = topic.save!
+
+    if saved
+      MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
+    end
+
+    saved
+  end
+
   def self.list_category_elections(category_id, opts = {})
     query = "INNER JOIN topic_custom_fields
              ON topic_custom_fields.topic_id = topics.id

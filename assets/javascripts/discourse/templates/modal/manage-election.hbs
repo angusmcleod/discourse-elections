@@ -1,5 +1,16 @@
 {{#d-modal-body title='election.manage.label' class='manage-election'}}
   <div class="control-group">
+    <label>{{i18n 'election.create.position'}}</label>
+    {{input value=position class='input-medium'}}
+    <div class="controls">
+      {{manage-election-save save='positionSave'
+                             saving=positionSaving
+                             icon=positionIcon
+                             disabled=positionDisabled}}
+    </div>
+  </div>
+
+  <div class="control-group">
     <label>{{i18n 'election.status.label'}}</label>
     {{combo-box content=electionStatuses value=status}}
     <div class="controls">

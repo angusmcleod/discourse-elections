@@ -39,6 +39,7 @@ after_initialize do
   add_to_serializer(:post, :election_nominee_title) {
     object.user && object.user.election_nominations && object.user.election_nominee_title
   }
+  PostRevisor.track_topic_field(:election_nomination_statement)
 
   add_to_serializer(:current_user, :is_elections_admin) {object.try(:elections_admin?)}
 
@@ -58,6 +59,7 @@ after_initialize do
     put "set-nomination-message" => "election#set_nomination_message"
     put "set-poll-message" => "election#set_poll_message"
     put "set-status" => "election#set_status"
+    put "set-position" => "election#set_position"
     post "create" =>"election#create_election"
     put "start" => "election#start_election"
     get ":category_id" => "election#category_elections"
@@ -237,8 +239,6 @@ after_initialize do
       self.errors.add(:base, I18n.t("election.errors.seperate_poll"))
     end
   end
-
-  PostRevisor.track_topic_field(:election_nomination_statement)
 
   DiscourseEvent.on(:post_created) do |post, opts, user|
     if opts[:election_nomination_statement] && post.topic.election_nominations.include?(user.id)

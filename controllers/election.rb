@@ -140,6 +140,20 @@ class DiscourseElections::ElectionController < ::ApplicationController
     render_result(result)
   end
 
+  def set_position
+    params.require(:topic_id)
+    params.require(:position)
+
+    if params[:position].length < 3
+      result = { error_message: I18n.t('election.errors.position_too_short') }
+    else
+      set_result = DiscourseElections::ElectionTopic.set_position(params[:topic_id], params[:position])
+      result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_position_failed')}
+    end
+
+    render_result(result)
+  end
+
   private
 
   def render_result(result = {})

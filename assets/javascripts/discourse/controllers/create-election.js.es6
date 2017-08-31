@@ -3,8 +3,6 @@ import DiscourseURL from 'discourse/lib/url';
 import { ajax } from 'discourse/lib/ajax';
 
 export default Ember.Controller.extend({
-  emojiPickerIsActive: false,
-
   @computed('position')
   disabled(position) {
     return !position || position.length < 3;

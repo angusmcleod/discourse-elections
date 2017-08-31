@@ -11,15 +11,20 @@ export default Ember.Controller.extend(ModalFunctionality, {
   statusDisabled: Ember.computed.or('statusUnchanged', 'statusSaving'),
   nominationMessageDisabled: Ember.computed.or('nominationMessageUnchanged', 'nominationMessageSaving'),
   pollMessageDisabled: Ember.computed.or('pollMessageUnchanged', 'pollMessageSaving'),
-  doneDisabled: Ember.computed.or('usernamesSaving', 'selfNominationSaving', 'statusSaving'),
+  positionDisabled: Ember.computed.or('positionUnchanged', 'positionSaving', 'positionInvalid'),
+  doneDisabled: Ember.computed.or('positionSaving', 'usernamesSaving', 'selfNominationSaving', 'statusSaving', 'nominationMessageSaving', 'pollMessageSaving'),
   usernamesSaving: false,
   selfNominationSaving: false,
   statusSaving: false,
+  nominationMessageSaving: false,
+  pollMessageSaving: false,
+  positionSaving: false,
   usernamesIcon: null,
   selfNominationIcon: null,
   statusIcon: null,
   nominationMessageIcon: null,
   pollMessageIcon: null,
+  positionIcon: null,
   showSelector: false,
 
   @observes('model')
@@ -33,6 +38,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
       this.setProperties({
         showSelector: true,
         topic: model.topic,
+        position: topic.election_position,
         usernamesString: topic.election_nominations_usernames.join(','),
         selfNomination: topic.election_self_nomination_allowed == 'true',
         status: topic.election_status,
@@ -99,6 +105,16 @@ export default Ember.Controller.extend(ModalFunctionality, {
     return current == original;
   },
 
+  @computed('position', 'topic.election_position')
+  positionUnchanged(current, original) {
+    return current == original;
+  },
+
+  @computed('position')
+  positionInvalid(position) {
+    return !position || position.length < 3;
+  },
+
   resolve(result, type) {
     if (result.failed) {
       this.set(`${type}Icon`, 'times');
@@ -115,7 +131,8 @@ export default Ember.Controller.extend(ModalFunctionality, {
       selfNominationIcon: null,
       statusIcon: null,
       nominationMessageIcon: null,
-      pollMessageIcon: null
+      pollMessageIcon: null,
+      positionIcon: null
     })
   },
 
@@ -123,16 +140,13 @@ export default Ember.Controller.extend(ModalFunctionality, {
     if (this.get(`${type}SaveDisabled`)) return false;
 
     this.clearIcons();
-
     this.set(`${type}Saving`, true);
-
     $('#modal-alert').hide();
 
     const topicId = this.get('topic.id');
     let data = { topic_id: topicId};
 
     let serialized_type = type.replace(/[A-Z]/g, "_$&").toLowerCase();
-
     data[serialized_type] = this.get(type);
 
     return data;
@@ -144,6 +158,21 @@ export default Ember.Controller.extend(ModalFunctionality, {
       this.send('closeModal');
     },
 
+    positionSave() {
+      const data = this.prepare('position');
+      if (!data) return;
+
+      ajax('/election/set-position', { type: 'PUT', data }).then((result) => {
+        this.resolve(result, 'position');
+
+        if (result.failed) {
+          this.set('existing', this.get('topic.election_position'));
+        } else {
+          this.set('topic.election_position', data['position']);
+        }
+      })
+    },
+
     statusSave() {
       const data = this.prepare('status');
       if (!data) return;
@@ -152,12 +181,9 @@ export default Ember.Controller.extend(ModalFunctionality, {
         this.resolve(result, 'status');
 
         if (result.failed) {
-          const existing = this.get('topic.election_status');
-          this.set('status', existing);
+          this.set('status', this.get('topic.election_status'));
         } else {
           this.set('topic.election_status', data['status']);
-
-          //this.get('model.setTopicStatus')(data['status']);
         }
       }).catch((e) => {
         if (e.jqXHR && e.jqXHR.responseText) {
