@@ -184,7 +184,7 @@ after_initialize do
       if election_nominations.any?
         usernames = []
         election_nominations.each do |user_id|
-          if user_id > 0
+          if user_id
             usernames.push(User.find(user_id).username)
           end
         end
