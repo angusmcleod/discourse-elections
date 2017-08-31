@@ -64,9 +64,10 @@ export default createWidget('election-controls', {
     ajax('/election/start', {type: 'PUT', data: { topic_id: topicId}}).then((result) => {
       if (result.failed) {
         bootbox.alert(result.message);
+      } else {
+        this.attrs.topic.set('election_status', ElectionStatuses['poll']);
       }
 
-      this.attrs.topic.set('election_status', ElectionStatuses['poll'])
       this.state.startingElection = false;
       this.scheduleRerender();
     })
