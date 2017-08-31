@@ -104,12 +104,8 @@ export default {
       })
 
       api.decorateWidget('post-contents:after-cooked', (helper) => {
-        const user = helper.widget.currentUser;
-        if (!user) return;
-
         const post = helper.attrs;
         const topic = post.topic;
-
         if (topic.subtype === 'election' && post.firstPost) {
           return helper.attach('election-controls', { topic });
         }

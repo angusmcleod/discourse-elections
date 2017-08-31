@@ -98,7 +98,7 @@ export default createWidget('election-controls', {
       }))
     }
 
-    if (user.is_elections_admin) {
+    if (user && user.is_elections_admin) {
       contents.push(this.attach('button', {
         action: 'manage',
         label: 'election.manage.label',
@@ -106,7 +106,7 @@ export default createWidget('election-controls', {
       }))
     }
 
-    if (user.is_elections_admin && topic.election_status === ElectionStatuses['nomination']) {
+    if (user && user.is_elections_admin && topic.election_status === ElectionStatuses['nomination']) {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',
