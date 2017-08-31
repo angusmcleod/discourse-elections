@@ -7,7 +7,7 @@ export default Ember.Controller.extend({
 
   @computed('position')
   disabled(position) {
-    return !position;
+    return !position || position.length < 3;
   },
 
   actions: {

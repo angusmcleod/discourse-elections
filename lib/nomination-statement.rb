@@ -20,7 +20,7 @@ class DiscourseElections::NominationStatement
       })
     end
 
-    self.save_and_update(post.topic, statements)
+    save_and_update(post.topic, statements)
   end
 
   def self.remove(topic, removed_nominations)
@@ -36,7 +36,8 @@ class DiscourseElections::NominationStatement
       end
     end
 
-    self.save_and_update(topic, statements)
+    save_and_update(topic, statements)
+    update_posts(removed_statements)
   end
 
   def self.save_and_update(topic, statements)
