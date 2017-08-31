@@ -23,9 +23,9 @@ export default {
       })
 
       api.modifyClass('model:composer', {
-        @computed('election_nomination_statement', 'post.election_nomination_statement')
-        isNominationStatement(newStatement, existingStatement) {
-          return newStatement || existingStatement;
+        @computed('election_nomination_statement', 'post.election_nomination_statement', 'post.election_is_nominee')
+        isNominationStatement(newStatement, existingStatement, isNominee) {
+          return (newStatement || existingStatement) && isNominee;
         }
       })
 
