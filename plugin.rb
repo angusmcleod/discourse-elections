@@ -119,13 +119,23 @@ after_initialize do
     def update_election_status
       poll = JSON.parse(self.value)["poll"]
       post = Post.find(self.post_id)
+      result = nil
+      new_status = nil
 
       if poll["status"] == 'closed' && post.topic.election_status != Topic.election_statuses[:closed_poll]
-        DiscourseElections::ElectionTopic.set_status(post.topic_id, Topic.election_statuses[:closed_poll])
+        new_status = Topic.election_statuses[:closed_poll]
       end
 
       if poll["status"] == 'open' && post.topic.election_status != Topic.election_statuses[:poll]
-        DiscourseElections::ElectionTopic.set_status(post.topic_id, Topic.election_statuses[:poll])
+        new_status = Topic.election_statuses[:poll]
+      end
+
+      if new_status
+        result = DiscourseElections::ElectionTopic.set_status(post.topic_id, new_status)
+
+        if result
+          MessageBus.publish("/topic/#{post.topic.id}", reload_topic: true)
+        end
       end
     end
   end

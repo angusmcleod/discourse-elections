@@ -34,7 +34,7 @@ class DiscourseElections::ElectionTopic
     end
   end
 
-  def self.set_status(topic_id, status, user_id)
+  def self.set_status(topic_id, status)
     topic = Topic.find(topic_id)
     current_status = topic.election_status
 
@@ -44,10 +44,6 @@ class DiscourseElections::ElectionTopic
 
     if saved && (current_status == Topic.election_statuses[:nomination] || status == Topic.election_statuses[:nomination])
       DiscourseElections::ElectionPost.rebuild_election_post(topic)
-    elsif saved
-      election_post = Post.find_by(topic_id: topic_id, post_number: 1)
-      poll_status = status == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
-      DiscoursePoll::Poll.toggle_status(election_post.id, "poll", poll_status, user_id)
     end
 
     saved

@@ -37,7 +37,7 @@ class DiscourseElections::ElectionController < ::ApplicationController
     if topic.election_nominations.length < 2
       result = { error_message: I18n.t('election.errors.more_nominations') }
     else
-      set_result = DiscourseElections::ElectionTopic.set_status(params[:topic_id], Topic.election_statuses[:poll], current_user.id)
+      set_result = DiscourseElections::ElectionTopic.set_status(params[:topic_id], Topic.election_statuses[:poll])
       result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_status_failed') }
     end
 
@@ -92,8 +92,18 @@ class DiscourseElections::ElectionController < ::ApplicationController
     if params[:status].to_i != Topic.election_statuses[:nomination] && topic.election_nominations.length < 2
       result = { error_message: I18n.t('election.errors.more_nominations') }
     else
-      set_result = DiscourseElections::ElectionTopic.set_status(params[:topic_id], params[:status].to_i, current_user.id)
-      result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_status_failed') }
+      set_result = DiscourseElections::ElectionTopic.set_status(params[:topic_id], params[:status].to_i)
+
+      if set_result
+        election_post = Post.find_by(topic_id: params[:topic_id], post_number: 1)
+        poll_status = params[:status].to_i == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
+
+        DiscoursePoll::Poll.toggle_status(election_post.id, "poll", poll_status, current_user.id)
+
+        result = { success: true }
+      else
+        result = { error_message: I18n.t('election.errors.set_status_failed') }
+      end
     end
 
     render_result(result)
