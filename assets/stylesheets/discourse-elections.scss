@@ -74,6 +74,10 @@
 
   .nomination-list {
     margin-top: 15px;
+
+    .nomination {
+      padding-bottom: 15px;
+    }
   }
 
   .nomination {
@@ -82,7 +86,6 @@
 
     &> span {
       display: flex;
-      padding-bottom: 15px;
     }
   }
 
@@ -99,6 +102,8 @@
 
 .election-post .poll-container ul:not(.results) li {
   display: flex;
+  margin: 0;
+  padding: 15px;
 
   i {
     margin-top: 5px;
