@@ -24,7 +24,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
   @observes('model')
   setup() {
-    this.clear();
+    this.clearIcons();
 
     const model = this.get('model');
     if (model) {
@@ -109,7 +109,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
     this.set(`${type}Saving`, false);
   },
 
-  clear() {
+  clearIcons() {
     this.setProperties({
       usernamesIcon: null,
       selfNominationIcon: null,
@@ -121,6 +121,9 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
   prepare(type) {
     if (this.get(`${type}SaveDisabled`)) return false;
+
+    this.clearIcons();
+
     this.set(`${type}Saving`, true);
 
     $('#modal-alert').hide();
@@ -137,7 +140,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
   actions: {
     close() {
-      this.clear();
+      this.clearIcons();
       this.send('closeModal');
     },
 
@@ -180,6 +183,11 @@ export default Ember.Controller.extend(ModalFunctionality, {
           Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
         } else {
           this.set('topic.election_nominations_usernames', data['usernames']);
+        }
+      }).catch((e) => {
+        if (e.jqXHR && e.jqXHR.responseText) {
+          let message = e.jqXHR.responseText.substring(0, e.jqXHR.responseText.indexOf('----'));
+          this.resolve({ failed: true, message })
         }
       })
     },

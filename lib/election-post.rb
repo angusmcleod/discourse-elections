@@ -109,13 +109,19 @@ class DiscourseElections::ElectionPost
 
     revisor = PostRevisor.new(election_post, election_post.topic)
 
-    ## We always skip the revision as these are all system edits to a single post.
+    ## We always skip the revision as these are system edits to a single post.
     revisor_opts.merge!({ skip_revision: true })
 
-    if revisor.revise!(election_post.user, { raw: content }, revisor_opts)
+    revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
+
+    if revise_result
       election_post.publish_change_to_clients!(:revised, { reload_topic: true })
     else
-      raise StandardError.new I18n.t("election.errors.revisor_failed")
+      if election_post.errors
+        raise StandardError.new election_post.errors.to_json
+      else
+        raise StandardError.new I18n.t("election.errors.revisor_failed")
+      end
     end
   end
 end
