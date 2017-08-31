@@ -8,15 +8,9 @@
     {{d-editor value=nominationMessage placeholder='election.create.nomination_message_placeholder'}}
   </div>
   <div class="control-group">
-    {{input type="checkbox" checked=sameMessage}}
-    <span>{{i18n 'election.create.same_message'}}</span>
+    <label>{{i18n 'election.create.poll_message'}}</label>
+    {{d-editor value=electionMessage placeholder='election.create.poll_message_placeholder'}}
   </div>
-  {{#unless sameMessage}}
-    <div class="control-group">
-      <label>{{i18n 'election.create.poll_message'}}</label>
-      {{d-editor value=electionMessage placeholder='election.create.poll_message_placeholder'}}
-    </div>
-  {{/unless}}
   <div class="control-group">
     {{input type="checkbox" checked=selfNominationAllowed}}
     <span>{{i18n 'election.create.self_nomination_allowed'}}</span>

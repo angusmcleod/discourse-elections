@@ -9,16 +9,17 @@
                              disabled=statusDisabled}}
     </div>
   </div>
+
   <div class="control-group">
     <label>{{i18n 'election.manage.nominees'}}</label>
     {{#if showSelector}}
-      {{user-selector usernames=usernames}}
+      {{user-selector usernames=usernamesString}}
     {{/if}}
     <div class="controls">
-      {{manage-election-save save='nominationsSave'
-                             saving=nominationsSaving
-                             icon=nominationsIcon
-                             disabled=nominationsDisabled}}
+      {{manage-election-save save='usernamesSave'
+                             saving=usernamesSaving
+                             icon=usernamesIcon
+                             disabled=usernamesDisabled}}
     </div>
   </div>
 
@@ -30,6 +31,28 @@
                              saving=selfNominationSaving
                              icon=selfNominationIcon
                              disabled=selfNominationDisabled}}
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label>{{i18n 'election.create.nomination_message'}}</label>
+    {{d-editor value=nominationMessage placeholder='election.create.nomination_message_placeholder'}}
+    <div class="controls">
+      {{manage-election-save save='nominationMessageSave'
+                             saving=nominationMessageSaving
+                             icon=nominationMessageIcon
+                             disabled=nominationMessageDisabled}}
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label>{{i18n 'election.create.poll_message'}}</label>
+    {{d-editor value=pollMessage placeholder='election.create.poll_message_placeholder'}}
+    <div class="controls">
+      {{manage-election-save save='pollMessageSave'
+                             saving=pollMessageSaving
+                             icon=pollMessageIcon
+                             disabled=pollMessageDisabled}}
     </div>
   </div>
 {{/d-modal-body}}

@@ -44,15 +44,15 @@ class DiscourseElections::ElectionController < ::ApplicationController
     render_result(result)
   end
 
-  def set_nominations
+  def set_nominations_by_username
     params.require(:topic_id)
-    params.require(:nominations)
+    params.require(:usernames)
 
     topic = Topic.find(params[:topic_id])
-    if topic.election_status != Topic.election_statuses[:nomination] && params[:nominations].length < 2
+    if topic.election_status != Topic.election_statuses[:nomination] && params[:usernames].length < 2
       result = { error_message: I18n.t('election.errors.more_nominations') }
     else
-      DiscourseElections::Nomination.set(params[:topic_id], params[:nominations])
+      DiscourseElections::Nomination.set_by_username(params[:topic_id], params[:usernames])
       result = { success: true }
     end
 
@@ -101,11 +101,33 @@ class DiscourseElections::ElectionController < ::ApplicationController
 
   def set_self_nomination
     params.require(:topic_id)
-    params.require(:selfNomination)
+    params.require(:self_nomination)
 
-    DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:selfNomination])
+    DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:self_nomination])
 
     render_result({ success: true })
+  end
+
+  def set_nomination_message
+    params.require(:topic_id)
+    params.permit(:nomination_message, nomination_message: '')
+
+    set_result = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:nomination_message], 'nomination')
+
+    result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_message_failed')}
+
+    render_result(result)
+  end
+
+  def set_poll_message
+    params.require(:topic_id)
+    params.permit(:poll_message, poll_message: '')
+
+    set_result = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:poll_message], 'poll')
+
+    result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_message_failed')}
+
+    render_result(result)
   end
 
   private

@@ -63,7 +63,7 @@ class DiscourseElections::ElectionPost
       content << "</div>"
     end
 
-    message = topic.custom_fields['election_nomination_message']
+    message = topic.custom_fields['election_nomination_message'] || I18n.t('election.nomination.default_message')
 
     if message
       content << "\n\n #{message}"

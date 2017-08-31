@@ -1,6 +1,6 @@
 class DiscourseElections::Nomination
 
-  def self.set(topic_id, usernames)
+  def self.set_by_username(topic_id, usernames)
     topic = Topic.find(topic_id)
     existing_nominations = topic.election_nominations
 

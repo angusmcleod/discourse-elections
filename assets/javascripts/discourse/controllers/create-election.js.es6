@@ -4,7 +4,6 @@ import { ajax } from 'discourse/lib/ajax';
 
 export default Ember.Controller.extend({
   emojiPickerIsActive: false,
-  sameMessage: true,
 
   @computed('position')
   disabled(position) {

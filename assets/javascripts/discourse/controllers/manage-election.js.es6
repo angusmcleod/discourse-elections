@@ -6,17 +6,20 @@ import User from 'discourse/models/user';
 import { extractError } from 'discourse/lib/ajax-error';
 
 export default Ember.Controller.extend(ModalFunctionality, {
-  nominationsDisabled: Ember.computed.or('nominationsUnchanged', 'nominationsSaving'),
+  usernamesDisabled: Ember.computed.or('usernamesUnchanged', 'usernamesSaving'),
   selfNominationDisabled: Ember.computed.or('selfNominationUnchanged', 'selfNominationSaving'),
   statusDisabled: Ember.computed.or('statusUnchanged', 'statusSaving'),
-  doneDisabled: Ember.computed.or('nominationsSaving', 'selfNominationSaving', 'statusSaving'),
-  nominationsSaving: false,
+  nominationMessageDisabled: Ember.computed.or('nominationMessageUnchanged', 'nominationMessageSaving'),
+  pollMessageDisabled: Ember.computed.or('pollMessageUnchanged', 'pollMessageSaving'),
+  doneDisabled: Ember.computed.or('usernamesSaving', 'selfNominationSaving', 'statusSaving'),
+  usernamesSaving: false,
   selfNominationSaving: false,
   statusSaving: false,
-  nominationsIcon: null,
+  usernamesIcon: null,
   selfNominationIcon: null,
   statusIcon: null,
-  usernames: null,
+  nominationMessageIcon: null,
+  pollMessageIcon: null,
   showSelector: false,
 
   @observes('model')
@@ -25,11 +28,17 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
     const model = this.get('model');
     if (model) {
+      const topic = model.topic;
+
       this.setProperties({
-        usernames: model.nominations.join(','),
         showSelector: true,
-        selfNomination: model.selfNomination == 'true',
-        status: model.status
+        topic: model.topic,
+        usernamesString: topic.election_nominations_usernames.join(','),
+        selfNomination: topic.election_self_nomination_allowed == 'true',
+        status: topic.election_status,
+        nominationMessage: topic.election_nomination_message,
+        pollMessage: topic.election_poll_message,
+        sameMessage: topic.same_message
       })
     }
   },
@@ -44,21 +53,21 @@ export default Ember.Controller.extend(ModalFunctionality, {
     })
   },
 
-  @computed('usernames')
-  nominations() {
-    return this.get('usernames').split(',');
+  @computed('usernamesString')
+  usernames(usernamesString) {
+    return usernamesString.split(',');
   },
 
-  @computed('nominations', 'model.nominations')
-  nominationsUnchanged(newNominations, currentNominations) {
+  @computed('usernames', 'topic.election_nominations_usernames')
+  usernamesUnchanged(newUsernames, currentUsernames) {
     let unchanged = true;
 
-    if (newNominations.length !== currentNominations.length) {
+    if (newUsernames.length !== currentUsernames.length) {
       unchanged = false;
     }
 
-    for (let i = 0; i < newNominations.length; i++) {
-      if (currentNominations.indexOf(newNominations[i]) === -1) {
+    for (let i = 0; i < newUsernames.length; i++) {
+      if (currentUsernames.indexOf(newUsernames[i]) === -1) {
         unchanged = false;
       }
     }
@@ -66,17 +75,27 @@ export default Ember.Controller.extend(ModalFunctionality, {
     return unchanged;
   },
 
-  @computed('status', 'model.status')
+  @computed('status', 'topic.election_status')
   statusUnchanged(current, original) {
     return current == original;
   },
 
-  @computed('selfNomination', 'model.selfNomination')
+  @computed('selfNomination', 'topic.election_self_nomination_allowed')
   selfNominationUnchanged(current, original) {
     if (typeof original === 'string') {
       original = original == 'true';
     }
 
+    return current == original;
+  },
+
+  @computed('nominationMessage', 'topic.election_nomination_message')
+  nominationMessageUnchanged(current, original) {
+    return current == original;
+  },
+
+  @computed('pollMessage', 'topic.election_poll_message')
+  pollMessageUnchanged(current, original) {
     return current == original;
   },
 
@@ -92,9 +111,11 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
   clear() {
     this.setProperties({
-      nominationsIcon: null,
+      usernamesIcon: null,
       selfNominationIcon: null,
-      statusIcon: null
+      statusIcon: null,
+      nominationMessageIcon: null,
+      pollMessageIcon: null
     })
   },
 
@@ -104,10 +125,12 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
     $('#modal-alert').hide();
 
-    const topicId = this.get('model.topicId');
+    const topicId = this.get('topic.id');
     let data = { topic_id: topicId};
 
-    data[type] = this.get(type);
+    let serialized_type = type.replace(/[A-Z]/g, "_$&").toLowerCase();
+
+    data[serialized_type] = this.get(type);
 
     return data;
   },
@@ -126,11 +149,12 @@ export default Ember.Controller.extend(ModalFunctionality, {
         this.resolve(result, 'status');
 
         if (result.failed) {
-          const existing = this.get('model.status');
+          const existing = this.get('topic.election_status');
           this.set('status', existing);
         } else {
-          this.set('model.status', data['status']);
-          this.get('model.setTopicStatus')(data['status']);
+          this.set('topic.election_status', data['status']);
+
+          //this.get('model.setTopicStatus')(data['status']);
         }
       }).catch((e) => {
         if (e.jqXHR && e.jqXHR.responseText) {
@@ -140,22 +164,22 @@ export default Ember.Controller.extend(ModalFunctionality, {
       })
     },
 
-    nominationsSave() {
-      const data = this.prepare('nominations');
+    usernamesSave() {
+      const data = this.prepare('usernames');
       if (!data) return;
 
-      ajax('/election/nominations', { type: 'POST', data }).then((result) => {
-        this.resolve(result, 'nominations');
+      ajax('/election/nomination/set-by-username', { type: 'POST', data }).then((result) => {
+        this.resolve(result, 'usernames');
 
         if (result.failed) {
-          const existing = this.get('model.nominations');
+          const existing = this.get('topic.election_nominations_usernames');
           this.set('usernames', existing.join(','));
 
           // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
           this.set('showSelector', false);
           Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
         } else {
-          this.set('model.nominations', data['nominations']);
+          this.set('topic.election_nominations_usernames', data['usernames']);
         }
       })
     },
@@ -170,7 +194,37 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.error_message) {
           this.set('selfNomination', !data['selfNomination']);
         } else {
-          this.set('model.selfNomination', data['selfNomination']);
+          this.set('topic.election_self_nomination_allowed', data['self_nomination']);
+        }
+      })
+    },
+
+    nominationMessageSave() {
+      const data = this.prepare('nominationMessage');
+      if (!data) return;
+
+      ajax('/election/set-nomination-message', { type: 'PUT', data }).then((result) => {
+        this.resolve(result, 'nominationMessage');
+
+        if (result.error_message) {
+          this.set('nominationMessage', this.get('topic.election_nomination_message'));
+        } else {
+          this.set('topic.election_nomination_message', data['nomination_message'])
+        }
+      })
+    },
+
+    pollMessageSave() {
+      const data = this.prepare('pollMessage');
+      if (!data) return;
+
+      ajax('/election/set-poll-message', { type: 'PUT', data }).then((result) => {
+        this.resolve(result, 'pollMessage');
+
+        if (result.error_message) {
+          this.set('pollMessage', this.get('topic.election_poll_message'));
+        } else {
+          this.set('topic.election_poll_message', data['poll_message'])
         }
       })
     }

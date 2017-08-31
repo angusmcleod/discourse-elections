@@ -13,6 +13,7 @@ en:
       not_authorized: "You are not authorized to perform this action."
       revisor_failed: "Post Revisor failed to update the Election Post"
       set_status_failed: "Failed to set status"
+      set_message_failed: "Failed to set message"
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"

@@ -24,6 +24,9 @@ after_initialize do
       object.topic.election_nomination_statements.any?{|n| n['user_id'] == scope.user.id}
     end
   }
+  add_to_serializer(:topic_view, :election_nomination_message) {object.topic.custom_fields['election_nomination_message']}
+  add_to_serializer(:topic_view, :election_poll_message) {object.topic.custom_fields['election_poll_message']}
+  add_to_serializer(:topic_view, :election_same_message) {object.topic.custom_fields['election_poll_message']}
 
   add_to_serializer(:basic_category, :for_elections) {object.custom_fields["for_elections"]}
 
@@ -48,10 +51,12 @@ after_initialize do
   end
 
   DiscourseElections::Engine.routes.draw do
-    post "nominations" => "election#set_nominations"
+    post "nomination/set-by-username" => "election#set_nominations_by_username"
     post "nomination" => "election#add_nomination"
     delete "nomination" => "election#remove_nomination"
     put "nomination/self" => "election#set_self_nomination"
+    put "set-nomination-message" => "election#set_nomination_message"
+    put "set-poll-message" => "election#set_poll_message"
     put "set-status" => "election#set_status"
     post "create" =>"election#create_election"
     put "start" => "election#start_election"

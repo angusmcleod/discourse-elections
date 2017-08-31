@@ -10,18 +10,13 @@ class DiscourseElections::ElectionTopic
     topic.custom_fields['election_status'] = Topic.election_statuses[:nomination]
     topic.custom_fields['election_position'] = opts[:position]
     topic.custom_fields['election_self_nomination_allowed'] = opts[:self_nomination_allowed] || false
-
-    nomination_message = opts[:nomination_message] ? opts[:nomination_message] : I18n.t('election.nomination.default_message')
-    topic.custom_fields['election_nomination_message'] = nomination_message
-
-    if opts[:election_poll_message]
-      topic.custom_fields['election_poll_message'] = opts[:election_poll_message]
-    end
+    topic.custom_fields['election_nomination_message'] =  opts[:nomination_message]
+    topic.custom_fields['election_poll_message'] = opts[:poll_message]
 
     topic.save!(validate: false)
 
     manager = NewPostManager.new(Discourse.system_user, {
-      raw: nomination_message,
+      raw: opts[:nomination_message],
       topic_id: topic.id,
       cook_method: Post.cook_methods[:raw_html]
     })
@@ -48,6 +43,25 @@ class DiscourseElections::ElectionTopic
       election_post = Post.find_by(topic_id: topic_id, post_number: 1)
       poll_status = status == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
       DiscoursePoll::Poll.toggle_status(election_post.id, "poll", poll_status, user_id)
+    end
+
+    saved
+  end
+
+  def self.set_message(topic_id, message, type, same_message = nil)
+    topic = Topic.find(topic_id)
+    topic.custom_fields["election_#{type}_message"] = message
+    saved = topic.save!
+
+    puts "STATUS: #{topic.election_status}"
+
+    puts "TYPE: #{type.to_sym}"
+
+    puts "TYPE STATUS: #{Topic.election_statuses[type.to_sym]}"
+
+    if saved && topic.election_status == Topic.election_statuses[type.to_sym]
+      puts "REBUILDING POST"
+      DiscourseElections::ElectionPost.rebuild_election_post(topic)
     end
 
     saved

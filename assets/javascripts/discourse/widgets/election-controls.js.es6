@@ -51,21 +51,9 @@ export default createWidget('election-controls', {
   },
 
   manage() {
-    const topic = this.attrs.topic;
-    const topicId = topic.id;
-    const nominations = topic.election_nominations_usernames;
-    const selfNomination = topic.election_self_nomination_allowed;
-    const status = topic.election_status;
-
     showModal('manage-election', {
       model: {
-        topicId,
-        nominations,
-        selfNomination,
-        status,
-        setTopicStatus: (status) => {
-          this.attrs.topic.set('election_status', status)
-        }
+        topic: this.attrs.topic
       }
     });
   },
