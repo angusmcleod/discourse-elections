@@ -64,7 +64,8 @@ export default {
       api.includePostAttributes("topic",
                                 "election_post",
                                 "election_nomination_statement",
-                                "election_nominee_title");
+                                "election_nominee_title",
+                                "election_by_nominee");
 
       api.addPostClassesCallback((attrs) => {
         if (attrs.election_post) return ["election-post"];
@@ -74,11 +75,11 @@ export default {
         const post = helper.attrs;
         let contents = [];
 
-        if (post.topic.election_is_nominee && post.election_nomination_statement) {
+        if (post.election_by_nominee && post.election_nomination_statement) {
           contents.push(helper.h('span.statement-post-label', I18n.t('election.post.nomination_statement')))
         }
 
-        if (!post.topic.election_is_nominee && post.election_nominee_title) {
+        if (!post.election_by_nominee && post.election_nominee_title) {
           contents.push(helper.h('span.nominee-title',
             new RawHtml({ html: post.election_nominee_title })
           ))
@@ -91,7 +92,7 @@ export default {
         const post = helper.attrs;
         let contents = [];
 
-        if (post.topic.election_is_nominee) {
+        if (post.election_by_nominee) {
           contents.push(helper.h('div.avatar-flair.nominee', helper.h('i', {
             className: 'fa fa-certificate',
             title: I18n.t('election.post.nominee'),
