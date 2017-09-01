@@ -33,9 +33,6 @@ after_initialize do
   Post.register_custom_field_type('election_nomination_statement', :boolean)
   add_to_serializer(:post, :election_post) {object.is_first_post?}
   add_to_serializer(:post, :election_nomination_statement) {object.custom_fields["election_nomination_statement"]}
-  add_to_serializer(:post, :election_is_nominee) {
-    object.user && object.topic.election_nominations.include?(object.user.id)
-  }
   add_to_serializer(:post, :election_nominee_title) {
     object.user && object.user.election_nominations && object.user.election_nominee_title
   }
