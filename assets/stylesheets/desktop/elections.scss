@@ -1,0 +1,28 @@
+.manage-election {
+  .control-group {
+    padding: 15px;
+  }
+
+  .ac-wrap {
+    width: 490px !important;
+    min-height: 60px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .d-editor {
+    width: 500px;
+    display: inline-block;
+  }
+
+  .controls {
+    float: right;
+    width: 100px;
+    text-align: center;
+
+    .state {
+      width: 30px;
+      display: inline-block;
+    }
+  }
+}

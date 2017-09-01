@@ -3,7 +3,9 @@
 # version: 0.1
 # authors: angus
 
-register_asset 'stylesheets/discourse-elections.scss'
+register_asset 'stylesheets/common/elections.scss'
+register_asset 'stylesheets/desktop/elections.scss', :desktop
+register_asset 'stylesheets/mobile/elections.scss', :mobile
 
 after_initialize do
   Topic.register_custom_field_type('election_self_nomination', :boolean)

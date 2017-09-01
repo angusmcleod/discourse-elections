@@ -1,4 +1,5 @@
 class DiscourseElections::ElectionTopic
+  
   def self.create(opts)
     title = I18n.t('election.title', position: opts[:position])
     topic = Topic.new(title: title, user: Discourse.system_user, category_id: opts[:category_id])
