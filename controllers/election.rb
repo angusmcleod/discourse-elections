@@ -1,5 +1,5 @@
 class DiscourseElections::ElectionController < ::ApplicationController
-  def create_election
+  def create
     params.require(:category_id)
     params.require(:position)
     params.permit(:nomination_message, :poll_message, :self_nomination)
