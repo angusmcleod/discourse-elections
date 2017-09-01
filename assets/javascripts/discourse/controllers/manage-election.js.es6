@@ -209,6 +209,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
         } else {
           this.set('topic.election_nominations_usernames', data['usernames']);
+          this.set('topic.election_is_nominee', data['usernames'].indexOf(this.currentUser.username) > -1);
         }
       }).catch((e) => {
         if (e.jqXHR && e.jqXHR.responseText) {
@@ -225,7 +226,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
       ajax('/election/set-self-nomination', { type: 'PUT', data }).then((result) => {
         this.resolve(result, 'selfNomination');
 
-        if (result.error_message) {
+        if (result.failed) {
           this.set('selfNomination', !data['selfNomination']);
         } else {
           this.set('topic.election_self_nomination_allowed', data['self_nomination']);
@@ -240,7 +241,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
       ajax('/election/set-nomination-message', { type: 'PUT', data }).then((result) => {
         this.resolve(result, 'nominationMessage');
 
-        if (result.error_message) {
+        if (result.failed) {
           this.set('nominationMessage', this.get('topic.election_nomination_message'));
         } else {
           this.set('topic.election_nomination_message', data['nomination_message'])
@@ -255,7 +256,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
       ajax('/election/set-poll-message', { type: 'PUT', data }).then((result) => {
         this.resolve(result, 'pollMessage');
 
-        if (result.error_message) {
+        if (result.failed) {
           this.set('pollMessage', this.get('topic.election_poll_message'));
         } else {
           this.set('topic.election_poll_message', data['poll_message'])

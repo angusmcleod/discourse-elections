@@ -16,13 +16,9 @@ export default createWidget('election-controls', {
   },
 
   toggleNomination() {
-    const topic = this.attrs.topic;
     showModal('confirm-nomination', {
       model: {
-        isNominee: topic.election_is_nominee,
-        categoryId: topic.category_id,
-        topicId: topic.id,
-        position: topic.election_position
+        topic: this.attrs.topic
       }
     });
   },
@@ -70,18 +66,17 @@ export default createWidget('election-controls', {
   html(attrs, state) {
     const topic = attrs.topic;
     const user = this.currentUser;
-    const isNominee = topic.election_is_nominee;
     let contents = [];
 
     if (topic.election_status === ElectionStatuses['nomination'] && topic.election_self_nomination_allowed === "true") {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
-        label: `election.nomination.${isNominee ? 'remove.label' : 'add.label'}`,
+        label: `election.nomination.${topic.election_is_nominee ? 'remove.label' : 'add.label'}`,
         className: 'btn-primary toggle-nomination'
       }))
     }
 
-    if (isNominee && !topic.election_made_statement) {
+    if (topic.election_is_nominee && !topic.election_made_statement) {
       contents.push(this.attach('button', {
         action: 'makeStatement',
         label: `election.nomination.statement.add`,
