@@ -2,3 +2,6 @@ plugins:
   elections_admin_moderator:
     client: true
     default: false
+  elections_nav_category_list:
+    client: true
+    default: false

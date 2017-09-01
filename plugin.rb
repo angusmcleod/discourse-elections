@@ -61,9 +61,9 @@ after_initialize do
     put "set-poll-message" => "election#set_poll_message"
     put "set-status" => "election#set_status"
     put "set-position" => "election#set_position"
-    post "create" =>"election#create_election"
+    post "create" =>"election#create"
     put "start-poll" => "election#start_poll"
-    get ":category_id" => "election#category_elections"
+    get "category-list" => "election#category_list"
   end
 
   Discourse::Application.routes.append do

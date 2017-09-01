@@ -44,10 +44,12 @@ class DiscourseElections::ElectionController < ::ApplicationController
     render_result(result)
   end
 
-  def category_elections
+  def category_list
     params.require(:category_id)
 
-    topics = DiscourseElections::ElectionTopic.list_category_elections(params[:category_id])
+    topics = DiscourseElections::ElectionTopic.list_by_category(params[:category_id])
+
+    puts "TOPICS: #{topics}"
 
     render_serialized(topics, DiscourseElections::ElectionSerializer)
   end

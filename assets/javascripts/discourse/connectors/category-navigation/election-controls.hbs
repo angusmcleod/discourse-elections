@@ -2,5 +2,7 @@
   {{#if currentUser.is_elections_admin}}
     {{d-button icon='plus' class="btn-default" label='election.create.label' action="createElection" actionParam=category.id}}
   {{/if}}
-  {{election-list category=category}}
+  {{#if siteSettings.elections_nav_category_list}}
+    {{election-list category=category}}
+  {{/if}}
 {{/if}}

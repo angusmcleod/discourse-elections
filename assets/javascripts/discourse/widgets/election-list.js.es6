@@ -22,7 +22,7 @@ export default createWidget('election-list', {
       return;
     }
 
-    ajax(`/election/${category.id}`).then((elections) => {
+    ajax(`/election/category-list`, { data: { category_id: category.id }}).then((elections) => {
       this.state.elections = elections;
       this.state.loading = false;
       this.scheduleRerender();

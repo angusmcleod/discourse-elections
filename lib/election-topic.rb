@@ -74,22 +74,13 @@ class DiscourseElections::ElectionTopic
     saved
   end
 
-  def self.list_category_elections(category_id, opts = {})
+  def self.list_by_category(category_id)
+
     query = "INNER JOIN topic_custom_fields
              ON topic_custom_fields.topic_id = topics.id
-             AND topic_custom_fields.name = 'election_status'"
-
-    if opts.try(:status)
-      query << "AND topic_custom_fields.value = #{opts[:status]}"
-    else
-      query << "AND (topic_custom_fields.value = 'nominate' OR
-                     topic_custom_fields.value = 'electing')"
-    end
-
-    if opts.try(:role)
-      query << "AND topic_custom_fields.name = 'election_role'
-                AND topic_custom_fields.value = #{opts[:role]}"
-    end
+             AND topic_custom_fields.name = 'election_status'
+             AND (topic_custom_fields.value = '#{Topic.election_statuses[:nomination]}' OR
+                  topic_custom_fields.value = '#{Topic.election_statuses[:poll]}')"
 
     Topic.joins(query).where(category_id: category_id)
   end
