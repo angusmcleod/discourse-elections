@@ -17,17 +17,12 @@ export default createWidget('election-controls', {
 
   toggleNomination() {
     const topic = this.attrs.topic;
-    const categoryId = topic.category_id;
-    const topicId = topic.id;
-    const position = topic.election_position;
-    const isNominee = topic.election_is_nominee;
-
     showModal('confirm-nomination', {
       model: {
-        isNominee,
-        categoryId,
-        topicId,
-        position
+        isNominee: topic.election_is_nominee,
+        categoryId: topic.category_id,
+        topicId: topic.id,
+        position: topic.election_position
       }
     });
   },
