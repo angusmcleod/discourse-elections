@@ -10,10 +10,6 @@ export default createWidget('election-controls', {
   buildKey: () => `election-controls`,
 
   defaultState(attrs) {
-    this.appEvents.on('header:update-topic', () => {
-      this.scheduleRerender();
-    });
-
     return {
       startingElection: false
     }
@@ -61,7 +57,7 @@ export default createWidget('election-controls', {
   startElection() {
     const topicId = this.attrs.topic.id;
 
-    ajax('/election/start', {type: 'PUT', data: { topic_id: topicId}}).then((result) => {
+    ajax('/election/start-poll', {type: 'PUT', data: { topic_id: topicId }}).then((result) => {
       if (result.failed) {
         bootbox.alert(result.message);
       } else {
@@ -110,7 +106,7 @@ export default createWidget('election-controls', {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',
-        className: 'btn-primary start-election'
+        className: 'btn-primary start-poll'
       }))
 
       if (state.startingElection) {

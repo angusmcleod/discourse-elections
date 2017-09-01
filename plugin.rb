@@ -52,16 +52,17 @@ after_initialize do
   end
 
   DiscourseElections::Engine.routes.draw do
-    post "nomination/set-by-username" => "election#set_nominations_by_username"
-    post "nomination" => "election#add_nomination"
-    delete "nomination" => "election#remove_nomination"
-    put "nomination/self" => "election#set_self_nomination"
+    post "nomination/set-by-username" => "nomination#set_by_username"
+    post "nomination" => "nomination#add"
+    delete "nomination" => "nomination#remove"
+
+    put "set-self-nomination" => "election#set_self_nomination"
     put "set-nomination-message" => "election#set_nomination_message"
     put "set-poll-message" => "election#set_poll_message"
     put "set-status" => "election#set_status"
     put "set-position" => "election#set_position"
     post "create" =>"election#create_election"
-    put "start" => "election#start_election"
+    put "start-poll" => "election#start_poll"
     get ":category_id" => "election#category_elections"
   end
 
@@ -69,6 +70,7 @@ after_initialize do
     mount ::DiscourseElections::Engine, at: "election"
   end
 
+  load File.expand_path('../controllers/nomination.rb', __FILE__)
   load File.expand_path('../controllers/election.rb', __FILE__)
   load File.expand_path('../lib/election-post.rb', __FILE__)
   load File.expand_path('../lib/election-topic.rb', __FILE__)

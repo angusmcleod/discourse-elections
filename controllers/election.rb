@@ -25,7 +25,7 @@ class DiscourseElections::ElectionController < ::ApplicationController
     end
   end
 
-  def start_election
+  def start_poll
     params.require(:topic_id)
 
     unless current_user.try(:elections_admin?)
@@ -42,37 +42,6 @@ class DiscourseElections::ElectionController < ::ApplicationController
     end
 
     render_result(result)
-  end
-
-  def set_nominations_by_username
-    params.require(:topic_id)
-    params.require(:usernames)
-
-    topic = Topic.find(params[:topic_id])
-    if topic.election_status != Topic.election_statuses[:nomination] && params[:usernames].length < 2
-      result = { error_message: I18n.t('election.errors.more_nominations') }
-    else
-      DiscourseElections::Nomination.set_by_username(params[:topic_id], params[:usernames])
-      result = { success: true }
-    end
-
-    render_result(result)
-  end
-
-  def add_nomination
-    params.require(:topic_id)
-
-    DiscourseElections::Nomination.add(params[:topic_id], current_user.id)
-
-    render_result({ success: true })
-  end
-
-  def remove_nomination
-    params.require(:topic_id)
-
-    DiscourseElections::Nomination.remove(params[:topic_id], current_user.id)
-
-    render_result({ success: true })
   end
 
   def category_elections

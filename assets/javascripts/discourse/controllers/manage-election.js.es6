@@ -222,7 +222,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
       const data = this.prepare('selfNomination');
       if (!data) return;
 
-      ajax('/election/nomination/self', { type: 'PUT', data }).then((result) => {
+      ajax('/election/set-self-nomination', { type: 'PUT', data }).then((result) => {
         this.resolve(result, 'selfNomination');
 
         if (result.error_message) {
