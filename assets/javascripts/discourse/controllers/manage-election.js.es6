@@ -245,7 +245,8 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.failed) {
           this.set('selfNomination', !data['selfNomination']);
         } else {
-          this.set('topic.election_self_nomination_allowed', data['self_nomination']);
+          this.set('topic.election_self_nomination_allowed', data['self_nomination'] ? "true" : "false");
+          this.get('model.rerender')();
         }
       })
     },

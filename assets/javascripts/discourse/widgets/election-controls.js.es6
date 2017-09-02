@@ -40,7 +40,8 @@ export default createWidget('election-controls', {
   manage() {
     showModal('manage-election', {
       model: {
-        topic: this.attrs.topic
+        topic: this.attrs.topic,
+        rerender: () => this.scheduleRerender()
       }
     });
   },
