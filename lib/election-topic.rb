@@ -1,5 +1,5 @@
 class DiscourseElections::ElectionTopic
-  
+
   def self.create(opts)
     title = I18n.t('election.title', position: opts[:position])
     topic = Topic.new(title: title, user: Discourse.system_user, category_id: opts[:category_id])
@@ -40,7 +40,7 @@ class DiscourseElections::ElectionTopic
     current_status = topic.election_status
 
     topic.custom_fields['election_status'] = status
-    topic.election_status_changed = status != topic.election_status
+    topic.election_status_changed = status != current_status
     saved = topic.save!
 
     if saved && (current_status == Topic.election_statuses[:nomination] || status == Topic.election_statuses[:nomination])
