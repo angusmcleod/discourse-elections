@@ -5,3 +5,6 @@ plugins:
   elections_nav_category_list:
     client: true
     default: false
+  elections_nominee_titles:
+    client: true
+    default: false

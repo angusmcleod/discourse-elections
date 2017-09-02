@@ -23,3 +23,4 @@ en:
   site_settings:
     elections_admin_moderator: "Allow moderators to administer elections"
     elections_nav_category_list: "Show a list of active elections below the navigation controls in election categories"
+    elections_nominee_titles: "Show a title for nominees on posts outside of the election they are nominated for"
