@@ -10,7 +10,6 @@ import { h } from 'virtual-dom';
 export default {
   name: 'election-edits',
   initialize(container) {
-    Composer.serializeOnCreate('election_nomination_statement', 'electionNominationStatement')
 
     withPluginApi('0.8.7', api => {
       api.modifyClass('model:topic', {
@@ -79,7 +78,7 @@ export default {
           contents.push(helper.h('span.statement-post-label', I18n.t('election.post.nomination_statement')))
         }
 
-        if (!post.election_by_nominee && post.election_nominee_title) {
+        if (!post.election_by_nominee && post.election_nominee_title && Discourse.SiteSettings.elections_nominee_titles) {
           contents.push(helper.h('span.nominee-title',
             new RawHtml({ html: post.election_nominee_title })
           ))
@@ -125,5 +124,7 @@ export default {
         }
       });
     })
+
+    Composer.serializeOnCreate('election_nomination_statement', 'electionNominationStatement')
   }
 }
