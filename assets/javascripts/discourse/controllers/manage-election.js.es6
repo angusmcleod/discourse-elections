@@ -152,6 +152,11 @@ export default Ember.Controller.extend(ModalFunctionality, {
     return data;
   },
 
+  resolveStandardError(responseText, property) {
+    const message = responseText.substring(responseText.indexOf('>'), responseText.indexOf('----'));
+    this.resolve({ failed: true, message }, property);
+  },
+
   actions: {
     close() {
       this.clearIcons();
@@ -166,9 +171,14 @@ export default Ember.Controller.extend(ModalFunctionality, {
         this.resolve(result, 'position');
 
         if (result.failed) {
-          this.set('existing', this.get('topic.election_position'));
+          this.set('position', this.get('topic.election_position'));
         } else {
           this.set('topic.election_position', data['position']);
+        }
+      }).catch((e) => {
+        if (e.jqXHR && e.jqXHR.responseText) {
+          this.resolveStandardError(e.jqXHR.responseText, 'position');
+          this.set('position', this.get('topic.election_position'));
         }
       })
     },
@@ -187,8 +197,8 @@ export default Ember.Controller.extend(ModalFunctionality, {
         }
       }).catch((e) => {
         if (e.jqXHR && e.jqXHR.responseText) {
-          let message = e.jqXHR.responseText.substring(0, e.jqXHR.responseText.indexOf('----'));
-          this.resolve({ failed: true, message })
+          this.resolveStandardError(e.jqXHR.responseText, 'status');
+          this.set('status', this.get('topic.election_status'));
         }
       })
     },
@@ -213,8 +223,14 @@ export default Ember.Controller.extend(ModalFunctionality, {
         }
       }).catch((e) => {
         if (e.jqXHR && e.jqXHR.responseText) {
-          let message = e.jqXHR.responseText.substring(0, e.jqXHR.responseText.indexOf('----'));
-          this.resolve({ failed: true, message })
+          this.resolveStandardError(e.jqXHR.responseText, 'usernames');
+
+          const existing = this.get('topic.election_nominations_usernames');
+          this.set('usernames', existing.join(','));
+
+          // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
+          this.set('showSelector', false);
+          Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
         }
       })
     },
