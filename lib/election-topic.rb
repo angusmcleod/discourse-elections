@@ -29,7 +29,7 @@ class DiscourseElections::ElectionTopic
     result = manager.perform
 
     if result.success?
-      { topic_url: topic.url }
+      { url: topic.relative_url }
     else
       { error_message: I18n.t('election.errors.create_failed') }
     end

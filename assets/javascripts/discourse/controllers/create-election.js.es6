@@ -26,8 +26,8 @@ export default Ember.Controller.extend({
       ajax(`/election/create`, {type: 'POST', data}).then((result) => {
         this.set('loading', false);
 
-        if (result.topic_url) {
-          DiscourseURL.routeTo(result.topic_url);
+        if (result.url) {
+          DiscourseURL.routeTo(result.url);
         }
       })
     }

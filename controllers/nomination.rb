@@ -3,6 +3,10 @@ class DiscourseElections::NominationController < ::ApplicationController
     params.require(:topic_id)
     params.require(:usernames)
 
+    unless current_user.try(:elections_admin?)
+      raise StandardError.new I18n.t("election.errors.not_authorized")
+    end
+
     topic = Topic.find(params[:topic_id])
     if topic.election_status != Topic.election_statuses[:nomination] && params[:usernames].length < 2
       result = { error_message: I18n.t('election.errors.more_nominations') }

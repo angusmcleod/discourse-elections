@@ -2,7 +2,7 @@ class DiscourseElections::ElectionController < ::ApplicationController
   def create
     params.require(:category_id)
     params.require(:position)
-    params.permit(:nomination_message, :poll_message, :self_nomination)
+    params.permit(:nomination_message, :poll_message, :self_nomination_allowed)
 
     unless current_user.try(:elections_admin?)
       raise StandardError.new I18n.t("election.errors.not_authorized")
@@ -21,7 +21,7 @@ class DiscourseElections::ElectionController < ::ApplicationController
     if result[:error_message]
       render json: failed_json.merge(message: result[:error_message])
     else
-      render json: success_json.merge(topic_url: result[:topic_url])
+      render json: success_json.merge(url: result[:url])
     end
   end
 
@@ -58,6 +58,10 @@ class DiscourseElections::ElectionController < ::ApplicationController
     params.require(:topic_id)
     params.require(:status)
 
+    unless current_user.try(:elections_admin?)
+      raise StandardError.new I18n.t("election.errors.not_authorized")
+    end
+
     topic = Topic.find(params[:topic_id])
 
     if params[:status].to_i != Topic.election_statuses[:nomination] && topic.election_nominations.length < 2
@@ -84,6 +88,10 @@ class DiscourseElections::ElectionController < ::ApplicationController
     params.require(:topic_id)
     params.require(:self_nomination)
 
+    unless current_user.try(:elections_admin?)
+      raise StandardError.new I18n.t("election.errors.not_authorized")
+    end
+
     DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:self_nomination])
 
     render_result({ success: true })
@@ -92,6 +100,10 @@ class DiscourseElections::ElectionController < ::ApplicationController
   def set_nomination_message
     params.require(:topic_id)
     params.permit(:nomination_message, nomination_message: '')
+
+    unless current_user.try(:elections_admin?)
+      raise StandardError.new I18n.t("election.errors.not_authorized")
+    end
 
     set_result = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:nomination_message], 'nomination')
 
@@ -104,6 +116,10 @@ class DiscourseElections::ElectionController < ::ApplicationController
     params.require(:topic_id)
     params.permit(:poll_message, poll_message: '')
 
+    unless current_user.try(:elections_admin?)
+      raise StandardError.new I18n.t("election.errors.not_authorized")
+    end
+
     set_result = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:poll_message], 'poll')
 
     result = set_result ? { success: true } : { error_message: I18n.t('election.errors.set_message_failed')}
@@ -114,6 +130,10 @@ class DiscourseElections::ElectionController < ::ApplicationController
   def set_position
     params.require(:topic_id)
     params.require(:position)
+
+    unless current_user.try(:elections_admin?)
+      raise StandardError.new I18n.t("election.errors.not_authorized")
+    end
 
     if params[:position].length < 3
       result = { error_message: I18n.t('election.errors.position_too_short') }
