@@ -72,9 +72,9 @@ describe ::DiscourseElections::ElectionController do
           it "works" do
             message = MessageBus.track_publish do
               xhr :put, :start_poll, topic_id: topic.id
-            end.first
+            end.find { |m| m.channel.include?("polls") }
 
-            puts "THIS IS THE MESSAGE: #{message}"
+            expect(message.data[:post_id]).to eq(post.id)
           end
         end
       end
