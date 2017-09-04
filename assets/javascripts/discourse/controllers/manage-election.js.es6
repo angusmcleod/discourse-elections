@@ -40,7 +40,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         topic: model.topic,
         position: topic.election_position,
         usernamesString: topic.election_nominations_usernames.join(','),
-        selfNomination: topic.election_self_nomination_allowed == 'true',
+        selfNomination: topic.election_self_nomination_allowed,
         status: topic.election_status,
         nominationMessage: topic.election_nomination_message,
         pollMessage: topic.election_poll_message,
@@ -92,10 +92,6 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
   @computed('selfNomination', 'topic.election_self_nomination_allowed')
   selfNominationUnchanged(current, original) {
-    if (typeof original === 'string') {
-      original = original == 'true';
-    }
-
     return current == original;
   },
 
@@ -198,6 +194,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.set('status', this.get('topic.election_status'));
         } else {
           this.set('topic.election_status', data['status']);
+          this.get('model.rerender')();
         }
       }).catch((e) => {
         if (e.jqXHR && e.jqXHR.responseText) {
@@ -249,7 +246,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.failed) {
           this.set('selfNomination', !data['selfNomination']);
         } else {
-          this.set('topic.election_self_nomination_allowed', data['self_nomination'] ? "true" : "false");
+          this.set('topic.election_self_nomination_allowed', data['self_nomination']);
           this.get('model.rerender')();
         }
       })

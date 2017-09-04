@@ -43,7 +43,7 @@ class DiscourseElections::ElectionPost
       content << "\n\n #{message}"
     end
 
-    update_election_post(topic.id, content)
+    update_election_post(topic.id, content, false)
   end
 
   def self.build_nominations(topic)
@@ -73,7 +73,7 @@ class DiscourseElections::ElectionPost
 
     revisor_opts = { skip_validations: true }
 
-    update_election_post(topic.id, content, revisor_opts)
+    update_election_post(topic.id, content, true, revisor_opts)
   end
 
   def self.build_nominee(topic, user)
@@ -102,10 +102,12 @@ class DiscourseElections::ElectionPost
     html
   end
 
-  def self.update_election_post(topic_id, content, revisor_opts = {})
+  def self.update_election_post(topic_id, content, publish_change, revisor_opts = {})
     election_post = Post.find_by(topic_id: topic_id, post_number: 1)
 
-    return if election_post.raw == content
+    puts "UPDATING ELECTION POST"
+
+    return if !election_post || election_post.raw == content
 
     revisor = PostRevisor.new(election_post, election_post.topic)
 
@@ -114,14 +116,12 @@ class DiscourseElections::ElectionPost
 
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
 
-    if revise_result
-      election_post.publish_change_to_clients!(:revised, { reload_topic: true })
-    else
-      if election_post.errors
-        raise StandardError.new election_post.errors.to_json
-      else
-        raise StandardError.new I18n.t("election.errors.revisor_failed")
-      end
+    if election_post.errors.any?
+      return raise StandardError.new election_post.errors.to_json
+    end
+
+    if !revise_result
+      return raise StandardError.new I18n.t("election.errors.revisor_failed")
     end
   end
 end

@@ -1,15 +1,11 @@
 class DiscourseElections::ElectionController < ::ApplicationController
   before_filter :ensure_is_elections_admin
+  before_filter :ensure_is_elections_category, only: [:create]
 
   def create
     params.require(:category_id)
     params.require(:position)
     params.permit(:nomination_message, :poll_message, :self_nomination_allowed)
-
-    category = Category.find(params[:category_id])
-    unless category.custom_fields["for_elections"]
-      raise StandardError.new I18n.t("election.errors.category_not_enabled")
-    end
 
     opts = {
       category_id: params[:category_id],

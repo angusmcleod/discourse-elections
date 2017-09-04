@@ -7,11 +7,11 @@ class DiscourseElections::NominationController < ::ApplicationController
 
     topic = Topic.find(params[:topic_id])
     if topic.election_status != Topic.election_statuses[:nomination] && params[:usernames].length < 2
-      result = { error_message: I18n.t('election.errors.more_nominations') }
-    else
-      DiscourseElections::Nomination.set_by_username(params[:topic_id], params[:usernames])
-      result = { success: true }
+      raise StandardError.new I18n.t('election.errors.more_nominations')
     end
+
+    DiscourseElections::Nomination.set_by_username(params[:topic_id], params[:usernames])
+    result = { success: true }
 
     render_result(result)
   end

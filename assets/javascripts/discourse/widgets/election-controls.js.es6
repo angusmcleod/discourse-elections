@@ -69,7 +69,7 @@ export default createWidget('election-controls', {
     const user = this.currentUser;
     let contents = [];
 
-    if (topic.election_status === ElectionStatuses['nomination'] && topic.election_self_nomination_allowed === "true") {
+    if (topic.election_status == ElectionStatuses['nomination'] && topic.election_self_nomination_allowed) {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
         label: `election.nomination.${topic.election_is_nominee ? 'remove.label' : 'add.label'}`,
@@ -93,7 +93,7 @@ export default createWidget('election-controls', {
       }))
     }
 
-    if (user && user.is_elections_admin && topic.election_status === ElectionStatuses['nomination']) {
+    if (user && user.is_elections_admin && topic.election_status == ElectionStatuses['nomination']) {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',

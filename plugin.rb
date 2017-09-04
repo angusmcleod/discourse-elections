@@ -8,7 +8,7 @@ register_asset 'stylesheets/desktop/elections.scss', :desktop
 register_asset 'stylesheets/mobile/elections.scss', :mobile
 
 after_initialize do
-  Topic.register_custom_field_type('election_self_nomination', :boolean)
+  Topic.register_custom_field_type('election_self_nomination_allowed', :boolean)
   Topic.register_custom_field_type('election_nominations', :integer)
   Topic.register_custom_field_type('election_status', :integer)
   add_to_serializer(:topic_view, :election_status) {object.topic.election_status}
@@ -78,6 +78,7 @@ after_initialize do
   load File.expand_path('../controllers/election_list.rb', __FILE__)
   load File.expand_path('../controllers/nomination.rb', __FILE__)
   load File.expand_path('../serializers/election.rb', __FILE__)
+  load File.expand_path('../jobs/notify_nominees.rb', __FILE__)
   load File.expand_path('../lib/election_post.rb', __FILE__)
   load File.expand_path('../lib/election_topic.rb', __FILE__)
   load File.expand_path('../lib/nomination_statement.rb', __FILE__)
@@ -86,6 +87,15 @@ after_initialize do
   ApplicationController.class_eval do
     def ensure_is_elections_admin
       raise Discourse::InvalidAccess.new unless current_user && current_user.is_elections_admin?
+    end
+
+    def ensure_is_elections_category
+      return false unless params.include?(:category_id)
+
+      category = Category.find(params[:category_id])
+      unless category.custom_fields["for_elections"]
+        raise StandardError.new I18n.t("election.errors.category_not_enabled")
+      end
     end
   end
 
@@ -126,11 +136,11 @@ after_initialize do
       result = nil
       new_status = nil
 
-      if poll["status"] == 'closed' && post.topic.election_status != Topic.election_statuses[:closed_poll]
+      if poll["status"] == 'closed' && post.topic.election_status == Topic.election_statuses[:poll]
         new_status = Topic.election_statuses[:closed_poll]
       end
 
-      if poll["status"] == 'open' && post.topic.election_status != Topic.election_statuses[:poll]
+      if poll["status"] == 'open' && post.topic.election_status == Topic.election_statuses[:closed_poll]
         new_status = Topic.election_statuses[:poll]
       end
 
@@ -167,13 +177,7 @@ after_initialize do
     end
 
     def notify_nominees(message)
-      election_nominations.each do |user_id|
-        user = User.find(user_id)
-        user.notifications.create(notification_type: Notification.types[:custom],
-                                  data: { topic_id: self.id,
-                                          message: "election.nomination.notification",
-                                          description: message }.to_json)
-      end
+      Jobs.enqueue(:notify_nominees, topic_id: self.id, message: message)
     end
 
     def election_nominations
