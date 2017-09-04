@@ -100,6 +100,10 @@ class DiscourseElections::ElectionController < ::ApplicationController
     params.require(:type)
     params.permit(:message, message: '')
 
+    unless params.has_key?(:message)
+      raise ActionController::ParameterMissing.new(:message)
+    end
+
     response = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:message], params[:type])
     result = response ? {} : {error_message: I18n.t('election.errors.set_message_failed')}
 

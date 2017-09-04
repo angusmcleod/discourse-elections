@@ -92,7 +92,7 @@ describe ::DiscourseElections::ElectionController do
     end
 
     describe "#set_status" do
-      include_examples 'requires election admin', :put, :set_status, topic_id: 6
+      include_examples 'requires election admin', :put, :set_status, topic_id: 6, status: 2
 
       context "while logged in as an admin" do
         let!(:admin) { log_in(:admin) }
@@ -203,7 +203,7 @@ describe ::DiscourseElections::ElectionController do
     end
 
     describe "set_self_nomination" do
-      include_examples 'requires election admin', :put, :set_self_nomination, topic_id: 7
+      include_examples 'requires election admin', :put, :set_self_nomination, topic_id: 7, state: true
 
       context "while logged in as an admin" do
         let!(:admin) { log_in(:admin) }
@@ -239,7 +239,7 @@ describe ::DiscourseElections::ElectionController do
           expect(updated_topic.custom_fields["election_nomination_message"]).to eq(message)
         end
 
-        it "updates nomination message in election post" do
+        it "dynamically updates nomination message in election post" do
           nomination_message = "Example message: Bananas"
           post
 
@@ -251,7 +251,7 @@ describe ::DiscourseElections::ElectionController do
           expect(post.raw).to include(nomination_message)
         end
 
-        it "updates poll message in election post" do
+        it "dynamically updates poll message in election post" do
           poll_message = "Example message: Apples"
           post
 
@@ -265,6 +265,38 @@ describe ::DiscourseElections::ElectionController do
 
           post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
           expect(post.raw).to include(poll_message)
+        end
+
+        it "works with an empty message" do
+          xhr :put, :set_message, topic_id: topic.id, type: "nomination", message: ""
+          expect(response).to be_success
+        end
+
+        it "requires a message" do
+          expect { xhr :put, :set_message, topic_id: topic.id, type: "nomination"}.to raise_error(ActionController::ParameterMissing)
+        end
+      end
+    end
+
+    describe "set_position" do
+      include_examples 'requires election admin', :put, :set_position, topic_id: 12, position: "Grand Poobah"
+
+      context "while logged in as an admin" do
+        let!(:admin) { log_in(:admin) }
+
+        it "works" do
+          position = "Wizard"
+          xhr :put, :set_position, topic_id: topic.id, position: position
+          expect(response).to be_success
+
+          updated_topic = Topic.find(topic.id)
+          expect(updated_topic.custom_fields["election_position"]).to eq(position)
+          expect(updated_topic.title).to include(position)
+        end
+
+        it "requires a minimum length of 3" do
+          expect { xhr :put, :set_position, topic_id: topic.id, position: "ha" }
+            .to raise_error(StandardError, I18n.t('election.errors.position_too_short'))
         end
       end
     end
