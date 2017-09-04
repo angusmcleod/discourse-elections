@@ -54,10 +54,9 @@ describe ::DiscourseElections::ElectionController do
                                    post_number: 1,
                                    raw: I18n.t('election.nomination.default_message'))}
 
-    context "while logged in as an admin" do
-      let!(:admin) { log_in(:admin) }
-
-      describe "#start_poll" do
+    describe "#start_poll" do
+      context "while logged in as an admin" do
+        let!(:admin) { log_in(:admin) }
 
         context "while election has 2 or more nominations" do
           let(:user1) { Fabricate(:user) }
@@ -70,22 +69,27 @@ describe ::DiscourseElections::ElectionController do
           end
 
           it "works" do
-            message = MessageBus.track_publish do
+            messages = MessageBus.track_publish do
               xhr :put, :start_poll, topic_id: topic.id
-            end.find { |m| m.channel.include?("polls") }
+            end
 
-            expect(message.data[:post_id]).to eq(post.id)
+            poll_message = messages.find { |m| m.channel.include?("polls") }
+            expect(poll_message.data[:post_id]).to eq(post.id)
+
+            expect( Topic.find(topic.id).election_status ).to eq(Topic.election_statuses[:poll])
           end
         end
 
         it "requires at least 2 nominees" do
-          user1 = Fabricate(:user)
-          topic.custom_fields['election_nominations'] = [ user1.id ]
-          topic.save_custom_fields(true)
-          post
-
           expect { xhr :put, :start_poll, topic_id: topic.id }.to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
         end
+      end
+
+      it "requires the user to be an elections admin" do
+        xhr :put, :start_poll, topic_id: topic.id
+        expect(response).not_to be_success
+        json = ::JSON.parse(response.body)
+        expect(json["errors"][0]).to eq(I18n.t("invalid_access"))
       end
     end
   end
