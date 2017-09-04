@@ -9,7 +9,7 @@ en:
     errors:
       category_not_enabled: "Category does not have elections enabled"
       create_failed: "Election creation failed"
-      more_nominations: "More nominations are needed to run an election."
+      more_nominations: "More nominations are needed to run a poll."
       seperate_poll: "You can't post a poll in an election topic."
       not_authorized: "You are not authorized to perform this action."
       revisor_failed: "Post Revisor failed to update the Election Post"

@@ -105,8 +105,6 @@ class DiscourseElections::ElectionPost
   def self.update_election_post(topic_id, content, publish_change, revisor_opts = {})
     election_post = Post.find_by(topic_id: topic_id, post_number: 1)
 
-    puts "UPDATING ELECTION POST"
-
     return if !election_post || election_post.raw == content
 
     revisor = PostRevisor.new(election_post, election_post.topic)

@@ -77,6 +77,15 @@ describe ::DiscourseElections::ElectionController do
             expect(message.data[:post_id]).to eq(post.id)
           end
         end
+
+        it "requires at least 2 nominees" do
+          user1 = Fabricate(:user)
+          topic.custom_fields['election_nominations'] = [ user1.id ]
+          topic.save_custom_fields(true)
+          post
+
+          expect { xhr :put, :start_poll, topic_id: topic.id }.to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
+        end
       end
     end
   end
