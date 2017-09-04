@@ -72,6 +72,6 @@ class DiscourseElections::Nomination
 
     MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
 
-    { success: result }
+    topic.custom_fields['election_self_nomination_allowed']
   end
 end

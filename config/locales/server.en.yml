@@ -17,6 +17,8 @@ en:
       set_message_failed: "Failed to set message"
       set_position_failed: "Failed to set position"
       position_too_short: "Position is too short"
+      status_not_changed: "Status has not been changed"
+      self_nomination_state_not_changed: "Self nomination state has not been changed"
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"

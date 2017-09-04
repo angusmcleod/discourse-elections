@@ -193,7 +193,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.failed) {
           this.set('status', this.get('topic.election_status'));
         } else {
-          this.set('topic.election_status', data['status']);
+          this.set('topic.election_status', result.status);
           this.get('model.rerender')();
         }
       }).catch((e) => {
@@ -246,7 +246,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.failed) {
           this.set('selfNomination', !data['selfNomination']);
         } else {
-          this.set('topic.election_self_nomination_allowed', data['self_nomination']);
+          this.set('topic.election_self_nomination_allowed', result.state);
           this.get('model.rerender')();
         }
       })

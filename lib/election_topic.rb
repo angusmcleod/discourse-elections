@@ -47,7 +47,7 @@ class DiscourseElections::ElectionTopic
       DiscourseElections::ElectionPost.rebuild_election_post(topic)
     end
 
-    saved
+    topic.election_status
   end
 
   def self.set_message(topic_id, message, type, same_message = nil)
