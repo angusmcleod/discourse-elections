@@ -7,6 +7,7 @@ en:
       poll: "The election \"%{title}\" has started"
       closed_poll: "The election \"%{title}\" has been closed"
     errors:
+      category_not_enabled: "Category does not have elections enabled"
       create_failed: "Election creation failed"
       more_nominations: "More nominations are needed to run an election."
       seperate_poll: "You can't post a poll in an election topic."

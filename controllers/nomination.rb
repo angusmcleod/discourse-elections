@@ -1,11 +1,9 @@
 class DiscourseElections::NominationController < ::ApplicationController
+  before_filter :ensure_is_elections_admin, only: [:set_by_username]
+
   def set_by_username
     params.require(:topic_id)
     params.require(:usernames)
-
-    unless current_user.try(:elections_admin?)
-      raise StandardError.new I18n.t("election.errors.not_authorized")
-    end
 
     topic = Topic.find(params[:topic_id])
     if topic.election_status != Topic.election_statuses[:nomination] && params[:usernames].length < 2

@@ -30,6 +30,7 @@ after_initialize do
   add_to_serializer(:topic_view, :election_poll_message) {object.topic.custom_fields['election_poll_message']}
   add_to_serializer(:topic_view, :election_same_message) {object.topic.custom_fields['election_poll_message']}
 
+  Category.register_custom_field_type('for_elections', :boolean)
   add_to_serializer(:basic_category, :for_elections) {object.custom_fields["for_elections"]}
 
   Post.register_custom_field_type('election_nomination_statement', :boolean)
@@ -43,7 +44,7 @@ after_initialize do
   }
   PostRevisor.track_topic_field(:election_nomination_statement)
 
-  add_to_serializer(:current_user, :is_elections_admin) {object.try(:elections_admin?)}
+  add_to_serializer(:current_user, :is_elections_admin) {object.is_elections_admin?}
 
   require_dependency "application_controller"
   module ::DiscourseElections
@@ -58,41 +59,38 @@ after_initialize do
     post "nomination" => "nomination#add"
     delete "nomination" => "nomination#remove"
 
+    post "create" =>"election#create"
     put "set-self-nomination" => "election#set_self_nomination"
     put "set-nomination-message" => "election#set_nomination_message"
     put "set-poll-message" => "election#set_poll_message"
     put "set-status" => "election#set_status"
     put "set-position" => "election#set_position"
-    post "create" =>"election#create"
     put "start-poll" => "election#start_poll"
-    get "category-list" => "election#category_list"
+
+    get "category-list" => "election_list#category_list"
   end
 
   Discourse::Application.routes.append do
     mount ::DiscourseElections::Engine, at: "election"
   end
 
-  load File.expand_path('../controllers/nomination.rb', __FILE__)
   load File.expand_path('../controllers/election.rb', __FILE__)
-  load File.expand_path('../lib/election-post.rb', __FILE__)
-  load File.expand_path('../lib/election-topic.rb', __FILE__)
-  load File.expand_path('../lib/nomination-statement.rb', __FILE__)
+  load File.expand_path('../controllers/election_list.rb', __FILE__)
+  load File.expand_path('../controllers/nomination.rb', __FILE__)
+  load File.expand_path('../serializers/election.rb', __FILE__)
+  load File.expand_path('../lib/election_post.rb', __FILE__)
+  load File.expand_path('../lib/election_topic.rb', __FILE__)
+  load File.expand_path('../lib/nomination_statement.rb', __FILE__)
   load File.expand_path('../lib/nomination.rb', __FILE__)
 
-  class DiscourseElections::ElectionSerializer < ApplicationSerializer
-    attributes :position, :url, :status
-
-    def position
-      object.custom_fields['election_position']
-    end
-
-    def status
-      object.election_status
+  ApplicationController.class_eval do
+    def ensure_is_elections_admin
+      raise Discourse::InvalidAccess.new unless current_user && current_user.is_elections_admin?
     end
   end
 
   User.class_eval do
-    def elections_admin?
+    def is_elections_admin?
       if SiteSetting.elections_admin_moderator
         staff?
       else
