@@ -226,17 +226,22 @@ describe ::DiscourseElections::ElectionController do
     end
 
     describe "set_message" do
-      include_examples 'requires election admin', :put, :set_message, topic_id: 8
+      include_examples 'requires election admin', :put, :set_message, topic_id: 8, message: "Test message"
 
       context "while logged in as an admin" do
         let!(:admin) { log_in(:admin) }
 
-        it "sets nomination message" do
+        it "updates stored message" do
+          message = "Example message: Oranges"
+          xhr :put, :set_message, topic_id: topic.id, message: message, type: 'nomination'
+
+          updated_topic = Topic.find(topic.id)
+          expect(updated_topic.custom_fields["election_nomination_message"]).to eq(message)
+        end
+
+        it "updates nomination message in election post" do
           nomination_message = "Example message: Bananas"
           post
-
-          topic.custom_fields['election_statuses'] = Topic.election_statuses[:nomination]
-          topic.save_custom_fields(true)
 
           message = MessageBus.track_publish do
             xhr :put, :set_message, topic_id: topic.id, message: nomination_message, type: 'nomination'
@@ -244,6 +249,22 @@ describe ::DiscourseElections::ElectionController do
 
           post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
           expect(post.raw).to include(nomination_message)
+        end
+
+        it "updates poll message in election post" do
+          poll_message = "Example message: Apples"
+          post
+
+          topic.custom_fields['election_status'] = Topic.election_statuses[:poll]
+          topic.custom_fields['election_nominations'] = [ Fabricate(:user).id, Fabricate(:user).id ]
+          topic.save_custom_fields(true)
+
+          message = MessageBus.track_publish do
+            xhr :put, :set_message, topic_id: topic.id, message: poll_message, type: 'poll'
+          end.find { |m| m.channel == "/topic/#{topic.id}" }
+
+          post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
+          expect(post.raw).to include(poll_message)
         end
       end
     end
