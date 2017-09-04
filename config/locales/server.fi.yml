@@ -1,0 +1,29 @@
+en:
+  election:
+    title: "%{position} Vaali"
+    nomination:
+      default_message: "Tähän vaaliin voi asettua ehdokkaaksi."
+    notification:
+      poll: "Vaali \"%{title}\" on alkanut"
+      closed_poll: "Vaali \"%{title}\" on suljettu"
+    errors:
+      category_not_enabled: "Alue ei salli vaalien lisäämistä"
+      create_failed: "Vaalin luominen epäonnistui"
+      more_nominations: "Useampia ehdokkuuksia tarvitaan kyselyä varten."
+      seperate_poll: "Et voi laittaa äänestyksiä vaaliketjuun."
+      not_authorized: "Sinulla ei ole oikeuksia tähän toimintoon."
+      revisor_failed: "Post Revisor epäonnistui vaaliviestin päivittämisessä"
+      set_status_failed: "Tilan asettaminen epäonnistui"
+      set_message_failed: "Viestin asettaminen epäonnistui"
+      set_position_failed: "Aseman asettaminen epäonnistui"
+      position_too_short: "Asema on liian lyhyt"
+      status_not_changed: "Tilaa ei muutettu"
+      self_nomination_state_not_changed: "Itsensä ehdokkaaksi asettamista ei muutettu"
+    post:
+      nominated: "Ehdokkaat"
+      nominee_title: "<a href='%{url}'>Ehdokas %{position} vaalissa</a>"
+
+  site_settings:
+    elections_admin_moderator: "Salli moderaattorien ohjata vaaleja"
+    elections_nav_category_list: "Näytä aktiivisten vaalien lista navigointiohjainten vieressä vaalialueilla"
+    elections_nominee_titles: "Näytä ehdokkaiden nimeke vaaliehdokkuuden ulkopuolisissa viesteissä"

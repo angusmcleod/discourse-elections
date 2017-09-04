@@ -1,0 +1,45 @@
+en:
+  js:
+    category:
+      for_elections: "Salli vaalien luonti tällä alueella"
+    election:
+      start: "Aloita vaali"
+      list:
+        label: "Vaalit"
+      create:
+        label: "Uusi vaali"
+        position: "Asema"
+        nomination_message: "Ehdokkuusviesti"
+        nomination_message_placeholder: "Lisätään aiheen ensimmäiseen viestiin ehdokasasettelun aikana."
+        poll_message: "Äänestysviesti"
+        poll_message_placeholder: "Lisätään aiheen ensimmäiseen viestiin äänestysvaiheen aikana."
+        self_nomination_allowed: "Salli käyttäjien asettua itse ehdokkaaksi"
+        btn_label: "Luo"
+      status:
+        label: "Tila"
+        nomination: "Ehdokasasettelu"
+        poll: "Äänestys"
+        closed_poll: "Suljettu"
+      nomination:
+        add:
+          label: "Asetu ehdokkaaksi"
+          body: "Jos tahdot asettua ehdolle {{position}} vaalissa,
+                alueella {{categoryName}}, paina nappia Asetun ehdokkaaksi"
+          btn: "Asetun ehdokkaaksi"
+        remove:
+          label: "Poista ehdokkuus"
+          body: "Jos tahdot poistaa ehdokkuutesi {{position}} vaalissa
+                alueella {{categoryName}}, paina nappia Poistan ehdokkuuteni.<br><br>"
+          btn: "Poistan ehdokkuuteni"
+        notification: "<a><i class='fa fa-info-circle'></i><p>{{description}}</p></a>"
+        statement:
+          add: "Lisää ehdokkuusviesti"
+          label: "Ehdokkuusviesti"
+      manage:
+        label: "Hallinnoi vaalia"
+        nominees: "Valitse tämän vaalin ehdokkaat."
+        save: "Tallenna"
+        done: "Valmis"
+      post:
+        nominee: "Ehdokas tässä vaalissa"
+        nomination_statement: "ehdokkuusviesti"
