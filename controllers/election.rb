@@ -75,16 +75,16 @@ class DiscourseElections::ElectionController < ::ApplicationController
 
   def set_self_nomination
     params.require(:topic_id)
-    params.require(:self_nomination)
+    params.require(:state)
 
     topic = Topic.find(params[:topic_id])
     existing_state = topic.custom_fields['election_self_nomination_allowed']
 
-    if params[:self_nomination] == existing_state
+    if params[:state] == existing_state
       raise StandardError.new I18n.t('election.errors.self_nomination_state_not_changed')
     end
 
-    response = DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:self_nomination])
+    response = DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:state])
 
     if response == existing_state
       result = { error_message: I18n.t('election.errors.self_nomination_state_not_changed') }
@@ -95,24 +95,13 @@ class DiscourseElections::ElectionController < ::ApplicationController
     render_result(result)
   end
 
-  def set_nomination_message
+  def set_message
     params.require(:topic_id)
-    params.permit(:nomination_message, nomination_message: '')
+    params.require(:type)
+    params.permit(:message, message: '')
 
-    response = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:nomination_message], 'nomination')
-
+    response = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:message], params[:type])
     result = response ? {} : {error_message: I18n.t('election.errors.set_message_failed')}
-
-    render_result(result)
-  end
-
-  def set_poll_message
-    params.require(:topic_id)
-    params.permit(:poll_message, poll_message: '')
-
-    response = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:poll_message], 'poll')
-
-    result = response ? {} : { error_message: I18n.t('election.errors.set_message_failed') }
 
     render_result(result)
   end

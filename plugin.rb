@@ -61,8 +61,7 @@ after_initialize do
 
     post "create" =>"election#create"
     put "set-self-nomination" => "election#set_self_nomination"
-    put "set-nomination-message" => "election#set_nomination_message"
-    put "set-poll-message" => "election#set_poll_message"
+    put "set-message" => "election#set_message"
     put "set-status" => "election#set_status"
     put "set-position" => "election#set_position"
     put "start-poll" => "election#start_poll"

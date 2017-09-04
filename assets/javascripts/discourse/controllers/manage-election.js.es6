@@ -136,7 +136,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
     })
   },
 
-  prepare(type) {
+  prepare(type, serializedType, opts) {
     if (this.get(`${type}SaveDisabled`)) return false;
 
     this.clearIcons();
@@ -146,8 +146,9 @@ export default Ember.Controller.extend(ModalFunctionality, {
     const topicId = this.get('topic.id');
     let data = { topic_id: topicId};
 
-    let serialized_type = type.replace(/[A-Z]/g, "_$&").toLowerCase();
-    data[serialized_type] = this.get(type);
+    data[serializedType] = this.get(type);
+
+    Object.assign(data, opts);
 
     return data;
   },
@@ -164,7 +165,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
     },
 
     positionSave() {
-      const data = this.prepare('position');
+      const data = this.prepare('position', 'position');
       if (!data) return;
 
       ajax('/election/set-position', { type: 'PUT', data }).then((result) => {
@@ -184,7 +185,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
     },
 
     statusSave() {
-      const data = this.prepare('status');
+      const data = this.prepare('status', 'status');
       if (!data) return;
 
       ajax('/election/set-status', { type: 'PUT', data }).then((result) => {
@@ -205,7 +206,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
     },
 
     usernamesSave() {
-      const data = this.prepare('usernames');
+      const data = this.prepare('usernames', 'usernames');
       if (!data) return;
 
       ajax('/election/nomination/set-by-username', { type: 'POST', data }).then((result) => {
@@ -237,7 +238,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
     },
 
     selfNominationSave() {
-      const data = this.prepare('selfNomination');
+      const data = this.prepare('selfNomination', 'state');
       if (!data) return;
 
       ajax('/election/set-self-nomination', { type: 'PUT', data }).then((result) => {
@@ -253,31 +254,31 @@ export default Ember.Controller.extend(ModalFunctionality, {
     },
 
     nominationMessageSave() {
-      const data = this.prepare('nominationMessage');
+      const data = this.prepare('nominationMessage', 'message', { type: 'nomination' });
       if (!data) return;
 
-      ajax('/election/set-nomination-message', { type: 'PUT', data }).then((result) => {
+      ajax('/election/set-message', { type: 'PUT', data }).then((result) => {
         this.resolve(result, 'nominationMessage');
 
         if (result.failed) {
           this.set('nominationMessage', this.get('topic.election_nomination_message'));
         } else {
-          this.set('topic.election_nomination_message', data['nomination_message'])
+          this.set('topic.election_nomination_message', data['message'])
         }
       })
     },
 
     pollMessageSave() {
-      const data = this.prepare('pollMessage');
+      const data = this.prepare('pollMessage', 'message', { type: 'poll' });
       if (!data) return;
 
-      ajax('/election/set-poll-message', { type: 'PUT', data }).then((result) => {
+      ajax('/election/set-message', { type: 'PUT', data }).then((result) => {
         this.resolve(result, 'pollMessage');
 
         if (result.failed) {
           this.set('pollMessage', this.get('topic.election_poll_message'));
         } else {
-          this.set('topic.election_poll_message', data['poll_message'])
+          this.set('topic.election_poll_message', data['message'])
         }
       })
     }
