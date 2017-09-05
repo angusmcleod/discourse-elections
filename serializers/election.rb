@@ -1,5 +1,5 @@
 class DiscourseElections::ElectionSerializer < ApplicationSerializer
-  attributes :position, :url, :status
+  attributes :position, :relative_url, :status
 
   def position
     object.custom_fields['election_position']

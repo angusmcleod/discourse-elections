@@ -48,7 +48,7 @@ export default createWidget('election-list', {
           item.push(h('span', ', '));
         }
 
-        item.push(h('a', { href: e.url }, h('span', e.position)));
+        item.push(h('a', { href: e.relative_url }, h('span', e.position)));
 
         return h('li', item);
       })));
