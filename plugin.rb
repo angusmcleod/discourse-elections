@@ -73,6 +73,7 @@ after_initialize do
     mount ::DiscourseElections::Engine, at: "election"
   end
 
+  load File.expand_path('../controllers/base.rb', __FILE__)
   load File.expand_path('../controllers/election.rb', __FILE__)
   load File.expand_path('../controllers/election_list.rb', __FILE__)
   load File.expand_path('../controllers/nomination.rb', __FILE__)
@@ -82,21 +83,6 @@ after_initialize do
   load File.expand_path('../lib/election_topic.rb', __FILE__)
   load File.expand_path('../lib/nomination_statement.rb', __FILE__)
   load File.expand_path('../lib/nomination.rb', __FILE__)
-
-  ApplicationController.class_eval do
-    def ensure_is_elections_admin
-      raise Discourse::InvalidAccess.new unless current_user && current_user.is_elections_admin?
-    end
-
-    def ensure_is_elections_category
-      return false unless params.include?(:category_id)
-
-      category = Category.find(params[:category_id])
-      unless category.custom_fields["for_elections"]
-        raise StandardError.new I18n.t("election.errors.category_not_enabled")
-      end
-    end
-  end
 
   User.class_eval do
     def is_elections_admin?

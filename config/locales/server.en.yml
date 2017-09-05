@@ -19,6 +19,10 @@ en:
       position_too_short: "Position is too short"
       status_not_changed: "Status has not been changed"
       self_nomination_state_not_changed: "Self nomination state has not been changed"
+      set_usernames_failed: "Failed to set usernames"
+      user_was_not_found: "User \"%{user}\" was not found"
+      add_nomination_failed: "Failed to add nomination"
+      remove_nomination_failed: "Failed to remove nomination"
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"

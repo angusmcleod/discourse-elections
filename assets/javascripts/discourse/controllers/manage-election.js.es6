@@ -209,30 +209,29 @@ export default Ember.Controller.extend(ModalFunctionality, {
       const data = this.prepare('usernames', 'usernames');
       if (!data) return;
 
+      const handleFail = () => {
+        const existing = this.get('topic.election_nominations_usernames');
+        this.set('usernames', existing.join(','));
+
+        // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
+        this.set('showSelector', false);
+        Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
+      }
+
       ajax('/election/nomination/set-by-username', { type: 'POST', data }).then((result) => {
         this.resolve(result, 'usernames');
-
+        
         if (result.failed) {
-          const existing = this.get('topic.election_nominations_usernames');
-          this.set('usernames', existing.join(','));
-
-          // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
-          this.set('showSelector', false);
-          Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
+          handleFail();
         } else {
-          this.set('topic.election_nominations_usernames', data['usernames']);
-          this.set('topic.election_is_nominee', data['usernames'].indexOf(this.currentUser.username) > -1);
+          this.set('topic.election_nominations', result.user_ids);
+          this.set('topic.election_nominations_usernames', result.usernames);
+          this.set('topic.election_is_nominee', result.user_ids.indexOf(this.currentUser.id) > -1);
         }
       }).catch((e) => {
         if (e.jqXHR && e.jqXHR.responseText) {
           this.resolveStandardError(e.jqXHR.responseText, 'usernames');
-
-          const existing = this.get('topic.election_nominations_usernames');
-          this.set('usernames', existing.join(','));
-
-          // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
-          this.set('showSelector', false);
-          Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
+          handleFail();
         }
       })
     },

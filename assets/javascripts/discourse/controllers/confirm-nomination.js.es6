@@ -30,7 +30,22 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.failed) {
           this.flash(result.message, 'error');
         } else {
+          const user = this.currentUser;
+          let nominations = this.get('model.topic.election_nominations');
+          let usernames = this.get('model.topic.election_nominations_usernames');
+
+          if (isNominee) {
+            usernames.splice(usernames.indexOf(user.username), 1);
+            nominations.splice(nominations.indexOf(user.id), 1);
+          } else {
+            usernames.push(user.username);
+            nominations.push(user.id);
+          }
+
+          this.set('model.topic.election_nominations_usernames', usernames);
+          this.set('model.topic.election_nominations', nominations);
           this.set('model.topic.election_is_nominee', !isNominee);
+          this.get('model.rerender')();
           this.send('closeModal');
         }
 

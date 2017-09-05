@@ -5,19 +5,30 @@ class DiscourseElections::Nomination
     existing_nominations = topic.election_nominations
 
     nominations = []
-    usernames.each do |u|
-      user = User.find_by(username: u)
-      nominations.push(user.id)
+
+    if usernames.any?
+      usernames.each do |u|
+        unless u.empty?
+          user = User.find_by(username: u)
+          if user
+            nominations.push(user.id)
+          else
+            raise StandardError.new I18n.t('election.errors.user_was_not_found', user: u)
+          end
+        end
+      end
     end
 
     return if Set.new(existing_nominations) == Set.new(nominations)
 
-    self.save(topic, nominations)
+    unless self.save(topic, nominations)
+      raise StandardError.new I18n.t('election.errors.set_usernames_failed')
+    end
 
     removed_nominations = existing_nominations.reject{ |n| !n || nominations.include?(n) }
 
     if removed_nominations.any?
-      DiscourseElections::NominationStatement.remove(topic, removed_nominations)
+      self.remove(topic.id, removed_nominations)
     end
 
     added_nominations = nominations.reject{ |u| !u || existing_nominations.include?(u) }
@@ -25,6 +36,8 @@ class DiscourseElections::Nomination
     if added_nominations.any?
       self.handle_new(topic, added_nominations)
     end
+
+    { usernames: usernames, user_ids: nominations }
   end
 
   def self.add(topic_id, user_id)
@@ -33,24 +46,37 @@ class DiscourseElections::Nomination
     nominations = topic.election_nominations
     nominations.push(user_id) unless nominations.include?(user_id)
 
-    self.save(topic, nominations)
-    self.handle_new(topic, [user_id])
+    if self.save(topic, nominations)
+      self.handle_new(topic, [user_id])
+    else
+      return raise StandardError.new I18n.t('election.errors.add_nominee_failed')
+    end
   end
 
-  def self.remove(topic_id, user_id)
+  def self.remove(topic_id, removed_nominations)
     topic = Topic.find(topic_id)
 
-    nominations = topic.election_nominations - [user_id]
+    removed_nominations = [*removed_nominations]
 
-    self.save(topic, nominations)
+    nominations = topic.election_nominations - removed_nominations
 
-    DiscourseElections::NominationStatement.remove(topic, [user_id])
-    DiscourseElections::ElectionPost.rebuild_election_post(topic)
+    if self.save(topic, nominations)
+      topic.reload.election_nominations
+
+      if topic.election_nomination_statements.reject { |n| !removed_nominations.include?(n['user_id']) }.any?
+        DiscourseElections::NominationStatement.remove(topic, removed_nominations)
+      end
+
+      DiscourseElections::ElectionPost.rebuild_election_post(topic)
+    else
+      return raise StandardError.new I18n.t('election.errors.remove_nominee_failed')
+    end
   end
 
   def self.save(topic, nominations)
-    topic.custom_fields['election_nominations'] = nominations.length < 2 ? nominations[0] : nominations
-    topic.save!
+    topic.custom_fields['election_nominations'] = [*nominations]
+    result = topic.save!
+    result
   end
 
   def self.handle_new(topic, new_nominations)

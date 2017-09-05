@@ -18,7 +18,8 @@ export default createWidget('election-controls', {
   toggleNomination() {
     showModal('confirm-nomination', {
       model: {
-        topic: this.attrs.topic
+        topic: this.attrs.topic,
+        rerender: () => this.scheduleRerender()
       }
     });
   },

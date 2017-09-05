@@ -4,6 +4,7 @@ require_dependency 'post_creator'
 class DiscourseElections::ElectionPost
 
   def self.rebuild_election_post(topic)
+    topic.reload
     status = topic.election_status
 
     if status == Topic.election_statuses[:nomination]
