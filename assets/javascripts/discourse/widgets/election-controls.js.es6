@@ -59,6 +59,15 @@ export default createWidget('election-controls', {
 
       this.state.startingElection = false;
       this.scheduleRerender();
+    }).catch((e) => {
+      if (e.jqXHR && e.jqXHR.responseText) {
+        const responseText = e.jqXHR.responseText;
+        const message = responseText.substring(responseText.indexOf('>') + 1, responseText.indexOf('plugins'));
+        bootbox.alert(message)
+      }
+
+      this.state.startingElection = false;
+      this.scheduleRerender();
     })
 
     this.state.startingElection = true;
