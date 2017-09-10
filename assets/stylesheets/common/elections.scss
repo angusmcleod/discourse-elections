@@ -16,8 +16,10 @@
 }
 
 #topic-title .election-status {
-  padding-top: 15px;
-  padding-bottom: 5px;
+  .election-status-label {
+    padding-top: 10px;
+    padding-bottom: 5px;
+  }
 
   span {
     padding: 6px 12px;
