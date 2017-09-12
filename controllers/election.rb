@@ -106,7 +106,7 @@ module DiscourseElections
       end
 
       response = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:message], params[:type])
-      result = response ? {} : {error_message: I18n.t('election.errors.set_message_failed')}
+      result = response ? {} : { error_message: I18n.t('election.errors.set_message_failed') }
 
       render_result(result)
     end
