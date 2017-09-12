@@ -3,7 +3,7 @@ en:
     category:
       for_elections: "Allow elections to be created in this category"
     election:
-      start: "Start Election"
+      start: "Start Poll"
       list:
         label: "Elections"
       create:
