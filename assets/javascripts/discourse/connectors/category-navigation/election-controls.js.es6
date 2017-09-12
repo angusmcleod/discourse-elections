@@ -6,4 +6,4 @@ export default {
       showModal('create-election', { model: { categoryId }});
     }
   }
-}
+};

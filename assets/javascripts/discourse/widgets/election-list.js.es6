@@ -4,13 +4,13 @@ import { h } from 'virtual-dom';
 
 export default createWidget('election-list', {
   tagName: 'div.election-list',
-  buildKey: (attrs) => 'election-list',
+  buildKey: () => 'election-list',
 
   defaultState() {
     return {
       elections: [],
       loading: true
-    }
+    };
   },
 
   getElections() {
@@ -31,10 +31,8 @@ export default createWidget('election-list', {
 
 
   html(attrs, state) {
-    const user = this.currentUser;
     const elections = state.elections;
     const loading = state.loading;
-    const category = this.attrs.category;
     let contents = [];
 
     if (loading) {
@@ -56,4 +54,4 @@ export default createWidget('election-list', {
 
     return contents;
   }
-})
+});

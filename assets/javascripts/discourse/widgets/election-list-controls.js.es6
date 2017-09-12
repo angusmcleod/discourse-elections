@@ -5,7 +5,6 @@ export default createWidget('election-list-controls', {
   tagName: 'div.election-list-controls',
 
   html(attrs) {
-    const category = attrs.category;
     const user = this.currentUser;
     let links = [];
 
@@ -27,4 +26,4 @@ export default createWidget('election-list-controls', {
       }
     });
   }
-})
+});

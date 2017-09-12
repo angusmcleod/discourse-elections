@@ -19,7 +19,7 @@ export default Ember.Controller.extend({
       };
 
       if (this.get('sameMessage')) {
-        data['poll_message'] = data['nomination_message']
+        data['poll_message'] = data['nomination_message'];
       }
 
       this.set('loading', true);
@@ -29,7 +29,7 @@ export default Ember.Controller.extend({
         if (result.url) {
           DiscourseURL.routeTo(result.url);
         }
-      })
+      });
     }
   }
-})
+});

@@ -50,7 +50,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         }
 
         this.set('loading', false);
-      })
+      });
     }
   }
-})
+});

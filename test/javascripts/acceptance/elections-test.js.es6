@@ -1,9 +1,9 @@
 import { acceptance } from "helpers/qunit-helpers";
-import sessionFixtures from '../fixtures/session';
+import { angus } from '../fixtures/session';
 import { nominationTopic, electionTopic } from '../fixtures/topics';
 
 function logInAngus() {
-  Discourse.User.resetCurrent(Discourse.User.create(sessionFixtures['/session/current.json'].current_user))
+  Discourse.User.resetCurrent(Discourse.User.create(angus));
 }
 
 acceptance("Elections", {
@@ -11,11 +11,11 @@ acceptance("Elections", {
 });
 
 test("Nomination", (assert) => {
-  server.get('/t/36.json', () => {
-    return nominationTopic
+  server.get('/t/36.json', () => { // eslint-disable-line no-undef
+    return nominationTopic;
   });
 
-  visit("/t/grand-poobah-election/36");
+  visit("/t/36");
 
   andThen(() => {
     assert.equal(find('.election-status span').text(), 'Taking Nominations', 'it should render the nomination election status');
@@ -47,14 +47,14 @@ test("Nomination", (assert) => {
 });
 
 test("Poll", (assert) => {
-  server.get('/t/35.json', () => {
-    return electionTopic
+  server.get('/t/35.json', () => { // eslint-disable-line no-undef
+    return electionTopic;
   });
 
-  visit("/t/grand-mufti-election/35");
+  visit("/t/35");
 
   andThen(() => {
     assert.equal(find('.election-status span').text(), 'Electing', 'it should render the poll election status');
     assert.equal(find('.nomination').length, 3, 'it should render the nominations');
   });
-})
+});

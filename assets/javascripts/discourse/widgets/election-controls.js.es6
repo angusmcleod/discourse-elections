@@ -9,10 +9,10 @@ export default createWidget('election-controls', {
   tagName: 'div.election-controls',
   buildKey: () => `election-controls`,
 
-  defaultState(attrs) {
+  defaultState() {
     return {
       startingElection: false
-    }
+    };
   },
 
   toggleNomination() {
@@ -63,12 +63,12 @@ export default createWidget('election-controls', {
       if (e.jqXHR && e.jqXHR.responseText) {
         const responseText = e.jqXHR.responseText;
         const message = responseText.substring(responseText.indexOf('>') + 1, responseText.indexOf('plugins'));
-        bootbox.alert(message)
+        bootbox.alert(message);
       }
 
       this.state.startingElection = false;
       this.scheduleRerender();
-    })
+    });
 
     this.state.startingElection = true;
     this.scheduleRerender();
@@ -79,12 +79,12 @@ export default createWidget('election-controls', {
     const user = this.currentUser;
     let contents = [];
 
-    if (topic.election_status == ElectionStatuses['nomination'] && topic.election_self_nomination_allowed) {
+    if (topic.election_status === ElectionStatuses['nomination'] && topic.election_self_nomination_allowed) {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
         label: `election.nomination.${topic.election_is_nominee ? 'remove.label' : 'add.label'}`,
         className: 'btn-primary toggle-nomination'
-      }))
+      }));
     }
 
     if (topic.election_is_nominee && !topic.election_made_statement) {
@@ -92,7 +92,7 @@ export default createWidget('election-controls', {
         action: 'makeStatement',
         label: `election.nomination.statement.add`,
         className: 'btn-primary add-statement'
-      }))
+      }));
     }
 
     if (user && user.is_elections_admin) {
@@ -100,21 +100,21 @@ export default createWidget('election-controls', {
         action: 'manage',
         label: 'election.manage.label',
         className: 'btn-primary manage-election'
-      }))
+      }));
     }
 
-    if (user && user.is_elections_admin && topic.election_status == ElectionStatuses['nomination']) {
+    if (user && user.is_elections_admin && topic.election_status === ElectionStatuses['nomination']) {
       contents.push(this.attach('button', {
         action: 'startElection',
         label: 'election.start',
         className: 'btn-primary start-poll'
-      }))
+      }));
 
       if (state.startingElection) {
-        contents.push(h('div.spinner-container', h('div.spinner.small')))
+        contents.push(h('div.spinner-container', h('div.spinner.small')));
       }
     }
 
     return contents;
   }
-})
+});

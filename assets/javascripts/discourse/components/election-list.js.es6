@@ -7,6 +7,6 @@ export default MountWidget.extend({
   buildArgs() {
     return {
       category: this.get('category')
-    }
+    };
   }
-})
+});

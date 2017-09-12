@@ -1,9 +1,7 @@
 import ModalFunctionality from 'discourse/mixins/modal-functionality';
 import { ElectionStatuses } from '../lib/election';
 import { ajax } from 'discourse/lib/ajax';
-import { on, observes, default as computed } from 'ember-addons/ember-computed-decorators';
-import User from 'discourse/models/user';
-import { extractError } from 'discourse/lib/ajax-error';
+import { observes, default as computed } from 'ember-addons/ember-computed-decorators';
 
 export default Ember.Controller.extend(ModalFunctionality, {
   usernamesDisabled: Ember.computed.or('usernamesUnchanged', 'usernamesSaving'),
@@ -45,18 +43,18 @@ export default Ember.Controller.extend(ModalFunctionality, {
         nominationMessage: topic.election_nomination_message,
         pollMessage: topic.election_poll_message,
         sameMessage: topic.same_message
-      })
+      });
     }
   },
 
   @computed()
   electionStatuses() {
-    return Object.keys(ElectionStatuses).map(function(k, i){
+    return Object.keys(ElectionStatuses).map(function(k){
       return {
         name: k,
         id: ElectionStatuses[k]
-      }
-    })
+      };
+    });
   },
 
   @computed('usernamesString')
@@ -87,27 +85,27 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
   @computed('status', 'topic.election_status')
   statusUnchanged(current, original) {
-    return current == original;
+    return current === original;
   },
 
   @computed('selfNomination', 'topic.election_self_nomination_allowed')
   selfNominationUnchanged(current, original) {
-    return current == original;
+    return current === original;
   },
 
   @computed('nominationMessage', 'topic.election_nomination_message')
   nominationMessageUnchanged(current, original) {
-    return current == original;
+    return current === original;
   },
 
   @computed('pollMessage', 'topic.election_poll_message')
   pollMessageUnchanged(current, original) {
-    return current == original;
+    return current === original;
   },
 
   @computed('position', 'topic.election_position')
   positionUnchanged(current, original) {
-    return current == original;
+    return current === original;
   },
 
   @computed('position')
@@ -133,7 +131,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
       nominationMessageIcon: null,
       pollMessageIcon: null,
       positionIcon: null
-    })
+    });
   },
 
   prepare(type, serializedType, opts) {
@@ -181,7 +179,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.resolveStandardError(e.jqXHR.responseText, 'position');
           this.set('position', this.get('topic.election_position'));
         }
-      })
+      });
     },
 
     statusSave() {
@@ -202,7 +200,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.resolveStandardError(e.jqXHR.responseText, 'status');
           this.set('status', this.get('topic.election_status'));
         }
-      })
+      });
     },
 
     usernamesSave() {
@@ -216,11 +214,11 @@ export default Ember.Controller.extend(ModalFunctionality, {
         // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
         this.set('showSelector', false);
         Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
-      }
+      };
 
       ajax('/election/nomination/set-by-username', { type: 'POST', data }).then((result) => {
         this.resolve(result, 'usernames');
-        
+
         if (result.failed) {
           handleFail();
         } else {
@@ -233,7 +231,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.resolveStandardError(e.jqXHR.responseText, 'usernames');
           handleFail();
         }
-      })
+      });
     },
 
     selfNominationSave() {
@@ -249,7 +247,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.set('topic.election_self_nomination_allowed', result.state);
           this.get('model.rerender')();
         }
-      })
+      });
     },
 
     nominationMessageSave() {
@@ -262,9 +260,9 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.failed) {
           this.set('nominationMessage', this.get('topic.election_nomination_message'));
         } else {
-          this.set('topic.election_nomination_message', data['message'])
+          this.set('topic.election_nomination_message', data['message']);
         }
-      })
+      });
     },
 
     pollMessageSave() {
@@ -277,9 +275,9 @@ export default Ember.Controller.extend(ModalFunctionality, {
         if (result.failed) {
           this.set('pollMessage', this.get('topic.election_poll_message'));
         } else {
-          this.set('topic.election_poll_message', data['message'])
+          this.set('topic.election_poll_message', data['message']);
         }
-      })
+      });
     }
   }
-})
+});

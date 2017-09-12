@@ -4,29 +4,28 @@ import Composer from 'discourse/models/composer';
 import { ElectionStatuses } from '../lib/election';
 import RawHtml from 'discourse/widgets/raw-html';
 import { default as computed } from 'ember-addons/ember-computed-decorators';
-import Topic from 'discourse/models/topic';
 import { h } from 'virtual-dom';
 
 export default {
   name: 'election-edits',
-  initialize(container) {
+  initialize() {
 
     withPluginApi('0.8.7', api => {
       api.modifyClass('model:topic', {
         @computed('election_status')
         electionStatusName(status) {
           return Object.keys(ElectionStatuses).find((k) => {
-            return ElectionStatuses[k] == status;
+            return ElectionStatuses[k] === status;
           });
         }
-      })
+      });
 
       api.modifyClass('model:composer', {
         @computed('electionNominationStatement', 'post.election_nomination_statement', 'topic.election_is_nominee')
         isNominationStatement(newStatement, existingStatement, isNominee) {
           return (newStatement || existingStatement) && isNominee;
         }
-      })
+      });
 
       api.reopenWidget('discourse-poll-container', {
         html(attrs) {
@@ -35,13 +34,13 @@ export default {
 
           options.forEach((o) => {
             if (!o.originalHtml) {
-              o.originalHtml = o.html
+              o.originalHtml = o.html;
             }
             o.html = o.originalHtml;
             let usernameOnly = o.html.substring(0, o.html.indexOf('<'));
             let fullDetails = o.html.replace(usernameOnly, '');
             o.html = attrs.showResults ? usernameOnly : fullDetails;
-          })
+          });
 
           if (attrs.showResults) {
             const type = poll.get('type') === 'number' ? 'number' : 'standard';
@@ -68,24 +67,24 @@ export default {
 
       api.addPostClassesCallback((attrs) => {
         if (attrs.election_post) return ["election-post"];
-      })
+      });
 
       api.decorateWidget('poster-name:after', (helper) => {
         const post = helper.attrs;
         let contents = [];
 
         if (post.election_by_nominee && post.election_nomination_statement) {
-          contents.push(helper.h('span.statement-post-label', I18n.t('election.post.nomination_statement')))
+          contents.push(helper.h('span.statement-post-label', I18n.t('election.post.nomination_statement')));
         }
 
         if (!post.election_by_nominee && post.election_nominee_title && Discourse.SiteSettings.elections_nominee_titles) {
           contents.push(helper.h('span.nominee-title',
             new RawHtml({ html: post.election_nominee_title })
-          ))
+          ));
         }
 
         return contents;
-      })
+      });
 
       api.decorateWidget('post-avatar:after', (helper) => {
         const post = helper.attrs;
@@ -96,11 +95,11 @@ export default {
             className: 'fa fa-certificate',
             title: I18n.t('election.post.nominee'),
             icon: 'certificate'
-          })))
+          })));
         }
 
         return contents;
-      })
+      });
 
       api.decorateWidget('post-contents:after-cooked', (helper) => {
         const post = helper.attrs;
@@ -108,7 +107,7 @@ export default {
         if (topic.subtype === 'election' && post.firstPost) {
           return helper.attach('election-controls', { topic });
         }
-      })
+      });
 
       api.reopenWidget('notification-item', {
         description() {
@@ -123,8 +122,8 @@ export default {
           return Ember.isEmpty(title) ? "" : escapeExpression(title);
         }
       });
-    })
+    });
 
-    Composer.serializeOnCreate('election_nomination_statement', 'electionNominationStatement')
+    Composer.serializeOnCreate('election_nomination_statement', 'electionNominationStatement');
   }
-}
+};
