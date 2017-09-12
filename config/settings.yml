@@ -8,3 +8,6 @@ plugins:
   elections_nominee_titles:
     client: true
     default: false
+  elections_nominee_avatar_flair:
+    client: true
+    default: ''

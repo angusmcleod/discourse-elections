@@ -88,13 +88,13 @@ export default {
 
       api.decorateWidget('post-avatar:after', (helper) => {
         const post = helper.attrs;
+        const flair = Discourse.SiteSettings.elections_nominee_avatar_flair;
         let contents = [];
 
-        if (post.election_by_nominee) {
+        if (post.election_by_nominee && flair.length > 0) {
           contents.push(helper.h('div.avatar-flair.nominee', helper.h('i', {
-            className: 'fa fa-certificate',
+            className: 'fa ' + flair,
             title: I18n.t('election.post.nominee'),
-            icon: 'certificate'
           })));
         }
 
