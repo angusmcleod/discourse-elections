@@ -11,31 +11,31 @@ after_initialize do
   Topic.register_custom_field_type('election_self_nomination_allowed', :boolean)
   Topic.register_custom_field_type('election_nominations', :integer)
   Topic.register_custom_field_type('election_status', :integer)
-  add_to_serializer(:topic_view, :election_status) {object.topic.election_status}
-  add_to_serializer(:topic_view, :election_position) {object.topic.custom_fields['election_position']}
-  add_to_serializer(:topic_view, :election_nominations) {object.topic.election_nominations}
-  add_to_serializer(:topic_view, :election_nominations_usernames) {object.topic.election_nominations_usernames}
-  add_to_serializer(:topic_view, :election_self_nomination_allowed) {object.topic.custom_fields['election_self_nomination_allowed']}
-  add_to_serializer(:topic_view, :subtype) {object.topic.subtype}
+  add_to_serializer(:topic_view, :election_status) { object.topic.election_status }
+  add_to_serializer(:topic_view, :election_position) { object.topic.custom_fields['election_position'] }
+  add_to_serializer(:topic_view, :election_nominations) { object.topic.election_nominations }
+  add_to_serializer(:topic_view, :election_nominations_usernames) { object.topic.election_nominations_usernames }
+  add_to_serializer(:topic_view, :election_self_nomination_allowed) { object.topic.custom_fields['election_self_nomination_allowed'] }
+  add_to_serializer(:topic_view, :subtype) { object.topic.subtype }
   add_to_serializer(:topic_view, :election_is_nominee) {
     scope.user && object.topic.election_nominations.include?(scope.user.id)
   }
-  add_to_serializer(:topic_view, :election_nomination_statements) {object.topic.election_nomination_statements}
+  add_to_serializer(:topic_view, :election_nomination_statements) { object.topic.election_nomination_statements }
   add_to_serializer(:topic_view, :election_made_statement) {
     if scope.user
-      object.topic.election_nomination_statements.any?{|n| n['user_id'] == scope.user.id}
+      object.topic.election_nomination_statements.any? { |n| n['user_id'] == scope.user.id }
     end
   }
-  add_to_serializer(:topic_view, :election_nomination_message) {object.topic.custom_fields['election_nomination_message']}
-  add_to_serializer(:topic_view, :election_poll_message) {object.topic.custom_fields['election_poll_message']}
-  add_to_serializer(:topic_view, :election_same_message) {object.topic.custom_fields['election_poll_message']}
+  add_to_serializer(:topic_view, :election_nomination_message) { object.topic.custom_fields['election_nomination_message'] }
+  add_to_serializer(:topic_view, :election_poll_message) { object.topic.custom_fields['election_poll_message'] }
+  add_to_serializer(:topic_view, :election_same_message) { object.topic.custom_fields['election_poll_message'] }
 
   Category.register_custom_field_type('for_elections', :boolean)
-  add_to_serializer(:basic_category, :for_elections) {object.custom_fields["for_elections"]}
+  add_to_serializer(:basic_category, :for_elections) { object.custom_fields["for_elections"] }
 
   Post.register_custom_field_type('election_nomination_statement', :boolean)
-  add_to_serializer(:post, :election_post) {object.is_first_post?}
-  add_to_serializer(:post, :election_nomination_statement) {object.custom_fields["election_nomination_statement"]}
+  add_to_serializer(:post, :election_post) { object.is_first_post? }
+  add_to_serializer(:post, :election_nomination_statement) { object.custom_fields["election_nomination_statement"] }
   add_to_serializer(:post, :election_nominee_title) {
     object.user && object.user.election_nominations && object.user.election_nominee_title
   }
@@ -44,7 +44,7 @@ after_initialize do
   }
   PostRevisor.track_topic_field(:election_nomination_statement)
 
-  add_to_serializer(:current_user, :is_elections_admin) {object.is_elections_admin?}
+  add_to_serializer(:current_user, :is_elections_admin) { object.is_elections_admin? }
 
   require_dependency "application_controller"
   module ::DiscourseElections
@@ -59,7 +59,7 @@ after_initialize do
     post "nomination" => "nomination#add"
     delete "nomination" => "nomination#remove"
 
-    post "create" =>"election#create"
+    post "create" => "election#create"
     put "set-self-nomination" => "election#set_self_nomination"
     put "set-message" => "election#set_message"
     put "set-status" => "election#set_status"
@@ -100,10 +100,10 @@ after_initialize do
     def election_nominee_title
       if election_nominations.any?
         topic = Topic.find(election_nominations[0])
-        I18n.t('election.post.nominee_title', {
+        I18n.t('election.post.nominee_title',
           url: topic.url,
           position: topic.custom_fields['election_position']
-        })
+        )
       end
     end
   end

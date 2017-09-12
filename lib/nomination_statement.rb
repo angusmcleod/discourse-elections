@@ -13,11 +13,11 @@ class DiscourseElections::NominationStatement
     end
 
     unless existing
-      statements.push({
+      statements.push(
         post_id: post.id,
         user_id: post.user.id,
         excerpt: excerpt
-      })
+      )
     end
 
     save_and_update(post.topic, statements)

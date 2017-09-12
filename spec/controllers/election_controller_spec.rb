@@ -81,7 +81,7 @@ describe ::DiscourseElections::ElectionController do
             poll_message = messages.find { |m| m.channel.include?("polls") }
             expect(poll_message.data[:post_id]).to eq(post.id)
 
-            expect( Topic.find(topic.id).election_status ).to eq(Topic.election_statuses[:poll])
+            expect(Topic.find(topic.id).election_status).to eq(Topic.election_statuses[:poll])
           end
         end
 
@@ -273,7 +273,7 @@ describe ::DiscourseElections::ElectionController do
         end
 
         it "requires a message" do
-          expect { xhr :put, :set_message, topic_id: topic.id, type: "nomination"}.to raise_error(ActionController::ParameterMissing)
+          expect { xhr :put, :set_message, topic_id: topic.id, type: "nomination" }.to raise_error(ActionController::ParameterMissing)
         end
       end
     end

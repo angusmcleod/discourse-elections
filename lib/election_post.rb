@@ -91,7 +91,7 @@ class DiscourseElections::ElectionPost
     html << "</div>"
 
     html << "<div class='nomination-statement'>"
-    statement = nomination_statements.find{ |s| s['user_id'] == user.id }
+    statement = nomination_statements.find { |s| s['user_id'] == user.id }
     if statement
       post = Post.find(statement['post_id'])
       html << "<a href='#{post.url}'>#{statement['excerpt']}</a>"
@@ -111,7 +111,7 @@ class DiscourseElections::ElectionPost
     revisor = PostRevisor.new(election_post, election_post.topic)
 
     ## We always skip the revision as these are system edits to a single post.
-    revisor_opts.merge!({ skip_revision: true })
+    revisor_opts.merge!( skip_revision: true )
 
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
 

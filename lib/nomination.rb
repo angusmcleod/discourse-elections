@@ -25,13 +25,13 @@ class DiscourseElections::Nomination
       raise StandardError.new I18n.t('election.errors.set_usernames_failed')
     end
 
-    removed_nominations = existing_nominations.reject{ |n| !n || nominations.include?(n) }
+    removed_nominations = existing_nominations.reject { |n| !n || nominations.include?(n) }
 
     if removed_nominations.any?
       self.remove(topic.id, removed_nominations)
     end
 
-    added_nominations = nominations.reject{ |u| !u || existing_nominations.include?(u) }
+    added_nominations = nominations.reject { |u| !u || existing_nominations.include?(u) }
 
     if added_nominations.any?
       self.handle_new(topic, added_nominations)

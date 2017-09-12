@@ -21,11 +21,11 @@ class DiscourseElections::ElectionTopic
       raw = I18n.t('election.nomination.default_message')
     end
 
-    manager = NewPostManager.new(Discourse.system_user, {
+    manager = NewPostManager.new(Discourse.system_user,
       raw: raw,
       topic_id: topic.id,
       skip_validations: true
-    })
+    )
     result = manager.perform
 
     if result.success?

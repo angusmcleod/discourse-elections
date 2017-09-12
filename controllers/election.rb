@@ -121,7 +121,7 @@ module DiscourseElections
 
       response = DiscourseElections::ElectionTopic.set_position(params[:topic_id], params[:position])
 
-      result = response ? {} : {error_message: I18n.t('election.errors.set_position_failed')}
+      result = response ? {} : { error_message: I18n.t('election.errors.set_position_failed') }
 
       render_result(result)
     end
