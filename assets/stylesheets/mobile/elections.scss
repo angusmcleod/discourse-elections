@@ -11,3 +11,11 @@
 .avatar-flair.nominee {
   top: 5px;
 }
+
+.election-post .cooked .nomination>span {
+  display: initial;
+
+  .nomination-statement {
+    margin-left: 33px;
+  }
+}
