@@ -223,6 +223,7 @@ after_initialize do
   validate(:post, :validate_election_polls) do |force = nil|
     return unless self.raw_changed?
     return if self.is_first_post?
+    return unless self.topic.subtype === 'election'
 
     extracted_polls = DiscoursePoll::Poll::extract(self.raw, self.topic_id, self.user_id)
 
