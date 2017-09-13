@@ -11,3 +11,6 @@ plugins:
   elections_nominee_avatar_flair:
     client: true
     default: ''
+  elections_enabled:
+    client: true
+    default: true

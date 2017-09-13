@@ -7,6 +7,8 @@ register_asset 'stylesheets/common/elections.scss'
 register_asset 'stylesheets/desktop/elections.scss', :desktop
 register_asset 'stylesheets/mobile/elections.scss', :mobile
 
+enabled_site_setting :elections_enabled
+
 after_initialize do
   Topic.register_custom_field_type('election_self_nomination_allowed', :boolean)
   Topic.register_custom_field_type('election_nominations', :integer)
@@ -116,6 +118,8 @@ after_initialize do
     end
 
     def update_election_status
+      return unless SiteSetting.elections_enabled
+
       poll = JSON.parse(self.value)["poll"]
       post = Post.find(self.post_id)
       result = nil
@@ -148,6 +152,8 @@ after_initialize do
     end
 
     def handle_election_status_change
+      return unless SiteSetting.elections_enabled
+
       if election_status.to_i == Topic.election_statuses[:poll]
         message = I18n.t('election.notification.poll', title: self.title)
         notify_nominees(message)
@@ -204,7 +210,7 @@ after_initialize do
   end
 
   NewPostManager.add_handler do |manager|
-    if manager.args[:topic_id]
+    if SiteSetting.elections_enabled && manager.args[:topic_id]
       topic = Topic.find(manager.args[:topic_id])
 
       # do nothing if first post in topic
@@ -224,6 +230,7 @@ after_initialize do
     return unless self.raw_changed?
     return if self.is_first_post?
     return unless self.topic.subtype === 'election'
+    return unless SiteSetting.elections_enabled
 
     extracted_polls = DiscoursePoll::Poll::extract(self.raw, self.topic_id, self.user_id)
 
@@ -233,7 +240,7 @@ after_initialize do
   end
 
   DiscourseEvent.on(:post_created) do |post, opts, user|
-    if opts[:election_nomination_statement] && post.topic.election_nominations.include?(user.id)
+    if SiteSetting.elections_enabled && opts[:election_nomination_statement] && post.topic.election_nominations.include?(user.id)
       post.custom_fields['election_nomination_statement'] = opts[:election_nomination_statement]
       post.save
 
@@ -243,19 +250,19 @@ after_initialize do
 
   DiscourseEvent.on(:post_edited) do |post, topic_changed|
     user = User.find(post.user_id)
-    if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
+    if SiteSetting.elections_enabled && post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
       DiscourseElections::NominationStatement.update(post)
     end
   end
 
   DiscourseEvent.on(:post_destroyed) do |post, opts, user|
-    if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
+    if SiteSetting.elections_enabled && post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
       DiscourseElections::NominationStatement.update(post)
     end
   end
 
   DiscourseEvent.on(:post_recovered) do |post, opts, user|
-    if post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
+    if SiteSetting.elections_enabled && post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
       DiscourseElections::NominationStatement.update(post)
     end
   end
