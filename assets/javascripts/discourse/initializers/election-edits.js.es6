@@ -11,7 +11,7 @@ export default {
   initialize(container) {
     const siteSettings = container.lookup('site-settings:main');
     if (siteSettings.elections_enabled) {
-      
+
       withPluginApi('0.8.7', api => {
         api.modifyClass('model:topic', {
           @computed('election_status')
