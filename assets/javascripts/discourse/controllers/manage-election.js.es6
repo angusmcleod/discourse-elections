@@ -85,7 +85,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
   @computed('status', 'topic.election_status')
   statusUnchanged(current, original) {
-    return current === original;
+    return Number(current) === Number(original);
   },
 
   @computed('selfNomination', 'topic.election_self_nomination_allowed')
@@ -209,7 +209,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
 
       const handleFail = () => {
         const existing = this.get('topic.election_nominations_usernames');
-        this.set('usernames', existing.join(','));
+        this.set('usernamesString', existing.join(','));
 
         // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
         this.set('showSelector', false);

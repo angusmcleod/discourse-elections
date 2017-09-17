@@ -50,6 +50,12 @@ export default Ember.Controller.extend(ModalFunctionality, {
         }
 
         this.set('loading', false);
+      }).catch((e) => {
+        if (e.jqXHR && e.jqXHR.responseText) {
+          const responseText = e.jqXHR.responseText;
+          const message = responseText.substring(responseText.indexOf('>') + 1, responseText.indexOf('plugins'));
+          bootbox.alert(message);
+        }
       });
     }
   }
