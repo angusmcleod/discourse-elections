@@ -511,7 +511,7 @@ describe ::DiscourseElections::NominationController do
         xhr :post, :add, topic_id: topic.id
         json = ::JSON.parse(response.body)
         expect(json['failed']).to eq("FAILED")
-        expect(json['message']).to eq(I18n.t('election.errors.insufficient_trust_to_self_nominate', level: 2 ))
+        expect(json['message']).to eq(I18n.t('election.errors.insufficient_trust_to_self_nominate', level: 2))
       end
     end
 
