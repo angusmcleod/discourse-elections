@@ -79,7 +79,8 @@ export default createWidget('election-controls', {
     const user = this.currentUser;
     let contents = [];
 
-    if (topic.election_status === ElectionStatuses['nomination'] && topic.election_self_nomination_allowed) {
+    if (topic.election_status === ElectionStatuses['nomination'] && topic.election_self_nomination_allowed
+        && topic.election_can_self_nominate) {
       contents.push(this.attach('button', {
         action: `toggleNomination`,
         label: `election.nomination.${topic.election_is_nominee ? 'remove.label' : 'add.label'}`,

@@ -22,9 +22,19 @@ module DiscourseElections
     def add
       params.require(:topic_id)
 
-      DiscourseElections::Nomination.add(params[:topic_id], current_user.id)
+      user = current_user
+      min_trust = SiteSetting.elections_min_trust_to_self_nominate.to_i
 
-      render_result
+      if !user || user.anonymous?
+        result = { error_message: I18n.t('election.errors.only_named_user_can_self_nominate') }
+      elsif user.trust_level < min_trust
+        result = { error_message: I18n.t('election.errors.insufficient_trust_to_self_nominate', level: min_trust )}
+      else
+        DiscourseElections::Nomination.add(params[:topic_id], user.id)
+        result = { success: true }
+      end
+
+      render_result(result)
     end
 
     def remove

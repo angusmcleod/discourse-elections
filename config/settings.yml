@@ -14,3 +14,6 @@ plugins:
   elections_enabled:
     client: true
     default: true
+  elections_min_trust_to_self_nominate:
+    default: 1
+    enum: 'TrustLevelSetting'

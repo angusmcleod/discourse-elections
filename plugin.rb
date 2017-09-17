@@ -13,12 +13,15 @@ after_initialize do
   Topic.register_custom_field_type('election_self_nomination_allowed', :boolean)
   Topic.register_custom_field_type('election_nominations', :integer)
   Topic.register_custom_field_type('election_status', :integer)
+  add_to_serializer(:topic_view, :subtype) { object.topic.subtype }
   add_to_serializer(:topic_view, :election_status) { object.topic.election_status }
   add_to_serializer(:topic_view, :election_position) { object.topic.custom_fields['election_position'] }
   add_to_serializer(:topic_view, :election_nominations) { object.topic.election_nominations }
   add_to_serializer(:topic_view, :election_nominations_usernames) { object.topic.election_nominations_usernames }
   add_to_serializer(:topic_view, :election_self_nomination_allowed) { object.topic.custom_fields['election_self_nomination_allowed'] }
-  add_to_serializer(:topic_view, :subtype) { object.topic.subtype }
+  add_to_serializer(:topic_view, :election_can_self_nominate) {
+    scope.user && !scope.user.anonymous? && scope.user.trust_level >= SiteSetting.elections_min_trust_to_self_nominate.to_i
+  }
   add_to_serializer(:topic_view, :election_is_nominee) {
     scope.user && object.topic.election_nominations.include?(scope.user.id)
   }

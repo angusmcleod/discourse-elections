@@ -490,6 +490,29 @@ describe ::DiscourseElections::NominationController do
         post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
         expect(post.raw).to include(user.username)
       end
+
+      context 'anonymous' do
+        before do
+          SiteSetting.allow_anonymous_posting = true
+          log_in(:anonymous)
+        end
+
+        it "does not allow anonymous users to self nominate" do
+          xhr :post, :add, topic_id: topic.id
+          json = ::JSON.parse(response.body)
+          expect(json['failed']).to eq("FAILED")
+          expect(json['message']).to eq(I18n.t('election.errors.only_named_user_can_self_nominate'))
+        end
+      end
+
+      it "requires the minimum trust level" do
+        SiteSetting.elections_min_trust_to_self_nominate = 2
+
+        xhr :post, :add, topic_id: topic.id
+        json = ::JSON.parse(response.body)
+        expect(json['failed']).to eq("FAILED")
+        expect(json['message']).to eq(I18n.t('election.errors.insufficient_trust_to_self_nominate', level: 2 ))
+      end
     end
 
     it 'raises an exception when user not present' do
