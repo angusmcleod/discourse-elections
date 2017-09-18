@@ -56,7 +56,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           const message = responseText.substring(responseText.indexOf('>') + 1, responseText.indexOf('plugins'));
           bootbox.alert(message);
         }
-      });
+      }).finally(() => this.set('loading', false))
     }
   }
 });

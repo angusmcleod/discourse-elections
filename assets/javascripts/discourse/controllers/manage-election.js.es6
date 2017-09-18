@@ -114,12 +114,19 @@ export default Ember.Controller.extend(ModalFunctionality, {
   },
 
   resolve(result, type) {
-    if (result.failed) {
+    if (result.success) {
+      this.set(`${type}Icon`, 'check');
+
+    } else if (result.failed) {
       this.set(`${type}Icon`, 'times');
       this.flash(result.message, 'error');
+
     } else {
-      this.set(`${type}Icon`, 'check');
+      setTimeout(() => {
+        this.set(`${type}Icon`, null);
+      }, 5000);
     }
+
     this.set(`${type}Saving`, false);
   },
 
@@ -179,7 +186,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.resolveStandardError(e.jqXHR.responseText, 'position');
           this.set('position', this.get('topic.election_position'));
         }
-      });
+      }).finally(() => this.resolve({}, 'position'));
     },
 
     statusSave() {
@@ -200,7 +207,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.resolveStandardError(e.jqXHR.responseText, 'status');
           this.set('status', this.get('topic.election_status'));
         }
-      });
+      }).finally(() => this.resolve({}, 'status'));
     },
 
     usernamesSave() {
@@ -231,7 +238,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.resolveStandardError(e.jqXHR.responseText, 'usernames');
           handleFail();
         }
-      });
+      }).finally(() => this.resolve({}, 'usernames'));
     },
 
     selfNominationSave() {
@@ -247,7 +254,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
           this.set('topic.election_self_nomination_allowed', result.state);
           this.get('model.rerender')();
         }
-      });
+      }).finally(() => this.resolve({}, 'selfNomination'));
     },
 
     nominationMessageSave() {
@@ -262,7 +269,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         } else {
           this.set('topic.election_nomination_message', data['message']);
         }
-      });
+      }).finally(() => this.resolve({}, 'nominationMessage'));
     },
 
     pollMessageSave() {
@@ -277,7 +284,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         } else {
           this.set('topic.election_poll_message', data['message']);
         }
-      });
+      }).finally(() => this.resolve({}, 'pollMessage'));
     }
   }
 });

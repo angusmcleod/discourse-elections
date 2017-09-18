@@ -11,7 +11,7 @@ export default createWidget('election-controls', {
 
   defaultState() {
     return {
-      startingElection: false
+      startingPoll: false
     };
   },
 
@@ -47,7 +47,7 @@ export default createWidget('election-controls', {
     });
   },
 
-  startElection() {
+  startPoll() {
     const topicId = this.attrs.topic.id;
 
     ajax('/election/start-poll', {type: 'PUT', data: { topic_id: topicId }}).then((result) => {
@@ -57,7 +57,7 @@ export default createWidget('election-controls', {
         this.attrs.topic.set('election_status', ElectionStatuses['poll']);
       }
 
-      this.state.startingElection = false;
+      this.state.startingPoll = false;
       this.scheduleRerender();
     }).catch((e) => {
       if (e.jqXHR && e.jqXHR.responseText) {
@@ -65,12 +65,12 @@ export default createWidget('election-controls', {
         const message = responseText.substring(responseText.indexOf('>') + 1, responseText.indexOf('plugins'));
         bootbox.alert(message);
       }
-
-      this.state.startingElection = false;
+    }).finally(() => {
+      this.state.startingPoll = false;
       this.scheduleRerender();
-    });
+    })
 
-    this.state.startingElection = true;
+    this.state.startingPoll = true;
     this.scheduleRerender();
   },
 
@@ -106,12 +106,12 @@ export default createWidget('election-controls', {
 
     if (user && user.is_elections_admin && topic.election_status === ElectionStatuses['nomination']) {
       contents.push(this.attach('button', {
-        action: 'startElection',
+        action: 'startPoll',
         label: 'election.start',
         className: 'btn-primary start-poll'
       }));
 
-      if (state.startingElection) {
+      if (state.startingPoll) {
         contents.push(h('div.spinner-container', h('div.spinner.small')));
       }
     }
