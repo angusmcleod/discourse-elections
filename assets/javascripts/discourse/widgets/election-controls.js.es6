@@ -68,7 +68,7 @@ export default createWidget('election-controls', {
     }).finally(() => {
       this.state.startingPoll = false;
       this.scheduleRerender();
-    })
+    });
 
     this.state.startingPoll = true;
     this.scheduleRerender();
