@@ -45,17 +45,19 @@ describe ::DiscourseElections::ElectionController do
   end
 
   context "within election topic" do
+    let (:user) { Fabricate(:user) }
     let (:topic) { Fabricate(:topic, subtype: 'election',
                                      category_id: category.id,
                                      title: I18n.t('election.title', position: 'Moderator'),
-                                     user: Discourse.system_user,
+                                     user: user,
                                      custom_fields: {
                                        position: 'Moderator',
                                        election_status: Topic.election_statuses[:nomination]
                                      })}
     let (:post) { Fabricate(:post, topic: topic,
                                    post_number: 1,
-                                   raw: I18n.t('election.nomination.default_message'))}
+                                   raw: I18n.t('election.nomination.default_message'),
+                                   user: user) }
 
     describe "#start_poll" do
       include_examples 'requires election admin', :put, :start_poll, topic_id: 5
@@ -311,7 +313,7 @@ describe ::DiscourseElections::ElectionListController do
   let(:topic) { Fabricate(:topic, subtype: 'election',
                                   category_id: category.id,
                                   title: I18n.t('election.title', position: 'Moderator'),
-                                  user: Discourse.system_user,
+                                  user: Fabricate(:admin),
                                   custom_fields: {
                                     election_position: 'Moderator',
                                     election_status: Topic.election_statuses[:nomination]
@@ -339,7 +341,7 @@ describe ::DiscourseElections::NominationController do
   let(:topic) { Fabricate(:topic, subtype: 'election',
                                   category_id: category.id,
                                   title: I18n.t('election.title', position: 'Moderator'),
-                                  user: Discourse.system_user,
+                                  user: Fabricate(:admin),
                                   custom_fields: {
                                     election_position: 'Moderator',
                                     election_status: Topic.election_statuses[:nomination]
