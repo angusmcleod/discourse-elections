@@ -1,7 +1,7 @@
 module DiscourseElections
   class ElectionController < BaseController
-    before_filter :ensure_is_elections_admin
-    before_filter :ensure_is_elections_category, only: [:create]
+    before_action :ensure_is_elections_admin
+    before_action :ensure_is_elections_category, only: [:create]
 
     def create
       params.require(:category_id)

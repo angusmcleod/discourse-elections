@@ -1,7 +1,7 @@
 module DiscourseElections
   class NominationController < BaseController
-    before_filter :ensure_logged_in
-    before_filter :ensure_is_elections_admin, only: [:set_by_username]
+    before_action :ensure_logged_in
+    before_action :ensure_is_elections_admin, only: [:set_by_username]
 
     def set_by_username
       params.require(:topic_id)
