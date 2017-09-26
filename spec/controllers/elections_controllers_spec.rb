@@ -2,7 +2,9 @@ require "rails_helper"
 
 shared_examples 'requires election admin' do |method, action, params|
   it 'raises an exception when election admin not present' do
-    xhr method, action, params
+    options = { format: :json }
+    options.merge!(params: params) if params
+    self.public_send(method, action, options)
     expect(response).not_to be_success
     json = ::JSON.parse(response.body)
     expect(json["errors"][0]).to eq(I18n.t("invalid_access"))
@@ -21,7 +23,7 @@ describe ::DiscourseElections::ElectionController do
       let!(:admin) { log_in(:admin) }
 
       it "works" do
-        xhr :put, :create, category_id: category.id, position: "Moderator"
+        put :create, params: { category_id: category.id, position: "Moderator" }, format: :json
         expect(response).to be_success
         json = ::JSON.parse(response.body)
         expect(json['url']).to eq(Topic.last.relative_url)
@@ -30,16 +32,20 @@ describe ::DiscourseElections::ElectionController do
       it "requires category to be for elections" do
         category.custom_fields["for_elections"] = false
         category.save_custom_fields(true)
-        expect { xhr :put, :create, category_id: category.id, position: "Moderator" }
+        expect { put :create, params: { category_id: category.id, position: "Moderator" }, format: :json }
           .to raise_error(StandardError, I18n.t("election.errors.category_not_enabled"))
       end
 
       it "requires a position" do
-        expect { xhr :put, :create, category_id: category.id }.to raise_error(ActionController::ParameterMissing)
+        expect {
+          put :create, params: { category_id: category.id }, format: :json
+        }.to raise_error(ActionController::ParameterMissing)
       end
 
       it "requires a category" do
-        expect { xhr :put, :create, position: "Moderator" }.to raise_error(ActionController::ParameterMissing)
+        expect {
+          put :create, params: { position: "Moderator" }, format: :json
+        }.to raise_error(ActionController::ParameterMissing)
       end
     end
   end
@@ -77,7 +83,7 @@ describe ::DiscourseElections::ElectionController do
 
           it "works" do
             messages = MessageBus.track_publish do
-              xhr :put, :start_poll, topic_id: topic.id
+              put :start_poll, params: { topic_id: topic.id }, format: :json
             end
 
             poll_message = messages.find { |m| m.channel.include?("polls") }
@@ -88,7 +94,9 @@ describe ::DiscourseElections::ElectionController do
         end
 
         it "requires at least 2 nominees" do
-          expect { xhr :put, :start_poll, topic_id: topic.id }.to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
+          expect {
+            put :start_poll, params: { topic_id: topic.id }, format: :json
+          }.to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
         end
       end
     end
@@ -111,7 +119,7 @@ describe ::DiscourseElections::ElectionController do
 
           it "updates from nomination to poll" do
             message = MessageBus.track_publish do
-              xhr :put, :set_status, topic_id: topic.id, status: Topic.election_statuses[:poll]
+              put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:poll] }, format: :json
             end.find { |m| m.channel.include?("polls") }
 
             poll = message.data[:polls]["poll"]
@@ -128,7 +136,7 @@ describe ::DiscourseElections::ElectionController do
             DiscourseElections::ElectionTopic.set_status(topic.id, Topic.election_statuses[:poll])
 
             message = MessageBus.track_publish do
-              xhr :put, :set_status, topic_id: topic.id, status: Topic.election_statuses[:closed_poll]
+              put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:closed_poll] }, format: :json
             end.find { |m| m.channel.include?("polls") }
 
             expect(message.data[:post_id]).to eq(post.id)
@@ -141,7 +149,7 @@ describe ::DiscourseElections::ElectionController do
             DiscourseElections::ElectionTopic.set_status(topic.id, Topic.election_statuses[:poll])
 
             message = MessageBus.track_publish do
-              xhr :put, :set_status, topic_id: topic.id, status: Topic.election_statuses[:nomination]
+              put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:nomination] }, format: :json
             end.find { |m| m.channel == "/topic/#{topic.id}" }
 
             post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -157,7 +165,7 @@ describe ::DiscourseElections::ElectionController do
             DiscourseElections::ElectionTopic.set_status(topic.id, Topic.election_statuses[:poll])
 
             message = MessageBus.track_publish do
-              xhr :put, :set_status, topic_id: topic.id, status: Topic.election_statuses[:closed_poll]
+              put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:closed_poll] }, format: :json
             end.find { |m| m.channel.include?("polls") }
 
             expect(message.data[:post_id]).to eq(post.id)
@@ -171,7 +179,7 @@ describe ::DiscourseElections::ElectionController do
             topic.save_custom_fields(true)
 
             message = MessageBus.track_publish do
-              xhr :put, :set_status, topic_id: topic.id, status: Topic.election_statuses[:poll]
+              put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:poll] }, format: :json
             end.find { |m| m.channel.include?("polls") }
 
             expect(message.data[:post_id]).to eq(post.id)
@@ -184,7 +192,7 @@ describe ::DiscourseElections::ElectionController do
             DiscourseElections::ElectionTopic.set_status(topic.id, Topic.election_statuses[:closed_poll])
 
             message = MessageBus.track_publish do
-              xhr :put, :set_status, topic_id: topic.id, status: Topic.election_statuses[:nomination]
+              put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:nomination] }, format: :json
             end.find { |m| m.channel == "/topic/#{topic.id}" }
 
             post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -198,8 +206,9 @@ describe ::DiscourseElections::ElectionController do
         end
 
         it "requires at least 2 nominees to select a poll status" do
-          expect { xhr :put, :set_status, topic_id: topic.id, status: Topic.election_statuses[:poll] }
-            .to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
+          expect {
+            put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:poll] }, format: :json
+          }.to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
         end
       end
     end
@@ -211,7 +220,7 @@ describe ::DiscourseElections::ElectionController do
         let!(:admin) { log_in(:admin) }
 
         it "works" do
-          xhr :put, :set_self_nomination, topic_id: topic.id, state: true
+          put :set_self_nomination, params: { topic_id: topic.id, state: true }, format: :json
           expect(response).to be_success
           json = ::JSON.parse(response.body)
           expect(json['state']).to eq(true)
@@ -221,8 +230,9 @@ describe ::DiscourseElections::ElectionController do
           topic.custom_fields['election_self_nomination_allowed'] = false
           topic.save_custom_fields(true)
 
-          expect { xhr :put, :set_self_nomination, topic_id: topic.id, state: false }
-            .to raise_error(StandardError, I18n.t('election.errors.self_nomination_state_not_changed'))
+          expect {
+            put :set_self_nomination, params: { topic_id: topic.id, state: false }, format: :json
+          }.to raise_error(StandardError, I18n.t('election.errors.self_nomination_state_not_changed'))
         end
       end
     end
@@ -235,7 +245,7 @@ describe ::DiscourseElections::ElectionController do
 
         it "updates stored message" do
           message = "Example message: Oranges"
-          xhr :put, :set_message, topic_id: topic.id, message: message, type: 'nomination'
+          put :set_message, params: { topic_id: topic.id, message: message, type: 'nomination' }, format: :json
 
           updated_topic = Topic.find(topic.id)
           expect(updated_topic.custom_fields["election_nomination_message"]).to eq(message)
@@ -246,7 +256,7 @@ describe ::DiscourseElections::ElectionController do
           post
 
           message = MessageBus.track_publish do
-            xhr :put, :set_message, topic_id: topic.id, message: nomination_message, type: 'nomination'
+            put :set_message, params: { topic_id: topic.id, message: nomination_message, type: 'nomination' }, format: :json
           end.find { |m| m.channel == "/topic/#{topic.id}" }
 
           post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -262,7 +272,7 @@ describe ::DiscourseElections::ElectionController do
           topic.save_custom_fields(true)
 
           message = MessageBus.track_publish do
-            xhr :put, :set_message, topic_id: topic.id, message: poll_message, type: 'poll'
+            put :set_message, params: { topic_id: topic.id, message: poll_message, type: 'poll' }, format: :json
           end.find { |m| m.channel == "/topic/#{topic.id}" }
 
           post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -270,12 +280,14 @@ describe ::DiscourseElections::ElectionController do
         end
 
         it "works with an empty message" do
-          xhr :put, :set_message, topic_id: topic.id, type: "nomination", message: ""
+          put :set_message, params: { topic_id: topic.id, type: "nomination", message: "" }, format: :json
           expect(response).to be_success
         end
 
         it "requires a message" do
-          expect { xhr :put, :set_message, topic_id: topic.id, type: "nomination" }.to raise_error(ActionController::ParameterMissing)
+          expect {
+            put :set_message, params: { topic_id: topic.id, type: "nomination" }, format: :json
+          }.to raise_error(ActionController::ParameterMissing)
         end
       end
     end
@@ -288,7 +300,7 @@ describe ::DiscourseElections::ElectionController do
 
         it "works" do
           position = "Wizard"
-          xhr :put, :set_position, topic_id: topic.id, position: position
+          put :set_position, params: { topic_id: topic.id, position: position }, format: :json
           expect(response).to be_success
 
           updated_topic = Topic.find(topic.id)
@@ -297,8 +309,9 @@ describe ::DiscourseElections::ElectionController do
         end
 
         it "requires a minimum length of 3" do
-          expect { xhr :put, :set_position, topic_id: topic.id, position: "ha" }
-            .to raise_error(StandardError, I18n.t('election.errors.position_too_short'))
+          expect {
+            put :set_position, params: { topic_id: topic.id, position: "ha" }, format: :json
+          }.to raise_error(StandardError, I18n.t('election.errors.position_too_short'))
         end
       end
     end
@@ -322,7 +335,7 @@ describe ::DiscourseElections::ElectionListController do
   describe "category_list" do
     it "works" do
       topic
-      xhr :get, :category_list, category_id: category.id
+      get :category_list, params: { category_id: category.id }, format: :json
       json = ::JSON.parse(response.body)
       expect(json[0]['position']).to eq('Moderator')
       expect(json[0]['relative_url']).to include('moderator')
@@ -366,7 +379,7 @@ describe ::DiscourseElections::NominationController do
 
       it "works with a single username in a string" do
         usernames = user1.username
-        xhr :post, :set_by_username, topic_id: topic.id, usernames: usernames
+        post :set_by_username, params: { topic_id: topic.id, usernames: usernames }, format: :json
         expect(response).to be_success
         json = ::JSON.parse(response.body)
         expect(json["usernames"]).to eq([usernames])
@@ -376,7 +389,7 @@ describe ::DiscourseElections::NominationController do
         topic.custom_fields["election_nominations"] = [user1.id]
         topic.save_custom_fields(true)
 
-        xhr :post, :set_by_username, topic_id: topic.id, usernames: ""
+        post :set_by_username, params: { topic_id: topic.id, usernames: "" }, format: :json
         expect(response).to be_success
         json = ::JSON.parse(response.body)
         expect(json["usernames"]).to eq([])
@@ -384,7 +397,7 @@ describe ::DiscourseElections::NominationController do
 
       it "works with an array of usernames" do
         usernames = [user1.username, user2.username]
-        xhr :post, :set_by_username, topic_id: topic.id, usernames: usernames
+        post :set_by_username, params: { topic_id: topic.id, usernames: usernames }, format: :json
         expect(response).to be_success
         json = ::JSON.parse(response.body)
         expect(json["usernames"]).to eq(usernames)
@@ -394,7 +407,7 @@ describe ::DiscourseElections::NominationController do
         topic.custom_fields["election_nominations"] = [user1.id]
         topic.save_custom_fields(true)
 
-        xhr :post, :set_by_username, topic_id: topic.id, usernames: []
+        post :set_by_username, params: { topic_id: topic.id, usernames: [] }, format: :json
         expect(response).to be_success
         json = ::JSON.parse(response.body)
         expect(json["usernames"]).to eq([])
@@ -402,16 +415,18 @@ describe ::DiscourseElections::NominationController do
 
       it "requires each username to be a real username" do
         usernames = [user1.username, "fakeuser"]
-        expect { xhr :post, :set_by_username, topic_id: topic.id, usernames: usernames }
-          .to raise_error(StandardError, I18n.t('election.errors.user_was_not_found', user: "fakeuser"))
+        expect {
+          post :set_by_username, params: { topic_id: topic.id, usernames: usernames }, format: :json
+        }.to raise_error(StandardError, I18n.t('election.errors.user_was_not_found', user: "fakeuser"))
       end
 
       it "requires more than 2 usernames if status is poll" do
         topic.custom_fields["election_status"] = Topic.election_statuses[:poll]
         topic.save_custom_fields(true)
 
-        expect { xhr :post, :set_by_username, topic_id: topic.id, usernames: user1.username }
-          .to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
+        expect {
+          post :set_by_username, params: { topic_id: topic.id, usernames: user1.username }, format: :json
+        }.to raise_error(StandardError, I18n.t('election.errors.more_nominations'))
       end
 
       it "updates election post" do
@@ -419,7 +434,7 @@ describe ::DiscourseElections::NominationController do
         election_post
 
         message = MessageBus.track_publish do
-          xhr :post, :set_by_username, topic_id: topic.id, usernames: usernames
+          post :set_by_username, params: { topic_id: topic.id, usernames: usernames }, format: :json
         end.find { |m| m.channel == "/topic/#{topic.id}" }
 
         post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -448,7 +463,7 @@ describe ::DiscourseElections::NominationController do
         it "retrieves existing nomination statement if nominee is re-added" do
           usernames = user1.username
           message = MessageBus.track_publish do
-            xhr :post, :set_by_username, topic_id: topic.id, usernames: usernames
+            post :set_by_username, params: { topic_id: topic.id, usernames: usernames }, format: :json
           end.find { |m| m.channel == "/topic/#{topic.id}" }
 
           post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -460,7 +475,7 @@ describe ::DiscourseElections::NominationController do
           topic.save_custom_fields(true)
 
           message = MessageBus.track_publish do
-            xhr :post, :set_by_username, topic_id: topic.id, usernames: []
+            post :set_by_username, params: { topic_id: topic.id, usernames: [] }, format: :json
           end.find { |m| m.channel == "/topic/#{topic.id}" }
 
           updated_post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -478,7 +493,7 @@ describe ::DiscourseElections::NominationController do
       let!(:user) { log_in(:user) }
 
       it "works" do
-        xhr :post, :add, topic_id: topic.id
+        post :add, params: { topic_id: topic.id }, format: :json
         expect(response).to be_success
         expect(Topic.find(topic.id).election_nominations).to include(user.id)
       end
@@ -486,7 +501,7 @@ describe ::DiscourseElections::NominationController do
       it "updates election post" do
         election_post
         message = MessageBus.track_publish do
-          xhr :post, :add, topic_id: topic.id
+          post :add, params: { topic_id: topic.id }, format: :json
         end.find { |m| m.channel == "/topic/#{topic.id}" }
 
         post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -500,7 +515,7 @@ describe ::DiscourseElections::NominationController do
         end
 
         it "does not allow anonymous users to self nominate" do
-          xhr :post, :add, topic_id: topic.id
+          post :add, params: { topic_id: topic.id }, format: :json
           json = ::JSON.parse(response.body)
           expect(json['failed']).to eq("FAILED")
           expect(json['message']).to eq(I18n.t('election.errors.only_named_user_can_self_nominate'))
@@ -510,7 +525,7 @@ describe ::DiscourseElections::NominationController do
       it "requires the minimum trust level" do
         SiteSetting.elections_min_trust_to_self_nominate = 2
 
-        xhr :post, :add, topic_id: topic.id
+        post :add, params: { topic_id: topic.id }, format: :json
         json = ::JSON.parse(response.body)
         expect(json['failed']).to eq("FAILED")
         expect(json['message']).to eq(I18n.t('election.errors.insufficient_trust_to_self_nominate', level: 2))
@@ -518,7 +533,9 @@ describe ::DiscourseElections::NominationController do
     end
 
     it 'raises an exception when user not present' do
-      expect { xhr :post, :add, topic_id: topic.id }.to raise_error(Discourse::NotLoggedIn)
+      expect {
+        post :add, params: { topic_id: topic.id }, format: :json
+      }.to raise_error(Discourse::NotLoggedIn)
     end
   end
 
@@ -527,7 +544,7 @@ describe ::DiscourseElections::NominationController do
       let!(:user) { log_in(:user) }
 
       it "works" do
-        xhr :post, :remove, topic_id: topic.id
+        post :remove, params: { topic_id: topic.id }, format: :json
         expect(response).to be_success
         expect(Topic.find(topic.id).election_nominations).to_not include(user.id)
       end
@@ -535,7 +552,7 @@ describe ::DiscourseElections::NominationController do
       it "updates election post" do
         election_post
         message = MessageBus.track_publish do
-          xhr :post, :remove, topic_id: topic.id
+          post :remove, params: { topic_id: topic.id }, format: :json
         end.find { |m| m.channel == "/topic/#{topic.id}" }
 
         post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -544,7 +561,7 @@ describe ::DiscourseElections::NominationController do
     end
 
     it 'raises an exception when user not present' do
-      expect { xhr :post, :remove, topic_id: topic.id }.to raise_error(Discourse::NotLoggedIn)
+      expect { post :remove, params: { topic_id: topic.id }, format: :json }.to raise_error(Discourse::NotLoggedIn)
     end
   end
 end

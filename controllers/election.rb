@@ -81,7 +81,7 @@ module DiscourseElections
       topic = Topic.find(params[:topic_id])
       existing_state = topic.custom_fields['election_self_nomination_allowed']
 
-      if params[:state] == existing_state
+      if params[:state].to_s == existing_state.to_s
         raise StandardError.new I18n.t('election.errors.self_nomination_state_not_changed')
       end
 

@@ -7,7 +7,7 @@ module DiscourseElections
       params.require(:topic_id)
       params.permit(:usernames, usernames: '', usernames: [])
 
-      usernames = params[:usernames].empty? ? [] : [*params[:usernames]]
+      usernames = params[:usernames].blank? ? [] : [*params[:usernames]]
 
       topic = Topic.find(params[:topic_id])
       if topic.election_status != Topic.election_statuses[:nomination] && usernames.length < 2
