@@ -5,7 +5,6 @@ module DiscourseElections
 
     def set_by_username
       params.require(:topic_id)
-      params.permit(:usernames, usernames: '', usernames: [])
 
       usernames = params[:usernames].blank? ? [] : [*params[:usernames]]
 
