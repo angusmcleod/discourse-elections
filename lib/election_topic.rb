@@ -1,7 +1,7 @@
 class DiscourseElections::ElectionTopic
 
   def self.create(opts)
-    title = I18n.t('election.title', position: opts[:position])
+    title = I18n.t('election.title', position: opts[:position].capitalize)
     topic = Topic.new(title: title, user: Discourse.system_user, category_id: opts[:category_id])
     topic.skip_callbacks = true
     topic.ignore_category_auto_close = true
