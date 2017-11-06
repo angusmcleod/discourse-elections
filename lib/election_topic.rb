@@ -75,14 +75,38 @@ class DiscourseElections::ElectionTopic
     saved
   end
 
-  def self.list_by_category(category_id)
-
+  def self.list_by_category(category_id, opts = {})
     query = "INNER JOIN topic_custom_fields
              ON topic_custom_fields.topic_id = topics.id
-             AND topic_custom_fields.name = 'election_status'
-             AND (topic_custom_fields.value = '#{Topic.election_statuses[:nomination]}' OR
-                  topic_custom_fields.value = '#{Topic.election_statuses[:poll]}')"
+             AND topic_custom_fields.name = 'election_status'"
 
-    Topic.joins(query).where(category_id: category_id)
+    if opts[:statuses]
+      statuses = [*opts[:statuses]]
+      status_string = ''
+      statuses.each_with_index do |s, i|
+        status_string << "\'#{s}\'"
+        status_string << "," if i < statuses.length - 1
+      end
+
+      query << " AND topic_custom_fields.value IN (#{status_string})"
+    end
+
+    topics = Topic.where(category_id: category_id).joins(query)
+
+    if opts[:roles]
+      roles = [*opts[:roles]]
+      role_string = ''
+      roles.each_with_index do |s, i|
+        role_string << "\'#{s}\'"
+        role_string << "," if i < roles.length - 1
+      end
+
+      topics.joins("INNER JOIN topic_custom_fields
+                    ON topic_custom_fields.topic_id = topics.id
+                    AND topic_custom_fields.name = 'election_position'
+                    AND topic_custom_fields.value IN (#{role_string})")
+    end
+
+    topics
   end
 end

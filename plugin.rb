@@ -145,11 +145,11 @@ after_initialize do
   end
 
   Topic.class_eval do
-    attr_accessor :election_status_changed
+    attr_accessor :election_status_changed, :election_status
     after_save :handle_election_status_change, if: :election_status_changed
 
     def election_status
-      custom_fields['election_status']
+      self.custom_fields['election_status']
     end
 
     def handle_election_status_change
