@@ -37,7 +37,6 @@ en:
           body: "If you want to withdraw your nomination for {{position}}
                 in {{categoryName}} click I withdraw my nomination below.<br><br>"
           btn: "I withdraw my nomination"
-        notification: "<a><i class='fa fa-info-circle'></i><p>{{description}}</p></a>"
         statement:
           add: "Add Statement"
           label: "Nomination Statement"
@@ -49,3 +48,6 @@ en:
       post:
         nominee: "Nominee in this election"
         nomination_statement: "nomination statement"
+      notification:
+        poll: "{{description}}"
+        closed_poll: "{{description}}"

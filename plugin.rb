@@ -195,22 +195,21 @@ after_initialize do
       end
 
       if status === Topic.election_statuses[:poll]
-        message = I18n.t('election.notification.poll', title: title)
         update_category_election_list(status)
-        notify_nominees(message)
+        notify_nominees('poll')
       end
 
       if status === Topic.election_statuses[:closed_poll]
         message = I18n.t('election.notification.closed_poll', title: title)
         update_category_election_list(status)
-        notify_nominees(message)
+        notify_nominees('closed_poll')
       end
 
       election_status_changed = false
     end
 
-    def notify_nominees(message)
-      Jobs.enqueue(:notify_nominees, topic_id: id, message: message)
+    def notify_nominees(type)
+      Jobs.enqueue(:notify_nominees, topic_id: id, type: type)
     end
 
     def update_category_election_list(status)
