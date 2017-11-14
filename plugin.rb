@@ -72,14 +72,14 @@ after_initialize do
     delete 'nomination' => 'nomination#remove'
 
     post 'create' => 'election#create'
-    put 'set-self-nomination' => 'election#set_self_nomination'
+    put 'set-self-nomination-allowed' => 'election#set_self_nomination_allowed'
     put 'set-status-banner' => 'election#set_status_banner'
     put 'set-status-banner-result-hours' => 'election#set_status_banner_result_hours'
-    put 'set-message' => 'election#set_message'
+    put 'set-nomination-message' => 'election#set_message'
+    put 'set-poll-message' => 'election#set_message'
     put 'set-status' => 'election#set_status'
     put 'set-position' => 'election#set_position'
     put 'start-poll' => 'election#start_poll'
-
     get 'category-list' => 'election_list#category_list'
   end
 

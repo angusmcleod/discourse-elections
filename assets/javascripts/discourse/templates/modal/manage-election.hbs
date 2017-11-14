@@ -3,10 +3,12 @@
     <label>{{i18n 'election.create.position'}}</label>
     {{input value=position class='input-medium'}}
     <div class="controls">
-      {{manage-election-save save='positionSave'
-                             saving=positionSaving
-                             icon=positionIcon
-                             disabled=positionDisabled}}
+      {{election-save property=position
+                      name="position"
+                      invalid=positionInvalid
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
     </div>
   </div>
 
@@ -14,10 +16,12 @@
     <label>{{i18n 'election.status.label'}}</label>
     {{combo-box content=electionStatuses value=status}}
     <div class="controls">
-      {{manage-election-save save='statusSave'
-                             saving=statusSaving
-                             icon=statusIcon
-                             disabled=statusDisabled}}
+      {{election-save property=status
+                      name="status"
+                      unchanged=statusUnchanged
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
     </div>
   </div>
 
@@ -27,10 +31,15 @@
       {{user-selector usernames=usernamesString}}
     {{/if}}
     <div class="controls">
-      {{manage-election-save save='usernamesSave'
-                             saving=usernamesSaving
-                             icon=usernamesIcon
-                             disabled=usernamesDisabled}}
+      {{election-save property=usernames
+                      name="usernames"
+                      unchanged=usernamesUnchanged
+                      usernamesString=usernamesString
+                      topic=topic
+                      error="error"
+                      saved="saved"
+                      usernamesSelector=true
+                      showSelector=showSelector}}
     </div>
   </div>
 
@@ -38,10 +47,11 @@
     {{input type="checkbox" checked=selfNomination}}
     <span>{{i18n 'election.create.self_nomination_allowed'}}</span>
     <div class="controls">
-      {{manage-election-save save='selfNominationSave'
-                             saving=selfNominationSaving
-                             icon=selfNominationIcon
-                             disabled=selfNominationDisabled}}
+      {{election-save property=selfNomination
+                      name="self_nomination_allowed"
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
     </div>
   </div>
 
@@ -49,10 +59,11 @@
     <label>{{i18n 'election.create.nomination_message'}}</label>
     {{d-editor value=nominationMessage placeholder='election.create.nomination_message_placeholder'}}
     <div class="controls">
-      {{manage-election-save save='nominationMessageSave'
-                             saving=nominationMessageSaving
-                             icon=nominationMessageIcon
-                             disabled=nominationMessageDisabled}}
+      {{election-save property=nominationMessage
+                      name="nomination_message"
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
     </div>
   </div>
 
@@ -60,10 +71,11 @@
     <label>{{i18n 'election.create.poll_message'}}</label>
     {{d-editor value=pollMessage placeholder='election.create.poll_message_placeholder'}}
     <div class="controls">
-      {{manage-election-save save='pollMessageSave'
-                             saving=pollMessageSaving
-                             icon=pollMessageIcon
-                             disabled=pollMessageDisabled}}
+      {{election-save property=pollMessage
+                      name="poll_message"
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
     </div>
   </div>
 
@@ -71,10 +83,11 @@
     {{input type="checkbox" checked=statusBanner}}
     <span>{{i18n 'election.status_banner.enable'}}</span>
     <div class="controls">
-      {{manage-election-save save='statusBannerSave'
-                             saving=statusBannerSaving
-                             icon=statusBannerIcon
-                             disabled=statusBannerDisabled}}
+      {{election-save property=statusBanner
+                      name="status_banner"
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
     </div>
   </div>
 
@@ -82,14 +95,15 @@
     <span>{{i18n 'election.status_banner.result_hours'}}</span>
     {{input type="number" value=statusBannerResultHours class='input-small'}}
     <div class="controls">
-      {{manage-election-save save='statusBannerResultHoursSave'
-                             saving=statusBannerResultHoursSaving
-                             icon=statusBannerResultHoursIcon
-                             disabled=sstatusBannerResultHoursDisabled}}
+      {{election-save property=statusBannerResultHours
+                      name="status_banner_result_hours"
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
     </div>
   </div>
 {{/d-modal-body}}
 
 <div class="modal-footer">
-  {{d-button title='election.manage.done' label='election.manage.done' action='close' class='btn btn-primary' disabled=doneDisabled}}
+  {{d-button title='election.manage.done' label='election.manage.done' action='close' class='btn btn-primary'}}
 </div>

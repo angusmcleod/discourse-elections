@@ -55,7 +55,7 @@ module DiscourseElections
       existing_status = topic.election_status
 
       if params[:status].to_i == existing_status
-        raise StandardError.new I18n.t('election.errors.status_not_changed')
+        raise StandardError.new I18n.t('election.errors.not_changed')
       end
 
       if params[:status].to_i != Topic.election_statuses[:nomination] && topic.election_nominations.length < 2
@@ -67,7 +67,7 @@ module DiscourseElections
       if new_status == existing_status
         result = { error_message: I18n.t('election.errors.set_status_failed') }
       else
-        result = { status: new_status }
+        result = { value: new_status }
         election_post = Post.find_by(topic_id: params[:topic_id], post_number: 1)
         poll_status = params[:status].to_i == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
         DiscoursePoll::Poll.toggle_status(election_post.id, "poll", poll_status, current_user.id)
@@ -78,57 +78,57 @@ module DiscourseElections
 
     def set_status_banner
       params.require(:topic_id)
-      params.require(:state)
+      params.require(:status_banner)
 
       topic = Topic.find(params[:topic_id])
       existing_state = topic.custom_fields['election_status_banner']
 
-      if params[:state].to_s == existing_state.to_s
-        raise StandardError.new I18n.t('election.errors.status_banner_state_not_changed')
+      if params[:status_banner].to_s == existing_state.to_s
+        raise StandardError.new I18n.t('election.errors.not_changed')
       end
 
-      topic.custom_fields['election_status_banner'] = params[:state]
+      topic.custom_fields['election_status_banner'] = params[:status_banner]
       topic.save_custom_fields(true)
 
-      DiscourseElections::ElectionCategory.update_election_list(topic.category_id, topic.id, banner: params[:state])
+      DiscourseElections::ElectionCategory.update_election_list(topic.category_id, topic.id, banner: params[:status_banner])
 
-      render json: success_json.merge(state: topic.custom_fields['election_status_banner'])
+      render_result(value: topic.custom_fields['election_status_banner'])
     end
 
     def set_status_banner_result_hours
       params.require(:topic_id)
-      params.require(:hours)
+      params.require(:status_banner_result_hours)
 
       topic = Topic.find(params[:topic_id])
       existing = topic.custom_fields['election_status_banner_result_hours']
 
-      if params[:hours].to_i == existing.to_i
-        raise StandardError.new I18n.t('election.errors.status_banner_result_hours_not_changed')
+      if params[:status_banner_result_hours].to_i == existing.to_i
+        raise StandardError.new I18n.t('election.errors.not_changed')
       end
 
-      topic.custom_fields['election_status_banner_result_hours'] = params[:hours]
+      topic.custom_fields['election_status_banner_result_hours'] = params[:status_banner_result_hours]
       topic.save_custom_fields(true)
 
-      render json: success_json.merge(hours: topic.custom_fields['election_status_banner_result_hours'])
+      render_result(value: topic.custom_fields['election_status_banner_result_hours'])
     end
 
-    def set_self_nomination
+    def set_self_nomination_allowed
       params.require(:topic_id)
-      params.require(:state)
+      params.require(:self_nomination_allowed)
 
       topic = Topic.find(params[:topic_id])
       existing_state = topic.custom_fields['election_self_nomination_allowed']
 
-      if params[:state].to_s == existing_state.to_s
+      if params[:self_nomination_allowed].to_s == existing_state.to_s
         raise StandardError.new I18n.t('election.errors.self_nomination_state_not_changed')
       end
 
-      response = DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:state])
+      response = DiscourseElections::Nomination.set_self_nomination(params[:topic_id], params[:self_nomination_allowed])
 
       if response == existing_state
         result = { error_message: I18n.t('election.errors.self_nomination_state_not_changed') }
       else
-        result = { state: response }
+        result = { value: response }
       end
 
       render_result(result)
@@ -136,15 +136,27 @@ module DiscourseElections
 
     def set_message
       params.require(:topic_id)
-      params.require(:type)
-      params.permit(:message, message: '')
+      params.permit(:poll_message, :nomination_message)
 
-      unless params.has_key?(:message)
-        raise ActionController::ParameterMissing.new(:message)
+      type = nil
+      message = nil
+
+      params.each do |key|
+        if key.to_s.include? 'message'
+          message = params[key]
+          type = key.split('_')[0]
+        end
       end
 
-      response = DiscourseElections::ElectionTopic.set_message(params[:topic_id], params[:message], params[:type])
-      result = response ? {} : { error_message: I18n.t('election.errors.set_message_failed') }
+      if type && message && success = DiscourseElections::ElectionTopic.set_message(
+          params[:topic_id],
+          params[:message],
+          params[:type]
+        )
+        result = { value: params[:message] }
+      else
+        result = { error_message: I18n.t('election.errors.set_message_failed') }
+      end
 
       render_result(result)
     end
@@ -157,9 +169,11 @@ module DiscourseElections
         raise StandardError.new I18n.t('election.errors.position_too_short')
       end
 
-      response = DiscourseElections::ElectionTopic.set_position(params[:topic_id], params[:position])
-
-      result = response ? {} : { error_message: I18n.t('election.errors.set_position_failed') }
+      if success = DiscourseElections::ElectionTopic.set_position(params[:topic_id], params[:position])
+        result = { value: params[:position] }
+      else
+        result = { error_message: I18n.t('election.errors.set_position_failed') }
+      end
 
       render_result(result)
     end

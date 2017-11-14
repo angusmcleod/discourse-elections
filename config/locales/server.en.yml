@@ -7,6 +7,7 @@ en:
       poll: "The election \"%{title}\" has started"
       closed_poll: "The election \"%{title}\" has been closed"
     errors:
+      not_changed: "Value has not been changed"
       category_not_enabled: "Category does not have elections enabled"
       create_failed: "Election creation failed"
       more_nominations: "More nominations are needed to run a poll."
@@ -17,7 +18,6 @@ en:
       set_message_failed: "Failed to set message"
       set_position_failed: "Failed to set position"
       position_too_short: "Position is too short"
-      status_not_changed: "Status has not been changed"
       self_nomination_state_not_changed: "Self nomination state has not been changed"
       set_usernames_failed: "Failed to set usernames"
       user_was_not_found: "User \"%{user}\" was not found"
@@ -25,7 +25,7 @@ en:
       remove_nomination_failed: "Failed to remove nomination"
       only_named_user_can_self_nominate: "Only named users can self-nominate"
       insufficient_trust_to_self_nominate: "Self nomination is open to users with trust level %{level} and above"
-      status_banner_state_not_changed: "Status banner state has not been changed"
+
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"
