@@ -24,8 +24,8 @@ en:
       status:
         label: "Status"
         nomination: "Taking Nominations"
-        poll: "Electing"
-        closed_poll: "Closed"
+        poll: "Polling"
+        closed_poll: "Poll Closed"
       nomination:
         add:
           label: "Nominate Yourself"
