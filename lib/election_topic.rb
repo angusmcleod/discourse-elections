@@ -11,6 +11,8 @@ class DiscourseElections::ElectionTopic
     topic.custom_fields['election_status'] = Topic.election_statuses[:nomination]
     topic.custom_fields['election_position'] = opts[:position]
     topic.custom_fields['election_self_nomination_allowed'] = opts[:self_nomination_allowed] || false
+    topic.custom_fields['election_status_banner'] = opts[:status_banner]
+    topic.custom_fields['election_status_banner_result_hours'] = opts[:status_banner_result_hours]
     topic.custom_fields['election_nomination_message'] =  opts[:nomination_message]
     topic.custom_fields['election_poll_message'] = opts[:poll_message]
 
@@ -41,9 +43,9 @@ class DiscourseElections::ElectionTopic
 
     topic.custom_fields['election_status'] = status
     topic.election_status_changed = status != current_status
-    saved = topic.save!
+    topic.save!
 
-    if saved && (current_status == Topic.election_statuses[:nomination] || status == Topic.election_statuses[:nomination])
+    if current_status == Topic.election_statuses[:nomination] || status == Topic.election_statuses[:nomination]
       DiscourseElections::ElectionPost.rebuild_election_post(topic)
     end
 
@@ -73,40 +75,5 @@ class DiscourseElections::ElectionTopic
     end
 
     saved
-  end
-
-  def self.list_by_category(category_id, opts = {})
-    query = "INNER JOIN topic_custom_fields
-             ON topic_custom_fields.topic_id = topics.id
-             AND topic_custom_fields.name = 'election_status'"
-
-    if opts[:statuses]
-      statuses = [*opts[:statuses]]
-      status_string = ''
-      statuses.each_with_index do |s, i|
-        status_string << "\'#{s}\'"
-        status_string << "," if i < statuses.length - 1
-      end
-
-      query << " AND topic_custom_fields.value IN (#{status_string})"
-    end
-
-    topics = Topic.where(category_id: category_id).joins(query)
-
-    if opts[:roles]
-      roles = [*opts[:roles]]
-      role_string = ''
-      roles.each_with_index do |s, i|
-        role_string << "\'#{s}\'"
-        role_string << "," if i < roles.length - 1
-      end
-
-      topics.joins("INNER JOIN topic_custom_fields
-                    ON topic_custom_fields.topic_id = topics.id
-                    AND topic_custom_fields.name = 'election_position'
-                    AND topic_custom_fields.value IN (#{role_string})")
-    end
-
-    topics
   end
 end

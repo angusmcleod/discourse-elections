@@ -66,6 +66,28 @@
                              disabled=pollMessageDisabled}}
     </div>
   </div>
+
+  <div class="control-group">
+    {{input type="checkbox" checked=statusBanner}}
+    <span>{{i18n 'election.status_banner.enable'}}</span>
+    <div class="controls">
+      {{manage-election-save save='statusBannerSave'
+                             saving=statusBannerSaving
+                             icon=statusBannerIcon
+                             disabled=statusBannerDisabled}}
+    </div>
+  </div>
+
+  <div class="control-group">
+    <span>{{i18n 'election.status_banner.result_hours'}}</span>
+    {{input type="number" value=statusBannerResultHours class='input-small'}}
+    <div class="controls">
+      {{manage-election-save save='statusBannerResultHoursSave'
+                             saving=statusBannerResultHoursSaving
+                             icon=statusBannerResultHoursIcon
+                             disabled=sstatusBannerResultHoursDisabled}}
+    </div>
+  </div>
 {{/d-modal-body}}
 
 <div class="modal-footer">

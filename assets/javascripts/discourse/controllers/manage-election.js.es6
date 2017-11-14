@@ -6,6 +6,8 @@ import { observes, default as computed } from 'ember-addons/ember-computed-decor
 export default Ember.Controller.extend(ModalFunctionality, {
   usernamesDisabled: Ember.computed.or('usernamesUnchanged', 'usernamesSaving'),
   selfNominationDisabled: Ember.computed.or('selfNominationUnchanged', 'selfNominationSaving'),
+  statusBannerDisabled: Ember.computed.or('statusBannerUnchanged', 'statusBannerSaving'),
+  statusBannerResultHoursDisabled: Ember.computed.or('statusBannerResultHoursUnchanged', 'statusBannerResultHoursSaving'),
   statusDisabled: Ember.computed.or('statusUnchanged', 'statusSaving'),
   nominationMessageDisabled: Ember.computed.or('nominationMessageUnchanged', 'nominationMessageSaving'),
   pollMessageDisabled: Ember.computed.or('pollMessageUnchanged', 'pollMessageSaving'),
@@ -13,12 +15,15 @@ export default Ember.Controller.extend(ModalFunctionality, {
   doneDisabled: Ember.computed.or('positionSaving', 'usernamesSaving', 'selfNominationSaving', 'statusSaving', 'nominationMessageSaving', 'pollMessageSaving'),
   usernamesSaving: false,
   selfNominationSaving: false,
+  statusBannerSaving: false,
   statusSaving: false,
   nominationMessageSaving: false,
   pollMessageSaving: false,
   positionSaving: false,
   usernamesIcon: null,
   selfNominationIcon: null,
+  statusBannerIcon: null,
+  statusBannerResultHoursIcon: null,
   statusIcon: null,
   nominationMessageIcon: null,
   pollMessageIcon: null,
@@ -39,6 +44,8 @@ export default Ember.Controller.extend(ModalFunctionality, {
         position: topic.election_position,
         usernamesString: topic.election_nominations_usernames.join(','),
         selfNomination: topic.election_self_nomination_allowed,
+        statusBanner: topic.election_status_banner,
+        statusBannerResultHours: topic.election_status_banner_result_hours,
         status: topic.election_status,
         nominationMessage: topic.election_nomination_message,
         pollMessage: topic.election_poll_message,
@@ -93,6 +100,16 @@ export default Ember.Controller.extend(ModalFunctionality, {
     return current === original;
   },
 
+  @computed('statusBanner', 'topic.election_status_banner')
+  statusBannerUnchanged(current, original) {
+    return current === original;
+  },
+
+  @computed('statusBannerResultHours', 'topic.election_status_banner_result_hours')
+  statusBannerResultHoursUnchanged(current, original) {
+    return current === original;
+  },
+
   @computed('nominationMessage', 'topic.election_nomination_message')
   nominationMessageUnchanged(current, original) {
     return current === original;
@@ -134,6 +151,8 @@ export default Ember.Controller.extend(ModalFunctionality, {
     this.setProperties({
       usernamesIcon: null,
       selfNominationIcon: null,
+      statusBannerIcon: null,
+      statusBannerResultHoursIcon: null,
       statusIcon: null,
       nominationMessageIcon: null,
       pollMessageIcon: null,
@@ -242,6 +261,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
     },
 
     selfNominationSave() {
+      const existing = this.get('topic.election_self_nomination_allowed');
       const data = this.prepare('selfNomination', 'state');
       if (!data) return;
 
@@ -249,12 +269,46 @@ export default Ember.Controller.extend(ModalFunctionality, {
         this.resolve(result, 'selfNomination');
 
         if (result.failed) {
-          this.set('selfNomination', !data['selfNomination']);
+          this.set('selfNomination', existing);
         } else {
           this.set('topic.election_self_nomination_allowed', result.state);
           this.get('model.rerender')();
         }
       }).finally(() => this.resolve({}, 'selfNomination'));
+    },
+
+    statusBannerSave() {
+      const existing = this.get('topic.election_status_banner');
+      const data = this.prepare('statusBanner', 'state');
+      if (!data) return;
+
+      ajax('/election/set-status-banner', { type: 'PUT', data }).then((result) => {
+        this.resolve(result, 'statusBanner');
+
+        if (result.failed) {
+          this.set('statusBanner', existing);
+        } else {
+          this.set('topic.election_status_banner', result.state);
+          this.get('model.rerender')();
+        }
+      }).finally(() => this.resolve({}, 'statusBanner'));
+    },
+
+    statusBannerResultHoursSave() {
+      const existing = this.get('topic.election_status_banner_result_hours');
+      const data = this.prepare('statusBannerResultHours', 'hours');
+      if (!data) return;
+
+      ajax('/election/set-status-banner-result-hours', { type: 'PUT', data }).then((result) => {
+        this.resolve(result, 'statusBanner');
+
+        if (result.failed) {
+          this.set('statusBannerResultHours', existing);
+        } else {
+          this.set('topic.election_status_banner_result_hours', result.hours);
+          this.get('model.rerender')();
+        }
+      }).finally(() => this.resolve({}, 'statusBannerResultHours'));
     },
 
     nominationMessageSave() {

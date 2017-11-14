@@ -4,6 +4,12 @@ en:
       for_elections: "Allow elections to be created in this category"
     election:
       start: "Start Poll"
+      status_banner:
+        enable: "Enable the election status banner."
+        result_hours: "Number of hours election result will be displayed in election status banner."
+        nomination: "Taking nominations for {{position}}."
+        poll: "Voting for {{position}} is open."
+        closed_poll: "Voting for {{position}} has closed. Click to see the results."
       list:
         label: "Elections"
       create:

@@ -3,7 +3,7 @@ import { escapeExpression } from 'discourse/lib/utilities';
 import Composer from 'discourse/models/composer';
 import { ElectionStatuses } from '../lib/election';
 import RawHtml from 'discourse/widgets/raw-html';
-import { default as computed } from 'ember-addons/ember-computed-decorators';
+import { default as computed, observes } from 'ember-addons/ember-computed-decorators';
 import { h } from 'virtual-dom';
 
 export default {
@@ -26,6 +26,16 @@ export default {
           @computed('electionNominationStatement', 'post.election_nomination_statement', 'topic.election_is_nominee')
           isNominationStatement(newStatement, existingStatement, isNominee) {
             return (newStatement || existingStatement) && isNominee;
+          }
+        });
+
+        api.modifyClass('component:composer-body', {
+          @observes('composer.isNominationStatement')
+          addNominationStatementClass() {
+            const isNominationStatement = this.get('composer.isNominationStatement');
+            Ember.run.scheduleOnce('afterRender', this, () => {
+              this.$().toggleClass('nomination-statement', isNominationStatement);
+            });
           }
         });
 

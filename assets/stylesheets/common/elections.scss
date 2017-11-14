@@ -51,11 +51,31 @@
   display: inline-block;
 }
 
-.statement-composer-label span {
-  padding: 6px 12px;
-  background: $secondary;
+.input-small {
+  width: 50px;
+}
+
+.nomination-statement .reply-to {
   display: inline-block;
   vertical-align: middle;
+}
+
+.nomination-statement .reply-to + span {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+.statement-composer-label {
+  margin-bottom: 10px;
+
+  span {
+    padding: 2px 4px;
+    background: $secondary;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 0.92em;
+  }
 }
 
 .statement-post-label {
@@ -114,5 +134,42 @@
 
   .fa {
     color: $tertiary;
+  }
+}
+
+.election-banner {
+  text-align: center;
+  padding: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid  dark-light-diff($primary, $secondary, 90%, -65%);
+  border-radius: 4px;
+  color: $secondary;
+  transition: all .25s;
+  box-shadow: 0 2px 4px -1px rgba(0,0,0, .25);
+
+  &.election-nomination {
+    background-color: $tertiary;
+
+    &:hover {
+      background-color: dark-light-diff($tertiary, $primary, 50%, -40%);
+    }
+  }
+
+  &.election-poll {
+    background-color: $success;
+
+    &:hover {
+      background-color: dark-light-diff($success, $primary, 50%, -40%);
+    }
+  }
+
+  &.election-closed-poll {
+    color: $primary;
+    background-color: $highlight;
+
+    &:hover {
+      background-color: dark-light-diff($highlight, $primary, 50%, -40%);;
+    }
   }
 }

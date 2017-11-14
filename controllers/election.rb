@@ -6,14 +6,16 @@ module DiscourseElections
     def create
       params.require(:category_id)
       params.require(:position)
-      params.permit(:nomination_message, :poll_message, :self_nomination_allowed)
+      params.permit(:nomination_message, :poll_message, :self_nomination_allowed, :status_banner, :status_banner_result_hours)
 
       opts = {
         category_id: params[:category_id],
         position: params[:position],
         nomination_message: params[:nomination_message],
         poll_message: params[:poll_message],
-        self_nomination_allowed: params[:self_nomination_allowed]
+        self_nomination_allowed: params[:self_nomination_allowed],
+        status_banner: params[:status_banner],
+        status_banner_result_hours: params[:status_banner_result_hours]
       }
 
       result = DiscourseElections::ElectionTopic.create(opts)
@@ -72,6 +74,42 @@ module DiscourseElections
       end
 
       render_result(result)
+    end
+
+    def set_status_banner
+      params.require(:topic_id)
+      params.require(:state)
+
+      topic = Topic.find(params[:topic_id])
+      existing_state = topic.custom_fields['election_status_banner']
+
+      if params[:state].to_s == existing_state.to_s
+        raise StandardError.new I18n.t('election.errors.status_banner_state_not_changed')
+      end
+
+      topic.custom_fields['election_status_banner'] = params[:state]
+      topic.save_custom_fields(true)
+
+      DiscourseElections::ElectionCategory.update_election_list(topic.category_id, topic.id, banner: params[:state])
+
+      render json: success_json.merge(state: topic.custom_fields['election_status_banner'])
+    end
+
+    def set_status_banner_result_hours
+      params.require(:topic_id)
+      params.require(:hours)
+
+      topic = Topic.find(params[:topic_id])
+      existing = topic.custom_fields['election_status_banner_result_hours']
+
+      if params[:hours].to_i == existing.to_i
+        raise StandardError.new I18n.t('election.errors.status_banner_result_hours_not_changed')
+      end
+
+      topic.custom_fields['election_status_banner_result_hours'] = params[:hours]
+      topic.save_custom_fields(true)
+
+      render json: success_json.merge(hours: topic.custom_fields['election_status_banner_result_hours'])
     end
 
     def set_self_nomination

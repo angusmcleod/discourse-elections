@@ -25,6 +25,7 @@ en:
       remove_nomination_failed: "Failed to remove nomination"
       only_named_user_can_self_nominate: "Only named users can self-nominate"
       insufficient_trust_to_self_nominate: "Self nomination is open to users with trust level %{level} and above"
+      status_banner_state_not_changed: "Status banner state has not been changed"
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"
@@ -36,3 +37,5 @@ en:
     elections_nominee_avatar_flair: "Font Awesome class of the avatar flair for nominees within the election topic. Leave blank to disable."
     elections_enabled: "Enable elections plugin"
     elections_min_trust_to_self_nominate: "Minimum trust required for a user to self-nominate for an election"
+    elections_status_banner: "Enable election status banner by default (can be toggled for each election)."
+    elections_status_banner_default_result_hours: "Default number of hours election results are highlighted for in a topic list banner."

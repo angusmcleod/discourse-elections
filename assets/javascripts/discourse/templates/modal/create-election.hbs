@@ -15,6 +15,14 @@
     {{input type="checkbox" checked=selfNominationAllowed}}
     <span>{{i18n 'election.create.self_nomination_allowed'}}</span>
   </div>
+  <div class="control-group">
+    {{input type="checkbox" checked=statusBanner}}
+    <span>{{i18n 'election.status_banner.enable'}}</span>
+  </div>
+  <div class="control-group">
+    <span>{{i18n 'election.status_banner.result_hours'}}</span>
+    {{input type="number" value=statusBannerResultHours class='input-small'}}
+  </div>
 {{/d-modal-body}}
 
 <div class="modal-footer">

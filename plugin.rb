@@ -13,6 +13,8 @@ after_initialize do
   Topic.register_custom_field_type('election_self_nomination_allowed', :boolean)
   Topic.register_custom_field_type('election_nominations', :integer)
   Topic.register_custom_field_type('election_status', :integer)
+  Topic.register_custom_field_type('election_status_banner', :boolean)
+  Topic.register_custom_field_type('election_status_banner_result_hours', :integer)
   add_to_serializer(:topic_view, :subtype) { object.topic.subtype }
   add_to_serializer(:topic_view, :election_status) { object.topic.election_status }
   add_to_serializer(:topic_view, :election_position) { object.topic.custom_fields['election_position'] }
@@ -34,9 +36,14 @@ after_initialize do
   add_to_serializer(:topic_view, :election_nomination_message) { object.topic.custom_fields['election_nomination_message'] }
   add_to_serializer(:topic_view, :election_poll_message) { object.topic.custom_fields['election_poll_message'] }
   add_to_serializer(:topic_view, :election_same_message) { object.topic.custom_fields['election_poll_message'] }
+  add_to_serializer(:topic_view, :election_status_banner) { object.topic.custom_fields['election_status_banner'] }
+  add_to_serializer(:topic_view, :election_status_banner_result_hours) { object.topic.custom_fields['election_status_banner_result_hours'] }
 
   Category.register_custom_field_type('for_elections', :boolean)
+  Category.register_custom_field_type('election_list', :json)
   add_to_serializer(:basic_category, :for_elections) { object.custom_fields['for_elections'] }
+  add_to_serializer(:basic_category, :election_list) { object.election_list }
+  add_to_serializer(:basic_category, :include_election_list?) { object.election_list.present? }
 
   Post.register_custom_field_type('election_nomination_statement', :boolean)
   add_to_serializer(:post, :election_post) { object.is_first_post? }
@@ -66,6 +73,8 @@ after_initialize do
 
     post 'create' => 'election#create'
     put 'set-self-nomination' => 'election#set_self_nomination'
+    put 'set-status-banner' => 'election#set_status_banner'
+    put 'set-status-banner-result-hours' => 'election#set_status_banner_result_hours'
     put 'set-message' => 'election#set_message'
     put 'set-status' => 'election#set_status'
     put 'set-position' => 'election#set_position'
@@ -84,10 +93,22 @@ after_initialize do
   load File.expand_path('../controllers/nomination.rb', __FILE__)
   load File.expand_path('../serializers/election.rb', __FILE__)
   load File.expand_path('../jobs/notify_nominees.rb', __FILE__)
+  load File.expand_path('../jobs/remove_from_category_election_list.rb', __FILE__)
   load File.expand_path('../lib/election_post.rb', __FILE__)
   load File.expand_path('../lib/election_topic.rb', __FILE__)
+  load File.expand_path('../lib/election_category.rb', __FILE__)
   load File.expand_path('../lib/nomination_statement.rb', __FILE__)
   load File.expand_path('../lib/nomination.rb', __FILE__)
+
+  Category.class_eval do
+    def election_list
+      if self.custom_fields['election_list']
+        [self.custom_fields['election_list']].flatten
+      else
+        []
+      end
+    end
+  end
 
   User.class_eval do
     def is_elections_admin?
@@ -106,8 +127,8 @@ after_initialize do
       if election_nominations.any?
         topic = Topic.find(election_nominations[0])
         I18n.t('election.post.nominee_title',
-               url: topic.url,
-               position: topic.custom_fields['election_position'])
+          url: topic.url,
+          position: topic.custom_fields['election_position'])
       end
     end
   end
@@ -152,16 +173,36 @@ after_initialize do
       self.custom_fields['election_status']
     end
 
+    def election_position
+      self.custom_fields['election_position']
+    end
+
+    def election_status_banner
+      self.custom_fields['election_status_banner']
+    end
+
+    def election_status_banner_result_hours
+      self.custom_fields['election_status_banner_result_hours']
+    end
+
     def handle_election_status_change
       return unless SiteSetting.elections_enabled
 
-      if election_status.to_i == Topic.election_statuses[:poll]
+      status = election_status.to_i
+
+      if status === Topic.election_statuses[:nomination]
+        update_category_election_list(status)
+      end
+
+      if status === Topic.election_statuses[:poll]
         message = I18n.t('election.notification.poll', title: title)
+        update_category_election_list(status)
         notify_nominees(message)
       end
 
-      if election_status.to_i == Topic.election_statuses[:closed_poll]
+      if status === Topic.election_statuses[:closed_poll]
         message = I18n.t('election.notification.closed_poll', title: title)
+        update_category_election_list(status)
         notify_nominees(message)
       end
 
@@ -170,6 +211,25 @@ after_initialize do
 
     def notify_nominees(message)
       Jobs.enqueue(:notify_nominees, topic_id: id, message: message)
+    end
+
+    def update_category_election_list(status)
+      if category
+        topic_id = self.id.to_s
+        included = category.election_list.any? { |e| e && e['topic_id'] === topic_id }
+
+        DisocurseElections::ElectionCategory.update_election_list(category.id, topic_id, status: status)
+
+        if status == Topic.election_statuses[:closed_poll] && included
+          highlight_hours = election_status_banner_result_hours.to_i
+          Jobs.enqueue_at(highlight_hours.hours.from_now, :remove_from_category_election_list,
+            category_id: category.id,
+            topic_id: topic_id
+          )
+        else
+          Jobs.cancel_scheduled_job(:remove_from_category_election_list)
+        end
+      end
     end
 
     def election_nominations
