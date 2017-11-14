@@ -218,7 +218,7 @@ after_initialize do
         topic_id = self.id.to_s
         included = category.election_list.any? { |e| e && e['topic_id'] === topic_id }
 
-        DisocurseElections::ElectionCategory.update_election_list(category.id, topic_id, status: status)
+        DiscourseElections::ElectionCategory.update_election_list(category.id, topic_id, status: status)
 
         if status == Topic.election_statuses[:closed_poll] && included
           highlight_hours = election_status_banner_result_hours.to_i
