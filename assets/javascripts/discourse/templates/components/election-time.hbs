@@ -1,0 +1,35 @@
+<div class="election-time-control">
+  <div class="election-time-control-title">
+    {{input type="checkbox" checked=after}}
+    <span>{{i18n afterTitle}}</span>
+  </div>
+  <span>{{i18n 'election.set_time.hours'}}</span>
+  {{input type='number' placeholder="0"
+                        value=hours
+                        class='input-small'}}
+  {{#if showNominations}}
+    <span>{{i18n 'election.set_time.nominations'}}</span>
+    {{input type='number' placeholder="0"
+                          value=nominations
+                          class='input-small'}}
+  {{/if}}
+</div>
+<div class="election-time-control">
+  <div class="election-time-control-title">
+    {{input type="checkbox" checked=manual}}
+    <span>{{i18n manualTitle}}</span>
+  </div>
+  {{set-election-time dateTime=time
+                      timeElementId=timeId
+                      dateElementId=dateId
+                      disabled=after
+                      setTime="setTime"}}
+</div>
+<div class="election-description">
+  {{i18n 'election.poll.criteria' action=type}}
+  <ul>
+    {{#each criteria as |c|}}
+      <li>{{c}}</li>
+    {{/each}}
+  </ul>
+</div>

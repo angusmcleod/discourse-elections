@@ -6,19 +6,25 @@ module DiscourseElections
     def create
       params.require(:category_id)
       params.require(:position)
-      params.permit(:nomination_message, :poll_message, :self_nomination_allowed, :status_banner, :status_banner_result_hours)
+      params.permit(:nomination_message,
+                    :poll_message,
+                    :self_nomination_allowed,
+                    :status_banner,
+                    :status_banner_result_hours,
+                    :poll_open,
+                    :poll_open_after,
+                    :poll_open_after_hours,
+                    :poll_open_after_nominations,
+                    :poll_open_time,
+                    :poll_close,
+                    :poll_close_after,
+                    :poll_close_after_hours,
+                    :poll_close_time)
 
-      opts = {
-        category_id: params[:category_id],
-        position: params[:position],
-        nomination_message: params[:nomination_message],
-        poll_message: params[:poll_message],
-        self_nomination_allowed: params[:self_nomination_allowed],
-        status_banner: params[:status_banner],
-        status_banner_result_hours: params[:status_banner_result_hours]
-      }
+      validate_create_time('open') if params[:poll_open]
+      validate_create_time('close') if params[:poll_close]
 
-      result = DiscourseElections::ElectionTopic.create(opts)
+      result = DiscourseElections::ElectionTopic.create(current_user, params)
 
       if result[:error_message]
         render json: failed_json.merge(message: result[:error_message])
@@ -68,9 +74,6 @@ module DiscourseElections
         result = { error_message: I18n.t('election.errors.set_status_failed') }
       else
         result = { value: new_status }
-        election_post = Post.find_by(topic_id: params[:topic_id], post_number: 1)
-        poll_status = params[:status].to_i == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
-        DiscoursePoll::Poll.toggle_status(election_post.id, "poll", poll_status, current_user.id)
       end
 
       render_result(result)
@@ -176,6 +179,106 @@ module DiscourseElections
       end
 
       render_result(result)
+    end
+
+    def set_poll_time
+      params.require(:topic_id)
+      params.require(:type)
+      params.require(:enabled)
+      params.permit(:after, :hours, :nominations, :time)
+
+      enabled = params[:enabled] === 'true'
+      after = params[:after] === 'true'
+      hours = params[:hours].to_i
+      nominations = params[:nominations].to_i
+      time = params[:time]
+      type = params[:type]
+
+      if enabled
+        validate_time(
+          type: type,
+          after: after,
+          hours: hours,
+          nominations: nominations,
+          time: time
+        )
+      end
+
+      topic = Topic.find(params[:topic_id])
+      nominations_count = topic.election_nominations.length
+
+      if type === 'open' && enabled && after && nominations_count >= nominations
+        raise StandardError.new I18n.t('election.errors.nominations_already_met')
+      end
+
+      enabled_str = "election_poll_#{type}"
+      after_str = "election_poll_#{type}_after"
+      hours_str = "election_poll_#{type}_after_hours"
+      nominations_str = "election_poll_#{type}_after_nominations"
+      time_str = "election_poll_#{type}_time"
+
+      topic.custom_fields[enabled_str] = enabled if enabled != topic.send(enabled_str)
+      topic.custom_fields[after_str] = after if after != topic.send(after_str)
+      topic.custom_fields[hours_str] = hours if hours != topic.send(hours_str)
+      if type === 'open'
+        topic.custom_fields[nominations_str] = nominations if nominations != topic.send(nominations_str)
+      end
+      topic.custom_fields[time_str] = time if time != topic.send(time_str)
+
+      if saved = topic.save_custom_fields(true)
+        if topic.send(enabled_str)
+          if (topic.send(after_str))
+            topic.send("set_poll_#{type}_after")
+          else
+            topic.send("schedule_poll_#{type}")
+          end
+        else
+          topic.send("cancel_scheduled_poll_#{type}")
+        end
+      end
+
+      if saved
+        result = {}
+      else
+        result = { error_message: I18n.t('election.errors.set_poll_time_failed') }
+      end
+
+      render_result(result)
+    end
+
+    private
+
+    def validate_create_time(type)
+      validate_time(
+        type: type,
+        after: params["poll_#{type}_after".to_sym],
+        hours: params["poll_#{type}_after_hours".to_sym],
+        nominations: params["poll_#{type}_after_nominations".to_sym],
+        time: params["poll_#{type}_time".to_sym]
+      )
+    end
+
+    def validate_time(opts)
+      if opts[:after]
+        if opts[:hours].blank? || (opts[:type] === 'open' && opts[:nominations].blank?)
+          raise StandardError.new I18n.t('election.errors.poll_after')
+        elsif opts[:type] === 'open' && opts[:nominations].to_i < 2
+          raise StandardError.new I18n.t('election.errors.nominations_at_least_2')
+        elsif opts[:type] === 'close' && opts[:hours].to_i < 1
+          raise StandardError.new I18n.t('election.errors.close_hours_at_least_1')
+        end
+      elsif opts[:time].blank?
+        raise StandardError.new I18n.t('election.errors.poll_manual')
+      else
+        begin
+          time = Time.parse(opts[:time]).utc
+          if time < Time.now.utc
+            raise StandardError.new I18n.t('election.errors.time_invalid')
+          end
+        rescue ArgumentError
+          raise StandardError.new I18n.t('election.errors.time_invalid')
+        end
+      end
     end
   end
 end

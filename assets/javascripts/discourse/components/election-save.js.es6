@@ -50,14 +50,12 @@ export default Ember.Component.extend({
   },
 
   resolveStandardError(responseText) {
-    const message = responseText.substring(responseText.indexOf('>'), responseText.indexOf('----'));
+    const message = responseText.substring(responseText.indexOf('>')+1 , responseText.indexOf('plugins'));
     this.resolve({ failed: true, message });
   },
 
   actions: {
     save() {
-      if (this.get('usernamesSelector')) return this.send('usernamesSave');
-
       const data = this.prepareData();
       const name = this.get('name');
       if (!data) return;
@@ -69,37 +67,6 @@ export default Ember.Component.extend({
           this.resolveStandardError(e.jqXHR.responseText);
         }
       }).finally(() => this.resolve({}));
-    },
-
-    usernamesSave() {
-      const data = this.prepareData();
-      if (!data) return;
-
-      const handleFail = () => {
-        const existing = this.get('topic.election_nominations_usernames');
-        this.set('usernamesString', existing.join(','));
-
-        // this is hack to get around stack overflow issues with user-selector's canReceiveUpdates property
-        this.set('showSelector', false);
-        Ember.run.scheduleOnce('afterRender', this, () => this.set('showSelector', true));
-      };
-
-      ajax('/election/nomination/set-by-username', { type: 'POST', data }).then((result) => {
-        this.resolve(result, 'usernames');
-
-        if (result.failed) {
-          handleFail();
-        } else {
-          this.set('topic.election_nominations', result.user_ids);
-          this.set('topic.election_nominations_usernames', result.usernames);
-          this.set('topic.election_is_nominee', result.user_ids.indexOf(this.currentUser.id) > -1);
-        }
-      }).catch((e) => {
-        if (e.jqXHR && e.jqXHR.responseText) {
-          this.resolveStandardError(e.jqXHR.responseText, 'usernames');
-          handleFail();
-        }
-      }).finally(() => this.resolve({}, 'usernames'));
     }
   }
 });

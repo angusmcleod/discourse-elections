@@ -1,0 +1,20 @@
+<div class="date-time-card">
+  {{#if disabled}}
+    <div class="disabled"/>
+  {{/if}}
+  <div class="modal-date-time-set">
+    <div class="modal-date-area">
+      <label class="input-group-label">
+        {{i18n "election.set_time.date"}}
+      </label>
+      {{date-picker value=date containerId=dateElementId}}
+    </div>
+    <div class="modal-time-area">
+      <label class="input-group-label">
+        {{i18n "election.set_time.time"}}
+      </label>
+      <input type="text" id="{{timeElementId}}" />
+    </div>
+  </div>
+  <div id="{{dateElementId}}"/>
+</div>

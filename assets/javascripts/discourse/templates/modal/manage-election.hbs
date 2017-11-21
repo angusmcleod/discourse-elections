@@ -31,15 +31,14 @@
       {{user-selector usernames=usernamesString}}
     {{/if}}
     <div class="controls">
-      {{election-save property=usernames
-                      name="usernames"
-                      unchanged=usernamesUnchanged
-                      usernamesString=usernamesString
-                      topic=topic
-                      error="error"
-                      saved="saved"
-                      usernamesSelector=true
-                      showSelector=showSelector}}
+      {{election-save-usernames property=usernames
+                                name="usernames"
+                                unchanged=usernamesUnchanged
+                                usernamesString=usernamesString
+                                topic=topic
+                                error="error"
+                                saved="saved"
+                                showSelector=showSelector}}
     </div>
   </div>
 
@@ -102,6 +101,49 @@
                       saved="saved"}}
     </div>
   </div>
+
+  <div class="control-group">
+    {{input type='checkbox' checked=pollOpen}}
+    <span>{{i18n 'election.poll.open_time'}}</span>
+    <div class="controls">
+      {{election-save-time type='open'
+                           enabled=pollOpen
+                           after=pollOpenAfter
+                           hours=pollOpenAfterHours
+                           nominations=pollOpenAfterNominations
+                           time=pollOpenTime
+                           topic=topic
+                           error="error"
+                           saved="saved"}}
+    </div>
+  </div>
+  {{#if pollOpen}}
+    {{election-time type='open'
+                    after=pollOpenAfter
+                    hours=pollOpenAfterHours
+                    nominations=pollOpenAfterNominations
+                    time=pollOpenTime}}
+  {{/if}}
+  <div class="control-group">
+    {{input type='checkbox' checked=pollClose}}
+    <span>{{i18n 'election.poll.close_time'}}</span>
+    <div class="controls">
+      {{election-save-time type='close'
+                           enabled=pollClose
+                           after=pollCloseAfter
+                           hours=pollCloseAfterHours
+                           time=pollCloseTime
+                           topic=topic
+                           error="error"
+                           saved="saved"}}
+    </div>
+  </div>
+  {{#if pollClose}}
+    {{election-time type='close'
+                    after=pollCloseAfter
+                    hours=pollCloseAfterHours
+                    time=pollCloseTime}}
+  {{/if}}
 {{/d-modal-body}}
 
 <div class="modal-footer">

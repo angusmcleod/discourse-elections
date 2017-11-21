@@ -6,6 +6,8 @@ export default Ember.Controller.extend(ModalFunctionality, {
   showSelector: false,
   nominationParam: { type: 'nomination' },
   pollParam: { type: 'poll' },
+  pollOpenAfter: true,
+  pollCloseAfter: true,
 
   @observes('model')
   setup() {
@@ -24,7 +26,16 @@ export default Ember.Controller.extend(ModalFunctionality, {
         status: topic.election_status,
         nominationMessage: topic.election_nomination_message,
         pollMessage: topic.election_poll_message,
-        sameMessage: topic.same_message
+        sameMessage: topic.same_message,
+        pollOpen: topic.election_poll_open,
+        pollOpenAfter: topic.election_poll_open_after,
+        pollOpenAfterHours: topic.election_poll_open_after_hours,
+        pollOpenAfterNominations: topic.election_poll_open_after_nominations,
+        pollOpenTime: topic.election_poll_open_time,
+        pollClose: topic.election_poll_close,
+        pollCloseAfter: topic.election_poll_close_after,
+        pollCloseAfterHours: topic.election_poll_close_after_hours,
+        pollCloseTime: topic.election_poll_close_time,
       });
     }
   },

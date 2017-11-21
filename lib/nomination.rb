@@ -61,13 +61,7 @@ class DiscourseElections::Nomination
     nominations = topic.election_nominations - removed_nominations
 
     if self.save(topic, nominations)
-      topic.reload.election_nominations
-
-      if topic.election_nomination_statements.reject { |n| !removed_nominations.include?(n['user_id']) }.any?
-        DiscourseElections::NominationStatement.remove(topic, removed_nominations)
-      end
-
-      DiscourseElections::ElectionPost.rebuild_election_post(topic)
+      self.handle_remove(topic, removed_nominations)
     else
       return raise StandardError.new I18n.t('election.errors.remove_nominee_failed')
     end
@@ -88,6 +82,24 @@ class DiscourseElections::Nomination
       end
     else
       DiscourseElections::ElectionPost.rebuild_election_post(topic)
+    end
+
+    if topic.election_nominations.length >= topic.election_poll_open_after_nominations
+      topic.set_poll_open_after
+    end
+  end
+
+  def self.handle_remove(topic, removed_nominations)
+    topic.reload.election_nominations
+
+    if topic.election_nomination_statements.reject { |n| !removed_nominations.include?(n['user_id']) }.any?
+      DiscourseElections::NominationStatement.remove(topic, removed_nominations)
+    end
+
+    DiscourseElections::ElectionPost.rebuild_election_post(topic)
+
+    if topic.election_nominations.length < topic.election_poll_open_after_nominations
+      topic.cancel_scheduled_poll_open
     end
   end
 

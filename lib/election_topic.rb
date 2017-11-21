@@ -1,20 +1,24 @@
 class DiscourseElections::ElectionTopic
 
-  def self.create(opts)
+  def self.create(user, opts)
     title = I18n.t('election.title', position: opts[:position].capitalize)
-    topic = Topic.new(title: title, user: Discourse.system_user, category_id: opts[:category_id])
-    topic.skip_callbacks = true
-    topic.ignore_category_auto_close = true
-    topic.set_or_create_timer(TopicTimer.types[:close], nil)
-
+    topic = Topic.new(title: title, user: user, category_id: opts[:category_id])
     topic.subtype = 'election'
     topic.custom_fields['election_status'] = Topic.election_statuses[:nomination]
     topic.custom_fields['election_position'] = opts[:position]
-    topic.custom_fields['election_self_nomination_allowed'] = opts[:self_nomination_allowed] || false
+    topic.custom_fields['election_self_nomination_allowed'] =
     topic.custom_fields['election_status_banner'] = opts[:status_banner]
     topic.custom_fields['election_status_banner_result_hours'] = opts[:status_banner_result_hours]
     topic.custom_fields['election_nomination_message'] =  opts[:nomination_message]
     topic.custom_fields['election_poll_message'] = opts[:poll_message]
+    topic.custom_fields['election_poll_open'] = opts[:poll_open]
+    topic.custom_fields['election_poll_open_after'] = opts[:poll_open_after]
+    topic.custom_fields['election_poll_open_after_hours'] = opts[:poll_open_after_hours]
+    topic.custom_fields['election_poll_open_after_nominations'] = opts[:poll_open_after_nominations]
+    topic.custom_fields['election_poll_close'] = opts[:poll_close]
+    topic.custom_fields['election_poll_close_after'] = opts[:poll_close_after]
+    topic.custom_fields['election_poll_close_after_hours'] = opts[:poll_close_after_hours]
+    topic.custom_fields['election_poll_close_time'] = opts[:poll_close_time]
 
     topic.save!(validate: false)
 
@@ -29,6 +33,8 @@ class DiscourseElections::ElectionTopic
       skip_validations: true
     )
     result = manager.perform
+
+    topic.schedule_poll_open
 
     if result.success?
       { url: topic.relative_url }

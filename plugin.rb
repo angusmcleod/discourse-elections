@@ -6,6 +6,8 @@
 register_asset 'stylesheets/common/elections.scss'
 register_asset 'stylesheets/desktop/elections.scss', :desktop
 register_asset 'stylesheets/mobile/elections.scss', :mobile
+register_asset 'lib/jquery.timepicker.min.js'
+register_asset 'lib/jquery.timepicker.scss'
 
 enabled_site_setting :elections_enabled
 
@@ -15,6 +17,15 @@ after_initialize do
   Topic.register_custom_field_type('election_status', :integer)
   Topic.register_custom_field_type('election_status_banner', :boolean)
   Topic.register_custom_field_type('election_status_banner_result_hours', :integer)
+  Topic.register_custom_field_type('election_poll_open', :boolean)
+  Topic.register_custom_field_type('election_poll_open_after', :boolean)
+  Topic.register_custom_field_type('election_poll_open_after_hours', :integer)
+  Topic.register_custom_field_type('election_poll_open_after_nominations', :integer)
+  Topic.register_custom_field_type('election_poll_open_scheduled', :boolean)
+  Topic.register_custom_field_type('election_poll_close', :boolean)
+  Topic.register_custom_field_type('election_poll_close_after', :boolean)
+  Topic.register_custom_field_type('election_poll_close_after_hours', :integer)
+  Topic.register_custom_field_type('election_poll_close_scheduled', :boolean)
   add_to_serializer(:topic_view, :subtype) { object.topic.subtype }
   add_to_serializer(:topic_view, :election_status) { object.topic.election_status }
   add_to_serializer(:topic_view, :election_position) { object.topic.custom_fields['election_position'] }
@@ -39,8 +50,19 @@ after_initialize do
   add_to_serializer(:topic_view, :election_status_banner) { object.topic.custom_fields['election_status_banner'] }
   add_to_serializer(:topic_view, :election_status_banner_result_hours) { object.topic.custom_fields['election_status_banner_result_hours'] }
 
+  add_to_serializer(:topic_view, :election_poll_open) { object.topic.election_poll_open }
+  add_to_serializer(:topic_view, :election_poll_open_after) { object.topic.election_poll_open_after }
+  add_to_serializer(:topic_view, :election_poll_open_after_hours) { object.topic.election_poll_open_after_hours }
+  add_to_serializer(:topic_view, :election_poll_open_after_nominations) { object.topic.election_poll_open_after_nominations }
+  add_to_serializer(:topic_view, :election_poll_open_time) { object.topic.election_poll_open_time }
+  add_to_serializer(:topic_view, :election_poll_open_scheduled) { object.topic.election_poll_open_scheduled }
+  add_to_serializer(:topic_view, :election_poll_close) { object.topic.election_poll_close }
+  add_to_serializer(:topic_view, :election_poll_close_after) { object.topic.election_poll_close_after }
+  add_to_serializer(:topic_view, :election_poll_close_after_hours) { object.topic.election_poll_close_after_hours }
+  add_to_serializer(:topic_view, :election_poll_close_time) { object.topic.election_poll_close_time }
+  add_to_serializer(:topic_view, :election_poll_close_scheduled) { object.topic.election_poll_close_scheduled }
+
   Category.register_custom_field_type('for_elections', :boolean)
-  Category.register_custom_field_type('election_list', :json)
   add_to_serializer(:basic_category, :for_elections) { object.custom_fields['for_elections'] }
   add_to_serializer(:basic_category, :election_list) { object.election_list }
   add_to_serializer(:basic_category, :include_election_list?) { object.election_list.present? }
@@ -79,6 +101,7 @@ after_initialize do
     put 'set-poll-message' => 'election#set_message'
     put 'set-status' => 'election#set_status'
     put 'set-position' => 'election#set_position'
+    put 'set-poll-time' => 'election#set_poll_time'
     put 'start-poll' => 'election#start_poll'
     get 'category-list' => 'election_list#category_list'
   end
@@ -92,8 +115,10 @@ after_initialize do
   load File.expand_path('../controllers/election_list.rb', __FILE__)
   load File.expand_path('../controllers/nomination.rb', __FILE__)
   load File.expand_path('../serializers/election.rb', __FILE__)
-  load File.expand_path('../jobs/notify_nominees.rb', __FILE__)
-  load File.expand_path('../jobs/remove_from_category_election_list.rb', __FILE__)
+  load File.expand_path('../jobs/election_notify_nominees.rb', __FILE__)
+  load File.expand_path('../jobs/election_remove_from_category_list.rb', __FILE__)
+  load File.expand_path('../jobs/election_open_poll.rb', __FILE__)
+  load File.expand_path('../jobs/election_close_poll.rb', __FILE__)
   load File.expand_path('../lib/election_post.rb', __FILE__)
   load File.expand_path('../lib/election_topic.rb', __FILE__)
   load File.expand_path('../lib/election_category.rb', __FILE__)
@@ -103,7 +128,7 @@ after_initialize do
   Category.class_eval do
     def election_list
       if self.custom_fields['election_list']
-        [self.custom_fields['election_list']].flatten
+        [::JSON.parse(self.custom_fields['election_list'])].flatten
       else
         []
       end
@@ -170,7 +195,7 @@ after_initialize do
     after_save :handle_election_status_change, if: :election_status_changed
 
     def election_status
-      self.custom_fields['election_status']
+      self.custom_fields['election_status'].to_i
     end
 
     def election_position
@@ -182,53 +207,165 @@ after_initialize do
     end
 
     def election_status_banner_result_hours
-      self.custom_fields['election_status_banner_result_hours']
+      self.custom_fields['election_status_banner_result_hours'].to_i
+    end
+
+    def election_poll_open
+      self.custom_fields['election_poll_open']
+    end
+
+    def election_poll_open_after
+      self.custom_fields['election_poll_open_after']
+    end
+
+    def election_poll_open_after_hours
+      self.custom_fields['election_poll_open_after_hours'].to_i
+    end
+
+    def election_poll_open_after_nominations
+      self.custom_fields['election_poll_open_after_nominations'].to_i
+    end
+
+    def election_poll_open_time
+      self.custom_fields['election_poll_open_time']
+    end
+
+    def election_poll_open_scheduled
+      self.custom_fields['election_poll_open_scheduled']
+    end
+
+    def election_poll_close
+      self.custom_fields['election_poll_close']
+    end
+
+    def election_poll_close_after
+      self.custom_fields['election_poll_close_after']
+    end
+
+    def election_poll_close_after_hours
+      self.custom_fields['election_poll_close_after_hours'].to_i
+    end
+
+    def election_poll_close_time
+      self.custom_fields['election_poll_close_time']
+    end
+
+    def election_poll_close_scheduled
+      self.custom_fields['election_poll_close_scheduled']
     end
 
     def handle_election_status_change
       return unless SiteSetting.elections_enabled
 
-      status = election_status.to_i
-
-      if status === Topic.election_statuses[:nomination]
-        update_category_election_list(status)
+      if election_status === Topic.election_statuses[:nomination]
+        update_category_election_list
+        cancel_scheduled_poll_close
       end
 
-      if status === Topic.election_statuses[:poll]
-        update_category_election_list(status)
+      if election_status === Topic.election_statuses[:poll]
+        update_category_election_list
         notify_nominees('poll')
+        update_poll_status
+        cancel_scheduled_poll_open
+        set_poll_close_after
       end
 
-      if status === Topic.election_statuses[:closed_poll]
+      if election_status === Topic.election_statuses[:closed_poll]
         message = I18n.t('election.notification.closed_poll', title: title)
-        update_category_election_list(status)
+        update_category_election_list
         notify_nominees('closed_poll')
+        update_poll_status
+        cancel_scheduled_poll_close
       end
 
       election_status_changed = false
     end
 
     def notify_nominees(type)
-      Jobs.enqueue(:notify_nominees, topic_id: id, type: type)
+      Jobs.enqueue(:election_notify_nominees, topic_id: id, type: type)
     end
 
-    def update_category_election_list(status)
+    def update_category_election_list
       if category
         topic_id = self.id.to_s
         included = category.election_list.any? { |e| e && e['topic_id'] === topic_id }
 
-        DiscourseElections::ElectionCategory.update_election_list(category.id, topic_id, status: status)
+        DiscourseElections::ElectionCategory.update_election_list(category.id, topic_id, status: election_status)
 
-        if status == Topic.election_statuses[:closed_poll] && included
-          highlight_hours = election_status_banner_result_hours.to_i
-          Jobs.enqueue_at(highlight_hours.hours.from_now, :remove_from_category_election_list,
+        if election_status == Topic.election_statuses[:closed_poll] && included
+          highlight_hours = election_status_banner_result_hours
+          Jobs.enqueue_at(highlight_hours.hours.from_now, :election_remove_from_category_list,
             category_id: category.id,
             topic_id: topic_id
           )
         else
-          Jobs.cancel_scheduled_job(:remove_from_category_election_list)
+          Jobs.cancel_scheduled_job(:election_remove_from_category_list)
         end
       end
+    end
+
+    def update_poll_status
+      post = self.first_post
+      if post.custom_fields['polls'].present?
+        status = election_status == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
+        DiscoursePoll::Poll.toggle_status(post.id, "poll", status, self.user_id)
+      end
+    end
+
+    def set_poll_open_after
+      if election_poll_open && election_poll_open_after && election_poll_open_after_hours
+        self.custom_fields['election_poll_open_time'] = (Time.now + election_poll_open_after_hours.hours).utc.iso8601
+        self.save_custom_fields(true)
+        schedule_poll_open
+      end
+    end
+
+    def set_poll_close_after
+      if election_poll_close && election_poll_close_after && election_poll_close_after_hours
+        self.custom_fields['election_poll_close_time'] = (Time.now + election_poll_close_after_hours.hours).utc.iso8601
+        self.save_custom_fields(true)
+        schedule_poll_close
+      end
+    end
+
+    def schedule_poll_open
+      if election_poll_open && election_poll_open_time
+        cancel_scheduled_poll_open
+        time = Time.parse(election_poll_open_time).utc
+        Jobs.enqueue_at(time, :election_open_poll, topic_id: self.id)
+        self.custom_fields['election_poll_open_scheduled'] = true
+        self.save_custom_fields(true)
+        refresh_poll
+      end
+    end
+
+    def schedule_poll_close
+      if election_poll_close && election_poll_close_time
+        cancel_scheduled_poll_close
+        time = Time.parse(election_poll_close_time).utc
+        Jobs.enqueue_at(time, :election_close_poll, topic_id: self.id)
+        self.custom_fields['election_poll_close_scheduled'] = true
+        self.save_custom_fields(true)
+        refresh_poll
+      end
+    end
+
+    def cancel_scheduled_poll_open
+      Jobs.cancel_scheduled_job(:election_open_poll, topic_id: self.id)
+      self.custom_fields['election_poll_open_scheduled'] = false
+      self.save_custom_fields(true)
+      refresh_poll
+    end
+
+    def cancel_scheduled_poll_close
+      Jobs.cancel_scheduled_job(:election_close_poll, topic_id: self.id)
+      self.custom_fields['election_poll_close_scheduled'] = false
+      self.save_custom_fields(true)
+      refresh_poll
+    end
+
+    def refresh_poll
+      MessageBus.publish("/topic/#{self.id}", reload_topic: true)
     end
 
     def election_nominations

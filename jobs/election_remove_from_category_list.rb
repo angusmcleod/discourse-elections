@@ -1,5 +1,5 @@
 module Jobs
-  class RemoveFromCategoryElectionList < Jobs::Base
+  class ElectionRemoveFromCategoryList < Jobs::Base
     def execute(args)
       if CategoryCustomField.exists?(category_id: args[:category_id], name: 'election_list')
         category = Category.find(args[:category_id])

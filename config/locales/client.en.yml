@@ -6,7 +6,7 @@ en:
       start: "Start Poll"
       status_banner:
         enable: "Enable the election status banner."
-        result_hours: "Number of hours election result will be displayed in election status banner."
+        result_hours: "Hours result displayed for in election status banner"
         nomination: "Taking nominations for {{position}}."
         poll: "Voting for {{position}} is open."
         closed_poll: "Voting for {{position}} has closed. Click to see the results."
@@ -24,7 +24,7 @@ en:
       status:
         label: "Status"
         nomination: "Taking Nominations"
-        poll: "Polling"
+        poll: "Poll Open"
         closed_poll: "Poll Closed"
       nomination:
         add:
@@ -40,6 +40,37 @@ en:
         statement:
           add: "Add Statement"
           label: "Nomination Statement"
+      set_time:
+        hours: "Hours"
+        days: "Days"
+        time: "Time"
+        date: "Date"
+        clear: "Clear"
+        nominations: "Nominations"
+      poll:
+        criteria: "Poll will %{action} at the set time if"
+        open_time: "Poll open time enabled"
+        open_after: "Set open time to x hours after x nominations"
+        open_manual: "Set open time manually"
+        open_criteria: |
+          - Elections are enabled
+          - Poll open time is enabled
+          - Topic exists and is open
+          - Election status is 'nomination'
+          - There are 2 or more nominees
+        open_time_not_set: "Poll will open {{hours}} hours after {{nominations}} or more nominations are received"
+        open_time_set: "Poll will open on {{time}}"
+        close_time: "Poll close time enabled"
+        close_after: "Set close time to x hours after open"
+        close_manual: "Set close time manually"
+        close_criteria: |
+          - Elections are enabled
+          - Poll close time is enabled
+          - Topic exists
+          - Election status is 'poll'
+        close_time_set: "Poll will close on {{time}}"
+
+      time_label: "Set Time"
       manage:
         label: "Manage Election"
         nominees: "Select the nominees for this election."

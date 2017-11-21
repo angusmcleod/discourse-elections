@@ -1,0 +1,15 @@
+{{#if nominating}}
+  {{#if topic.election_poll_open_scheduled}}
+    <span>{{i18n 'election.poll.open_time_set' time=(election-time topic.election_poll_open_time)}}</span>
+  {{else}}
+    {{#if topic.election_poll_open_after}}
+      <span>{{i18n 'election.poll.open_time_not_set' hours=topic.election_poll_open_after_hours
+                                                     nominations=topic.election_poll_open_after_nominations}}</span>
+    {{/if}}
+  {{/if}}
+{{/if}}
+{{#if polling}}
+  {{#if topic.election_poll_close_scheduled}}
+    <span>{{i18n 'election.poll.close_time_set' time=(election-time topic.election_poll_close_time)}}</span>
+  {{/if}}
+{{/if}}

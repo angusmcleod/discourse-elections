@@ -1,4 +1,4 @@
-{{#d-modal-body title='election.create.label' class='create-election-modal'}}
+{{#d-modal-body title='election.create.label' class='create-election'}}
   <div class="control-group">
     <label>{{i18n 'election.create.position'}}</label>
     {{input value=position class='input-medium'}}
@@ -23,6 +23,27 @@
     <span>{{i18n 'election.status_banner.result_hours'}}</span>
     {{input type="number" value=statusBannerResultHours class='input-small'}}
   </div>
+  <div class="control-group">
+    {{input type='checkbox' checked=pollOpen}}
+    <span>{{i18n 'election.poll.open_time'}}</span>
+  </div>
+  {{#if pollOpen}}
+    {{election-time type='open'
+                    after=pollOpenAfter
+                    hours=pollOpenAfterHours
+                    nominations=pollOpenAfterNominations
+                    time=pollOpenTime}}
+  {{/if}}
+  <div class="control-group">
+    {{input type='checkbox' checked=pollClose}}
+    <span>{{i18n 'election.poll.close_time'}}</span>
+  </div>
+  {{#if pollClose}}
+    {{election-time type='close'
+                    after=pollCloseAfter
+                    hours=pollCloseAfterHours
+                    time=pollCloseTime}}
+  {{/if}}
 {{/d-modal-body}}
 
 <div class="modal-footer">

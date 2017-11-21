@@ -1,5 +1,5 @@
 module Jobs
-  class NotifyNominees < Jobs::Base
+  class ElectionNotifyNominees < Jobs::Base
     def execute(args)
       topic = Topic.find(args[:topic_id])
       key = "election.notification.#{args[:type]}"
