@@ -55,7 +55,7 @@ test("Poll", (assert) => {
   visit("/t/president-election/46");
 
   andThen(() => {
-    assert.equal(find('.election-status span').text(), 'Electing', 'it should render the poll election status');
+    assert.equal(find('.election-status span').text(), 'Poll Open', 'it should render the poll election status');
     assert.equal(find('.nomination').length, 2, 'it should render the nominations');
   });
 });
