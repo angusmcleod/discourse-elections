@@ -5,22 +5,39 @@ class DiscourseElections::ElectionTopic
     topic = Topic.new(title: title, user: user, category_id: opts[:category_id])
     topic.subtype = 'election'
     topic.skip_callbacks = true
-    topic.delete_topic_timer(TopicTimer.types[:close])
-    topic.custom_fields['election_status'] = Topic.election_statuses[:nomination]
-    topic.custom_fields['election_position'] = opts[:position]
-    topic.custom_fields['election_self_nomination_allowed'] =
-    topic.custom_fields['election_status_banner'] = opts[:status_banner]
-    topic.custom_fields['election_status_banner_result_hours'] = opts[:status_banner_result_hours]
-    topic.custom_fields['election_nomination_message'] =  opts[:nomination_message]
-    topic.custom_fields['election_poll_message'] = opts[:poll_message]
-    topic.custom_fields['election_poll_open'] = opts[:poll_open]
-    topic.custom_fields['election_poll_open_after'] = opts[:poll_open_after]
-    topic.custom_fields['election_poll_open_after_hours'] = opts[:poll_open_after_hours]
-    topic.custom_fields['election_poll_open_after_nominations'] = opts[:poll_open_after_nominations]
-    topic.custom_fields['election_poll_close'] = opts[:poll_close]
-    topic.custom_fields['election_poll_close_after'] = opts[:poll_close_after]
-    topic.custom_fields['election_poll_close_after_hours'] = opts[:poll_close_after_hours]
-    topic.custom_fields['election_poll_close_time'] = opts[:poll_close_time]
+    custom_fields = {
+      election_status: Topic.election_statuses[:nomination],
+      election_position: opts[:position],
+      election_self_nomination_allowed: opts[:self_nomination_allowed] || false,
+      election_status_banner: opts[:status_banner] || false,
+      election_poll_open: opts[:poll_open] || false,
+      election_poll_close: opts[:poll_close] || false,
+      election_nomination_message: opts[:nomination_message] || '',
+      election_poll_message: opts[:poll_message] || ''
+    }
+
+    topic.custom_fields = custom_fields
+
+    if opts[:election_status_banner]
+      topic.custom_fields['election_status_banner_result_hours'] = opts[:status_banner_result_hours]
+    end
+
+    if opts[:poll_open]
+      if topic.custom_fields['election_poll_open_after'] = opts[:poll_open_after] || false
+        topic.custom_fields['election_poll_open_after_hours'] = opts[:poll_open_after_hours]
+        topic.custom_fields['election_poll_open_after_nominations'] = opts[:poll_open_after_nominations]
+      else
+        topic.custom_fields['election_poll_open_time'] = opts[:poll_open_time]
+      end
+    end
+
+    if opts[:poll_close]
+      if topic.custom_fields['election_poll_close_after'] = opts[:poll_close_after] || false
+        topic.custom_fields['election_poll_close_after_hours'] = opts[:poll_close_after_hours]
+      else
+        topic.custom_fields['election_poll_close_time'] = opts[:poll_close_time]
+      end
+    end
 
     topic.save!(validate: false)
 
@@ -37,6 +54,7 @@ class DiscourseElections::ElectionTopic
     result = manager.perform
 
     topic.schedule_poll_open
+    topic.update_category_election_list
 
     if result.success?
       { url: topic.relative_url }
