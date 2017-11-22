@@ -4,6 +4,8 @@ class DiscourseElections::ElectionTopic
     title = I18n.t('election.title', position: opts[:position].capitalize)
     topic = Topic.new(title: title, user: user, category_id: opts[:category_id])
     topic.subtype = 'election'
+    topic.skip_callbacks = true
+    topic.delete_topic_timer(TopicTimer.types[:close])
     topic.custom_fields['election_status'] = Topic.election_statuses[:nomination]
     topic.custom_fields['election_position'] = opts[:position]
     topic.custom_fields['election_self_nomination_allowed'] =

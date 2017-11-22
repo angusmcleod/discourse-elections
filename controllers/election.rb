@@ -58,17 +58,18 @@ module DiscourseElections
       params.require(:status)
 
       topic = Topic.find(params[:topic_id])
+      status = params[:status].to_i
       existing_status = topic.election_status
 
-      if params[:status].to_i == existing_status
+      if status == existing_status
         raise StandardError.new I18n.t('election.errors.not_changed')
       end
 
-      if params[:status].to_i != Topic.election_statuses[:nomination] && topic.election_nominations.length < 2
+      if status != Topic.election_statuses[:nomination] && topic.election_nominations.length < 2
         raise StandardError.new I18n.t('election.errors.more_nominations')
       end
 
-      new_status = DiscourseElections::ElectionTopic.set_status(params[:topic_id], params[:status].to_i)
+      new_status = DiscourseElections::ElectionTopic.set_status(params[:topic_id], status)
 
       if new_status == existing_status
         result = { error_message: I18n.t('election.errors.set_status_failed') }
@@ -145,7 +146,7 @@ module DiscourseElections
       message = nil
 
       params.each do |key|
-        if key.to_s.include? 'message'
+        if key && key.to_s.include?('message')
           message = params[key]
           type = key.split('_')[0]
         end
@@ -153,10 +154,10 @@ module DiscourseElections
 
       if type && message && success = DiscourseElections::ElectionTopic.set_message(
           params[:topic_id],
-          params[:message],
-          params[:type]
+          message,
+          type
         )
-        result = { value: params[:message] }
+        result = { value: message }
       else
         result = { error_message: I18n.t('election.errors.set_message_failed') }
       end

@@ -152,7 +152,7 @@ describe ::DiscourseElections::ElectionController do
               put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:nomination] }, format: :json
             end.find { |m| m.channel == "/topic/#{topic.id}" }
 
-            post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
+            post = Post.find_by(topic_id: topic.id, post_number: 1)
 
             expect(post.raw).to include(I18n.t('election.post.nominated'))
             expect(post.raw).to include(user1.username)
@@ -195,7 +195,7 @@ describe ::DiscourseElections::ElectionController do
               put :set_status, params: { topic_id: topic.id, status: Topic.election_statuses[:nomination] }, format: :json
             end.find { |m| m.channel == "/topic/#{topic.id}" }
 
-            post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
+            post = Post.find_by(topic_id: topic.id, post_number: 1)
 
             expect(post.raw).to include(I18n.t('election.post.nominated'))
             expect(post.raw).to include(user1.username)
@@ -213,17 +213,17 @@ describe ::DiscourseElections::ElectionController do
       end
     end
 
-    describe "set_self_nomination" do
-      include_examples 'requires election admin', :put, :set_self_nomination, topic_id: 7, state: true
+    describe "set_self_nomination_allowed" do
+      include_examples 'requires election admin', :put, :set_self_nomination_allowed, topic_id: 7, self_nomination_allowed: true
 
       context "while logged in as an admin" do
         let!(:admin) { log_in(:admin) }
 
         it "works" do
-          put :set_self_nomination, params: { topic_id: topic.id, state: true }, format: :json
+          put :set_self_nomination_allowed, params: { topic_id: topic.id, self_nomination_allowed: true }, format: :json
           expect(response).to be_success
           json = ::JSON.parse(response.body)
-          expect(json['state']).to eq(true)
+          expect(json['value']).to eq(true)
         end
 
         it "should prevent an update if the state has not changed" do
@@ -231,21 +231,21 @@ describe ::DiscourseElections::ElectionController do
           topic.save_custom_fields(true)
 
           expect {
-            put :set_self_nomination, params: { topic_id: topic.id, state: false }, format: :json
+            put :set_self_nomination_allowed, params: { topic_id: topic.id, self_nomination_allowed: false }, format: :json
           }.to raise_error(StandardError, I18n.t('election.errors.self_nomination_state_not_changed'))
         end
       end
     end
 
     describe "set_message" do
-      include_examples 'requires election admin', :put, :set_message, topic_id: 8, message: "Test message"
+      include_examples 'requires election admin', :put, :set_message, topic_id: 8, nomination_message: "Test message"
 
       context "while logged in as an admin" do
         let!(:admin) { log_in(:admin) }
 
         it "updates stored message" do
           message = "Example message: Oranges"
-          put :set_message, params: { topic_id: topic.id, message: message, type: 'nomination' }, format: :json
+          put :set_message, params: { topic_id: topic.id, nomination_message: message }, format: :json
 
           updated_topic = Topic.find(topic.id)
           expect(updated_topic.custom_fields["election_nomination_message"]).to eq(message)
@@ -256,7 +256,7 @@ describe ::DiscourseElections::ElectionController do
           post
 
           message = MessageBus.track_publish do
-            put :set_message, params: { topic_id: topic.id, message: nomination_message, type: 'nomination' }, format: :json
+            put :set_message, params: { topic_id: topic.id, nomination_message: nomination_message }, format: :json
           end.find { |m| m.channel == "/topic/#{topic.id}" }
 
           post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -272,7 +272,7 @@ describe ::DiscourseElections::ElectionController do
           topic.save_custom_fields(true)
 
           message = MessageBus.track_publish do
-            put :set_message, params: { topic_id: topic.id, message: poll_message, type: 'poll' }, format: :json
+            put :set_message, params: { topic_id: topic.id, poll_message: poll_message }, format: :json
           end.find { |m| m.channel == "/topic/#{topic.id}" }
 
           post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
@@ -280,14 +280,8 @@ describe ::DiscourseElections::ElectionController do
         end
 
         it "works with an empty message" do
-          put :set_message, params: { topic_id: topic.id, type: "nomination", message: "" }, format: :json
+          put :set_message, params: { topic_id: topic.id, nomination_message: "" }, format: :json
           expect(response).to be_success
-        end
-
-        it "requires a message" do
-          expect {
-            put :set_message, params: { topic_id: topic.id, type: "nomination" }, format: :json
-          }.to raise_error(ActionController::ParameterMissing)
         end
       end
     end
