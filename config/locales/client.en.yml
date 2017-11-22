@@ -8,8 +8,10 @@ en:
         enable: "Enable the election status banner."
         result_hours: "Hours result displayed for in election status banner"
         nomination: "Taking nominations for {{position}}."
-        poll: "Voting for {{position}} is open."
-        closed_poll: "Voting for {{position}} has closed. Click to see the results."
+        nomination_time: "Poll opens on {{time}}."
+        poll: "Poll for {{position}} is open."
+        poll_time: "Poll closes on {{time}}."
+        closed_poll: "Poll for {{position}} has closed. Click to see the results."
       list:
         label: "Elections"
       create:

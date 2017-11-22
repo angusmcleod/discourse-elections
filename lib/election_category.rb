@@ -14,6 +14,8 @@ class DiscourseElections::ElectionCategory
       banner: banner.to_s == "true"
     }
 
+    election_params[:time] = opts[:time] if opts[:time]
+
     category.custom_fields['election_list'] = JSON.generate(list.push(election_params))
     category.save_custom_fields(true)
   end

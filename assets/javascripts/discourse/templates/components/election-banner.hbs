@@ -1,2 +1,5 @@
 {{d-icon 'star'}}
 <span>{{i18n key position=election.position}}</span>
+{{#if election.time}}
+  <span>{{i18n timeKey time=(election-time election.time)}}</span>
+{{/if}}

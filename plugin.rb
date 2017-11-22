@@ -333,6 +333,7 @@ after_initialize do
         cancel_scheduled_poll_open
         time = Time.parse(election_poll_open_time).utc
         Jobs.enqueue_at(time, :election_open_poll, topic_id: self.id)
+        add_time_to_banner(time)
         self.custom_fields['election_poll_open_scheduled'] = true
         self.save_custom_fields(true)
         refresh_poll
@@ -344,10 +345,19 @@ after_initialize do
         cancel_scheduled_poll_close
         time = Time.parse(election_poll_close_time).utc
         Jobs.enqueue_at(time, :election_close_poll, topic_id: self.id)
+        add_time_to_banner(time)
         self.custom_fields['election_poll_close_scheduled'] = true
         self.save_custom_fields(true)
         refresh_poll
       end
+    end
+
+    def add_time_to_banner(time)
+      DiscourseElections::ElectionCategory.update_election_list(
+        self.category_id,
+        self.id,
+        time: time.to_time.iso8601
+      )
     end
 
     def cancel_scheduled_poll_open
