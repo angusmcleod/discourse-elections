@@ -18,7 +18,7 @@ class DiscourseElections::ElectionTopic
 
     topic.custom_fields = custom_fields
 
-    if opts[:election_status_banner]
+    if opts[:status_banner]
       topic.custom_fields['election_status_banner_result_hours'] = opts[:status_banner_result_hours]
     end
 
