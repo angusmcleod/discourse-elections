@@ -4,8 +4,8 @@ en:
     nomination:
       default_message: "This election is currently taking nominations."
     notification:
-      poll: "Voting has started for \"%{title}\""
-      closed_poll: "Voting has finished for \"%{title}\""
+      poll: "\"%{title}\" poll has opened"
+      closed_poll: "\"%{title}\"poll has closed"
     errors:
       not_changed: "Value has not been changed"
       category_not_enabled: "Category does not have elections enabled"

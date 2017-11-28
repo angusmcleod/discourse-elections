@@ -30,7 +30,8 @@ export default Ember.Controller.extend({
         category_id: this.get('model.categoryId'),
         position: this.get('position'),
         nomination_message: this.get('nominationMessage'),
-        poll_message: this.get('electionMessage'),
+        poll_message: this.get('pollMessage'),
+        closed_poll_message: this.get('closedPollMessage'),
         self_nomination_allowed: this.get('selfNominationAllowed'),
         status_banner: this.get('statusBanner'),
         status_banner_result_hours: this.get('statusBannerResultHours'),
@@ -63,6 +64,7 @@ export default Ember.Controller.extend({
 
       if (this.get('sameMessage')) {
         data['poll_message'] = data['nomination_message'];
+        data['closed_poll_message'] = data['nomination_message'];
       }
 
       this.set('loading', true);

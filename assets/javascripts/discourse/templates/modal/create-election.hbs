@@ -9,7 +9,11 @@
   </div>
   <div class="control-group">
     <label>{{i18n 'election.create.poll_message'}}</label>
-    {{d-editor value=electionMessage placeholder='election.create.poll_message_placeholder'}}
+    {{d-editor value=pollMessage placeholder='election.create.poll_message_placeholder'}}
+  </div>
+  <div class="control-group">
+    <label>{{i18n 'election.create.closed_poll_message'}}</label>
+    {{d-editor value=closedPollMessage placeholder='election.create.closed_poll_message_placeholder'}}
   </div>
   <div class="control-group">
     {{input type="checkbox" checked=selfNominationAllowed}}

@@ -46,6 +46,7 @@ after_initialize do
   end
   add_to_serializer(:topic_view, :election_nomination_message) { object.topic.custom_fields['election_nomination_message'] }
   add_to_serializer(:topic_view, :election_poll_message) { object.topic.custom_fields['election_poll_message'] }
+  add_to_serializer(:topic_view, :election_closed_poll_message) { object.topic.custom_fields['election_closed_poll_message'] }
   add_to_serializer(:topic_view, :election_same_message) { object.topic.custom_fields['election_poll_message'] }
   add_to_serializer(:topic_view, :election_status_banner) { object.topic.custom_fields['election_status_banner'] }
   add_to_serializer(:topic_view, :election_status_banner_result_hours) { object.topic.custom_fields['election_status_banner_result_hours'] }
@@ -103,7 +104,7 @@ after_initialize do
     put 'set-position' => 'election#set_position'
     put 'set-poll-time' => 'election#set_poll_time'
     put 'start-poll' => 'election#start_poll'
-    get 'category-list' => 'election_list#category_list'
+    get 'category-list' => 'list#category_list'
   end
 
   Discourse::Application.routes.append do
@@ -112,7 +113,7 @@ after_initialize do
 
   load File.expand_path('../controllers/base.rb', __FILE__)
   load File.expand_path('../controllers/election.rb', __FILE__)
-  load File.expand_path('../controllers/election_list.rb', __FILE__)
+  load File.expand_path('../controllers/list.rb', __FILE__)
   load File.expand_path('../controllers/nomination.rb', __FILE__)
   load File.expand_path('../serializers/election.rb', __FILE__)
   load File.expand_path('../jobs/election_notify_nominees.rb', __FILE__)
@@ -120,6 +121,7 @@ after_initialize do
   load File.expand_path('../jobs/election_open_poll.rb', __FILE__)
   load File.expand_path('../jobs/election_close_poll.rb', __FILE__)
   load File.expand_path('../lib/election_post.rb', __FILE__)
+  load File.expand_path('../lib/election_time.rb', __FILE__)
   load File.expand_path('../lib/election_topic.rb', __FILE__)
   load File.expand_path('../lib/election_category.rb', __FILE__)
   load File.expand_path('../lib/nomination_statement.rb', __FILE__)
@@ -184,7 +186,7 @@ after_initialize do
         result = DiscourseElections::ElectionTopic.set_status(post.topic_id, new_status)
 
         if result
-          MessageBus.publish("/topic/#{post.topic.id}", reload_topic: true)
+          DiscourseElections::ElectionTopic.refresh(post.topic.id)
         end
       end
     end
@@ -258,124 +260,28 @@ after_initialize do
       return unless SiteSetting.elections_enabled
 
       if election_status === Topic.election_statuses[:nomination]
-        update_category_election_list
-        cancel_scheduled_poll_close
+        DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
+        DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
       end
 
       if election_status === Topic.election_statuses[:poll]
-        update_category_election_list
-        notify_nominees('poll')
-        update_poll_status
-        cancel_scheduled_poll_open
-        set_poll_close_after
+        DiscourseElections::ElectionPost.update_poll_status(self)
+        DiscourseElections::ElectionCategory.update_election_list
+        DiscourseElections::Nomination.notify_nominees('poll')
+        DiscourseElections::ElectionTopic.notify_moderators('poll')
+        DiscourseElections::ElectionTime.cancel_scheduled_poll_open(self)
+        DiscourseElections::ElectionTime.set_poll_close_after(self)
       end
 
       if election_status === Topic.election_statuses[:closed_poll]
-        message = I18n.t('election.notification.closed_poll', title: title)
-        update_category_election_list
-        notify_nominees('closed_poll')
-        update_poll_status
-        cancel_scheduled_poll_close
+        DiscourseElections::ElectionPost.update_poll_status(self)
+        DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
+        DiscourseElections::Nomination.notify_nominees('closed_poll')
+        DiscourseElections::ElectionTopic.notify_moderators('closed_poll')
+        DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
       end
 
       election_status_changed = false
-    end
-
-    def notify_nominees(type)
-      Jobs.enqueue(:election_notify_nominees, topic_id: id, type: type)
-    end
-
-    def update_category_election_list
-      if category
-        topic_id = self.id.to_s
-        included = category.election_list.any? { |e| e && e['topic_id'] === topic_id }
-
-        DiscourseElections::ElectionCategory.update_election_list(category.id, topic_id, status: election_status)
-
-        if election_status == Topic.election_statuses[:closed_poll] && included
-          highlight_hours = election_status_banner_result_hours
-          Jobs.enqueue_at(highlight_hours.hours.from_now, :election_remove_from_category_list,
-            category_id: category.id,
-            topic_id: topic_id
-          )
-        else
-          Jobs.cancel_scheduled_job(:election_remove_from_category_list)
-        end
-      end
-    end
-
-    def update_poll_status
-      post = self.first_post
-      if post.custom_fields['polls'].present?
-        status = election_status == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
-        DiscoursePoll::Poll.toggle_status(post.id, "poll", status, self.user_id)
-      end
-    end
-
-    def set_poll_open_after
-      if election_poll_open && election_poll_open_after && election_poll_open_after_hours
-        self.custom_fields['election_poll_open_time'] = (Time.now + election_poll_open_after_hours.hours).utc.iso8601
-        self.save_custom_fields(true)
-        schedule_poll_open
-      end
-    end
-
-    def set_poll_close_after
-      if election_poll_close && election_poll_close_after && election_poll_close_after_hours
-        self.custom_fields['election_poll_close_time'] = (Time.now + election_poll_close_after_hours.hours).utc.iso8601
-        self.save_custom_fields(true)
-        schedule_poll_close
-      end
-    end
-
-    def schedule_poll_open
-      if election_poll_open && election_poll_open_time
-        cancel_scheduled_poll_open
-        time = Time.parse(election_poll_open_time).utc
-        Jobs.enqueue_at(time, :election_open_poll, topic_id: self.id)
-        add_time_to_banner(time)
-        self.custom_fields['election_poll_open_scheduled'] = true
-        self.save_custom_fields(true)
-        refresh_poll
-      end
-    end
-
-    def schedule_poll_close
-      if election_poll_close && election_poll_close_time
-        cancel_scheduled_poll_close
-        time = Time.parse(election_poll_close_time).utc
-        Jobs.enqueue_at(time, :election_close_poll, topic_id: self.id)
-        add_time_to_banner(time)
-        self.custom_fields['election_poll_close_scheduled'] = true
-        self.save_custom_fields(true)
-        refresh_poll
-      end
-    end
-
-    def add_time_to_banner(time)
-      DiscourseElections::ElectionCategory.update_election_list(
-        self.category_id,
-        self.id,
-        time: time.to_time.iso8601
-      )
-    end
-
-    def cancel_scheduled_poll_open
-      Jobs.cancel_scheduled_job(:election_open_poll, topic_id: self.id)
-      self.custom_fields['election_poll_open_scheduled'] = false
-      self.save_custom_fields(true)
-      refresh_poll
-    end
-
-    def cancel_scheduled_poll_close
-      Jobs.cancel_scheduled_job(:election_close_poll, topic_id: self.id)
-      self.custom_fields['election_poll_close_scheduled'] = false
-      self.save_custom_fields(true)
-      refresh_poll
-    end
-
-    def refresh_poll
-      MessageBus.publish("/topic/#{self.id}", reload_topic: true)
     end
 
     def election_nominations

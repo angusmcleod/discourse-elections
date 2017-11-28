@@ -13,7 +13,8 @@ class DiscourseElections::ElectionTopic
       election_poll_open: opts[:poll_open] || false,
       election_poll_close: opts[:poll_close] || false,
       election_nomination_message: opts[:nomination_message] || '',
-      election_poll_message: opts[:poll_message] || ''
+      election_poll_message: opts[:poll_message] || '',
+      election_closed_poll_message: opts[:closed_poll_message] || ''
     }
 
     topic.custom_fields = custom_fields
@@ -41,6 +42,10 @@ class DiscourseElections::ElectionTopic
 
     topic.save!(validate: false)
 
+    if topic.election_poll_open && !topic.election_poll_open_after && topic.election_poll_open_time
+      topic.schedule_poll_open
+    end
+
     raw = opts[:nomination_message]
     if raw.blank?
       raw = I18n.t('election.nomination.default_message')
@@ -53,8 +58,11 @@ class DiscourseElections::ElectionTopic
     )
     result = manager.perform
 
-    topic.schedule_poll_open
-    topic.update_category_election_list
+    DiscourseElections::ElectionCategory.update_election_list(
+      topic.category_id,
+      topic.id,
+      status: topic.election_status
+    )
 
     if result.success?
       { url: topic.relative_url }
@@ -97,9 +105,17 @@ class DiscourseElections::ElectionTopic
     saved = topic.save!
 
     if saved
-      MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
+      self.refresh(topic_id)
     end
 
     saved
+  end
+
+  def self.notify_moderators(topic_id, type)
+    Jobs.enqueue(:election_notify_moderators, topic_id: topic_id, type: type)
+  end
+
+  def self.refresh(topic_id)
+    MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
   end
 end

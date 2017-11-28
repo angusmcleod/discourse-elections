@@ -3,6 +3,14 @@ require_dependency 'post_creator'
 
 class DiscourseElections::ElectionPost
 
+  def self.update_poll_status(topic)
+    post = topic.first_post
+    if post.custom_fields['polls'].present?
+      status = topic.election_status == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
+      DiscoursePoll::Poll.toggle_status(post.id, "poll", status, topic.user_id)
+    end
+  end
+
   def self.rebuild_election_post(topic)
     topic.reload
     status = topic.election_status
@@ -38,7 +46,12 @@ class DiscourseElections::ElectionPost
 
     content = "[poll type=regular]#{poll_options}\n[/poll]"
 
-    message = topic.custom_fields['election_poll_message']
+    message = nil
+    if topic.election_status === Topic.election_statuses[:poll]
+      message = topic.custom_fields['election_poll_message']
+    else
+      message = topic.custom_fields['election_closed_poll_message']
+    end
 
     if message
       content << "\n\n #{message}"

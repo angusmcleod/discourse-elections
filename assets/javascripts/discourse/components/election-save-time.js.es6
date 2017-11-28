@@ -29,15 +29,21 @@ export default ElectionSave.extend({
 
     $('#modal-alert').hide();
 
+    const after = this.get('after');
+
     let data = {
       topic_id: this.get('topic.id'),
       type: this.get('type'),
       enabled: this.get('enabled'),
-      after: this.get('after'),
-      hours: this.get('hours'),
-      nominations: this.get('nominations'),
-      time: this.get('time')
+      after
     };
+
+    if (after) {
+      data['hours'] = this.get('hours');
+      data['nominations'] = this.get('nominations');
+    } else {
+      data['time'] = this.get('time');
+    }
 
     return data;
   },

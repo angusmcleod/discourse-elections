@@ -1,4 +1,4 @@
-import computed from 'ember-addons/ember-computed-decorators';
+import { default as computed } from 'ember-addons/ember-computed-decorators';
 import DiscourseURL from 'discourse/lib/url';
 
 const electionStatus = {

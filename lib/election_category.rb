@@ -1,7 +1,8 @@
 class DiscourseElections::ElectionCategory
-  def self.update_election_list(category_id, topic_id, opts)
+  def self.update_election_list(category_id, topic_id, opts = {})
     category = Category.find(category_id)
     topic = Topic.find(topic_id)
+
     list = category.election_list.reject { |e| e && e['topic_id'].to_i === topic_id.to_i }
     status = opts[:status] || topic.election_status
     banner = opts[:banner] || topic.election_status_banner
@@ -18,6 +19,17 @@ class DiscourseElections::ElectionCategory
 
     category.custom_fields['election_list'] = JSON.generate(list.push(election_params))
     category.save_custom_fields(true)
+    category.publish_category
+
+    if topic.election_status == Topic.election_statuses[:closed_poll]
+      highlight_hours = topic.election_status_banner_result_hours
+      Jobs.enqueue_at(highlight_hours.hours.from_now, :election_remove_from_category_list,
+        category_id: category.id,
+        topic_id: topic.id
+      )
+    else
+      Jobs.cancel_scheduled_job(:election_remove_from_category_list)
+    end
   end
 
   def self.topics(category_id, opts = {})

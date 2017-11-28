@@ -312,7 +312,7 @@ describe ::DiscourseElections::ElectionController do
   end
 end
 
-describe ::DiscourseElections::ElectionListController do
+describe ::DiscourseElections::ListController do
   routes { ::DiscourseElections::Engine.routes }
 
   let(:category) { Fabricate(:category, custom_fields: { for_elections: true }) }

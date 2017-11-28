@@ -69,8 +69,7 @@ class DiscourseElections::Nomination
 
   def self.save(topic, nominations)
     topic.custom_fields['election_nominations'] = [*nominations]
-    result = topic.save!
-    result
+    topic.save!
   end
 
   def self.handle_new(topic, new_nominations)
@@ -85,7 +84,7 @@ class DiscourseElections::Nomination
     end
 
     if topic.election_nominations.length >= topic.election_poll_open_after_nominations
-      topic.set_poll_open_after
+      DiscourseElections::ElectionTime.set_poll_open_after(topic)
     end
   end
 
@@ -99,7 +98,7 @@ class DiscourseElections::Nomination
     DiscourseElections::ElectionPost.rebuild_election_post(topic)
 
     if topic.election_nominations.length < topic.election_poll_open_after_nominations
-      topic.cancel_scheduled_poll_open
+      DiscourseElections::ElectionTime.cancel_scheduled_poll_open(topic)
     end
   end
 
@@ -108,8 +107,12 @@ class DiscourseElections::Nomination
     topic.custom_fields['election_self_nomination_allowed'] = state
     result = topic.save!
 
-    MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
+    DiscourseElections::ElectionTopic.refresh(topic_id)
 
     topic.custom_fields['election_self_nomination_allowed']
+  end
+
+  def self.notify_nominees(topic_id, type)
+    Jobs.enqueue(:election_notify_nominees, topic_id: topic_id, type: type)
   end
 end

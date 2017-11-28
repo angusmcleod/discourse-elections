@@ -20,7 +20,9 @@ en:
         nomination_message: "Nomination Message"
         nomination_message_placeholder: "Added to the first post of topic during the nomination process."
         poll_message: "Poll Message"
-        poll_message_placeholder: "Added to the first post of topic during the poll process."
+        poll_message_placeholder: "Added to the first post of topic when the poll is open."
+        closed_poll_message: "Closed Poll Message"
+        closed_poll_message_placeholder: "Added to the first post of topic when the poll has closed."
         self_nomination_allowed: "Allow users to nominate themselves"
         btn_label: "Create"
       status:
@@ -60,7 +62,7 @@ en:
           - Topic exists and is open
           - Election status is 'nomination'
           - There are 2 or more nominees
-        open_time_not_set: "Poll will open {{hours}} hours after {{nominations}} or more nominations are received"
+        open_time_not_set: "Poll will open{{time}} after {{nominations}} or more nominations are received"
         open_time_set: "Poll will open on {{time}}"
         close_time: "Poll close time enabled"
         close_after: "Set close time to x hours after open"

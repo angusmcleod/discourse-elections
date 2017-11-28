@@ -26,6 +26,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         status: topic.election_status,
         nominationMessage: topic.election_nomination_message,
         pollMessage: topic.election_poll_message,
+        closedPollMessage: topic.election_closed_poll_message,
         sameMessage: topic.same_message,
         pollOpen: topic.election_poll_open,
         pollOpenAfter: topic.election_poll_open_after,

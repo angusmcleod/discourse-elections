@@ -79,6 +79,18 @@
   </div>
 
   <div class="control-group">
+    <label>{{i18n 'election.create.closed_poll_message'}}</label>
+    {{d-editor value=closedPollMessage placeholder='election.create.closed_poll_message_placeholder'}}
+    <div class="controls">
+      {{election-save property=closedPollMessage
+                      name="closed_poll_message"
+                      topic=topic
+                      error="error"
+                      saved="saved"}}
+    </div>
+  </div>
+
+  <div class="control-group">
     {{input type="checkbox" checked=statusBanner}}
     <span>{{i18n 'election.status_banner.enable'}}</span>
     <div class="controls">

@@ -3,7 +3,7 @@
     <span>{{i18n 'election.poll.open_time_set' time=(election-time topic.election_poll_open_time)}}</span>
   {{else}}
     {{#if topic.election_poll_open_after}}
-      <span>{{i18n 'election.poll.open_time_not_set' hours=topic.election_poll_open_after_hours
+      <span>{{i18n 'election.poll.open_time_not_set' time=pollOpenTime
                                                      nominations=topic.election_poll_open_after_nominations}}</span>
     {{/if}}
   {{/if}}

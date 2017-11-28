@@ -1,4 +1,4 @@
-class DiscourseElections::ElectionListController < ::ApplicationController
+class DiscourseElections::ListController < ::ApplicationController
   def category_list
     params.require(:category_id)
 

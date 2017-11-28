@@ -8,6 +8,7 @@ module DiscourseElections
       params.require(:position)
       params.permit(:nomination_message,
                     :poll_message,
+                    :closed_poll_message,
                     :self_nomination_allowed,
                     :status_banner,
                     :status_banner_result_hours,
@@ -140,7 +141,7 @@ module DiscourseElections
 
     def set_message
       params.require(:topic_id)
-      params.permit(:poll_message, :nomination_message)
+      params.permit(:nomination_message, :poll_message, :closed_poll_message)
 
       type = nil
       message = nil
@@ -220,21 +221,29 @@ module DiscourseElections
 
       topic.custom_fields[enabled_str] = enabled if enabled != topic.send(enabled_str)
       topic.custom_fields[after_str] = after if after != topic.send(after_str)
-      topic.custom_fields[hours_str] = hours if hours != topic.send(hours_str)
-      if type === 'open'
-        topic.custom_fields[nominations_str] = nominations if nominations != topic.send(nominations_str)
+
+      if after
+        topic.custom_fields[hours_str] = hours if hours != topic.send(hours_str)
+        if type === 'open' && nominations != topic.send(nominations_str)
+          topic.custom_fields[nominations_str] = nominations
+        end
+      else
+        topic.custom_fields[time_str] = time if time != topic.send(time_str)
       end
-      topic.custom_fields[time_str] = time if time != topic.send(time_str)
 
       if saved = topic.save_custom_fields(true)
         if topic.send(enabled_str)
           if (topic.send(after_str))
-            topic.send("set_poll_#{type}_after")
+            if topic.election_nominations.length >= topic.election_poll_open_after_nominations
+              DiscourseElections::ElectionTime.send("set_poll_#{type}_after", topic)
+            else
+              DiscourseElections::ElectionTime.send("cancel_scheduled_poll_#{type}", topic)
+            end
           else
-            topic.send("schedule_poll_#{type}")
+            DiscourseElections::ElectionTime.send("schedule_poll_#{type}", topic)
           end
         else
-          topic.send("cancel_scheduled_poll_#{type}")
+          DiscourseElections::ElectionTime.send("cancel_scheduled_poll_#{type}", topic)
         end
       end
 
