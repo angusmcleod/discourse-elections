@@ -17,7 +17,10 @@ plugins:
   elections_min_trust_to_self_nominate:
     default: 1
     enum: 'TrustLevelSetting'
-  elections_status_banner:
+  elections_status_banner_discovery:
+    default: true
+    client: true
+  elections_status_banner_topic:
     default: true
     client: true
   elections_status_banner_default_result_hours:

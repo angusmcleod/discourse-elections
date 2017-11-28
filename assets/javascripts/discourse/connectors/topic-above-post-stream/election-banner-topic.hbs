@@ -1,0 +1,7 @@
+{{#if siteSettings.elections_status_banner_topic}}
+  {{#each model.category.election_list as |e|}}
+    {{#if e.banner}}
+      {{election-banner election=e}}
+    {{/if}}
+  {{/each}}
+{{/if}}

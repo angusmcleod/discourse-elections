@@ -4,7 +4,7 @@ import { ajax } from 'discourse/lib/ajax';
 
 export default Ember.Controller.extend({
   statusBannerResultHours: Discourse.SiteSettings.elections_status_banner_default_result_hours,
-  statusBanner: Discourse.SiteSettings.elections_status_banner,
+  statusBanner: true,
   pollOpenAfter: true,
   pollOpenAfterHours: 48,
   pollOpenAfterNominations: 2,

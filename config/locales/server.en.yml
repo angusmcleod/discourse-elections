@@ -46,7 +46,8 @@ en:
     elections_nominee_avatar_flair: "Font Awesome class of the avatar flair for nominees within the election topic. Leave blank to disable."
     elections_enabled: "Enable elections plugin"
     elections_min_trust_to_self_nominate: "Minimum trust required for a user to self-nominate for an election"
-    elections_status_banner: "Enable election status banner by default (can be toggled for each election)."
+    elections_status_banner_discovery: "Show election status banners in category topic lists."
+    elections_status_banner_topic: "Show election status banners in topics."
     elections_status_banner_default_result_hours: "Default number of hours election results are highlighted for in a topic list banner."
 
   system_messages:
