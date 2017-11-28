@@ -79,7 +79,7 @@ class DiscourseElections::ElectionTopic
     topic.election_status_changed = status != current_status
     topic.save!
 
-    if current_status == Topic.election_statuses[:nomination] || status == Topic.election_statuses[:nomination]
+    if status != current_status
       DiscourseElections::ElectionPost.rebuild_election_post(topic)
     end
 

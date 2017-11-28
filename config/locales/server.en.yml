@@ -13,7 +13,7 @@ en:
       more_nominations: "More nominations are needed to run a poll."
       seperate_poll: "You can't post a poll in an election topic."
       not_authorized: "You are not authorized to perform this action."
-      revisor_failed: "Post Revisor failed to update the Election Post"
+      revisor_failed: "Post Revisor failed to update the Election Post: %{result}"
       set_status_failed: "Failed to set status"
       set_message_failed: "Failed to set message"
       set_position_failed: "Failed to set position"

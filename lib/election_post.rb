@@ -133,7 +133,7 @@ class DiscourseElections::ElectionPost
     end
 
     if !revise_result
-      return raise StandardError.new I18n.t("election.errors.revisor_failed")
+      return raise StandardError.new I18n.t("election.errors.revisor_failed", result: revise_result.to_s)
     end
   end
 end

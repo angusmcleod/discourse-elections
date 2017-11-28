@@ -100,6 +100,7 @@ after_initialize do
     put 'set-status-banner-result-hours' => 'election#set_status_banner_result_hours'
     put 'set-nomination-message' => 'election#set_message'
     put 'set-poll-message' => 'election#set_message'
+    put 'set-closed-poll-message' => 'election#set_message'
     put 'set-status' => 'election#set_status'
     put 'set-position' => 'election#set_position'
     put 'set-poll-time' => 'election#set_poll_time'

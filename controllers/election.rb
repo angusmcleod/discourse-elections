@@ -149,7 +149,9 @@ module DiscourseElections
       params.each do |key|
         if key && key.to_s.include?('message')
           message = params[key]
-          type = key.split('_')[0]
+          parts = key.split('_')
+          parts.pop
+          type = parts.join('_')
         end
       end
 
