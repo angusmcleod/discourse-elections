@@ -116,6 +116,7 @@ after_initialize do
   load File.expand_path('../controllers/list.rb', __FILE__)
   load File.expand_path('../controllers/nomination.rb', __FILE__)
   load File.expand_path('../serializers/election.rb', __FILE__)
+  load File.expand_path('../jobs/election_notify_moderators.rb', __FILE__)
   load File.expand_path('../jobs/election_notify_nominees.rb', __FILE__)
   load File.expand_path('../jobs/election_remove_from_category_list.rb', __FILE__)
   load File.expand_path('../jobs/election_open_poll.rb', __FILE__)
@@ -266,9 +267,9 @@ after_initialize do
 
       if election_status === Topic.election_statuses[:poll]
         DiscourseElections::ElectionPost.update_poll_status(self)
-        DiscourseElections::ElectionCategory.update_election_list
-        DiscourseElections::Nomination.notify_nominees('poll')
-        DiscourseElections::ElectionTopic.notify_moderators('poll')
+        DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
+        DiscourseElections::Nomination.notify_nominees(self.id, 'poll')
+        DiscourseElections::ElectionTopic.notify_moderators(self.id, 'poll')
         DiscourseElections::ElectionTime.cancel_scheduled_poll_open(self)
         DiscourseElections::ElectionTime.set_poll_close_after(self)
       end
@@ -276,8 +277,8 @@ after_initialize do
       if election_status === Topic.election_statuses[:closed_poll]
         DiscourseElections::ElectionPost.update_poll_status(self)
         DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
-        DiscourseElections::Nomination.notify_nominees('closed_poll')
-        DiscourseElections::ElectionTopic.notify_moderators('closed_poll')
+        DiscourseElections::Nomination.notify_nominees(self.id, 'closed_poll')
+        DiscourseElections::ElectionTopic.notify_moderators(self.id, 'closed_poll')
         DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
       end
 

@@ -68,7 +68,7 @@ class DiscourseElections::ElectionTime
     DiscourseElections::ElectionTopic.refresh(topic.id)
   end
 
-  def self.cancel_scheduled_poll_close
+  def self.cancel_scheduled_poll_close(topic)
     Jobs.cancel_scheduled_job(:election_close_poll, topic_id: topic.id)
 
     self.remove_time_from_banner(topic)
