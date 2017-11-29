@@ -9,10 +9,15 @@
   margin: 0;
   list-style: none;
   display: inline-block;
+  vertical-align: middle;
 
   li {
     display: inline-block;
   }
+}
+
+.create-election .control-group {
+  margin-bottom: 15px;
 }
 
 #topic-title .election-status {
@@ -62,20 +67,7 @@
   width: 50px;
 }
 
-.nomination-statement .reply-to {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.nomination-statement .reply-to + span {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 10px;
-}
-
 .statement-composer-label {
-  margin-bottom: 10px;
-
   span {
     padding: 2px 4px;
     background: $secondary;

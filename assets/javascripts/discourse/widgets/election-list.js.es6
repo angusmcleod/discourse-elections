@@ -33,12 +33,11 @@ export default createWidget('election-list', {
   html(attrs, state) {
     const elections = state.elections;
     const loading = state.loading;
-    let contents = [];
+    let contents = [h('span', `${I18n.t('election.list.label')}: `)];
 
     if (loading) {
       this.getElections();
     } else if (elections.length > 0) {
-      contents.push(h('span', `${I18n.t('election.list.label')}: `));
       contents.push(h('ul', elections.map((e, i) => {
         let item = [];
 
