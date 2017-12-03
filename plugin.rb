@@ -69,7 +69,7 @@ after_initialize do
   add_to_serializer(:basic_category, :include_election_list?) { object.election_list.present? }
 
   Post.register_custom_field_type('election_nomination_statement', :boolean)
-  add_to_serializer(:post, :election_post) { object.is_first_post? }
+  add_to_serializer(:post, :election_post) { object.topic.election && object.is_first_post? }
   add_to_serializer(:post, :election_nomination_statement) { object.custom_fields['election_nomination_statement'] }
   add_to_serializer(:post, :election_nominee_title) do
     object.user && object.user.election_nominations && object.user.election_nominee_title
@@ -197,6 +197,10 @@ after_initialize do
   Topic.class_eval do
     attr_accessor :election_status_changed, :election_status
     after_save :handle_election_status_change, if: :election_status_changed
+
+    def election
+      Topic.election_statuses.has_value? election_status
+    end
 
     def election_status
       self.custom_fields['election_status'].to_i

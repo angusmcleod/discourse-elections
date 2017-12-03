@@ -48,15 +48,17 @@ export default {
             const { poll } = attrs;
             const options = poll.get('options');
 
-            options.forEach((o) => {
-              if (!o.originalHtml) {
-                o.originalHtml = o.html;
-              }
-              o.html = o.originalHtml;
-              let usernameOnly = o.html.substring(0, o.html.indexOf('<'));
-              let fullDetails = o.html.replace(usernameOnly, '');
-              o.html = attrs.showResults ? usernameOnly : fullDetails;
-            });
+            if (attrs.post.election_post) {
+              options.forEach((o) => {
+                if (!o.originalHtml) {
+                  o.originalHtml = o.html;
+                }
+                o.html = o.originalHtml;
+                let usernameOnly = o.html.substring(0, o.html.indexOf('<'));
+                let fullDetails = o.html.replace(usernameOnly, '');
+                o.html = attrs.showResults ? usernameOnly : fullDetails;
+              });
+            }
 
             if (attrs.showResults) {
               const type = poll.get('type') === 'number' ? 'number' : 'standard';
