@@ -15,8 +15,9 @@ module Jobs
     end
 
     def site_moderators
-      all = User.where(moderator: true).human_users.pluck(:username)
-      all.select { |u| u.custom_fields['moderator_category_id'].blank? }
+      User.where(moderator: true).human_users
+        .select { |u| u.custom_fields['moderator_category_id'].blank? }
+        .map(&:username)
     end
   end
 end
