@@ -16,7 +16,7 @@ module Jobs
           end
 
           if !error
-            new_status = DiscourseElections::ElectionTopic.set_status(topic.id, Topic.election_statuses[:poll])
+            new_status = DiscourseElections::ElectionTopic.set_status(topic.id, Topic.election_statuses[:poll], true)
 
             if new_status != Topic.election_statuses[:poll]
               error = I18n.t('election.errors.set_status_failed')

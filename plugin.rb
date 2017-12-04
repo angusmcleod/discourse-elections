@@ -128,6 +128,7 @@ after_initialize do
   load File.expand_path('../lib/election_category.rb', __FILE__)
   load File.expand_path('../lib/nomination_statement.rb', __FILE__)
   load File.expand_path('../lib/nomination.rb', __FILE__)
+  load File.expand_path('../lib/poll_edits.rb', __FILE__)
 
   Category.class_eval do
     def election_list
@@ -275,6 +276,7 @@ after_initialize do
         DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
         DiscourseElections::Nomination.notify_nominees(self.id, 'poll')
         DiscourseElections::ElectionTopic.notify_moderators(self.id, 'poll')
+        DiscourseElections::ElectionTime.set_poll_open_now(self)
         DiscourseElections::ElectionTime.cancel_scheduled_poll_open(self)
         DiscourseElections::ElectionTime.set_poll_close_after(self)
       end
@@ -284,6 +286,7 @@ after_initialize do
         DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
         DiscourseElections::Nomination.notify_nominees(self.id, 'closed_poll')
         DiscourseElections::ElectionTopic.notify_moderators(self.id, 'closed_poll')
+        DiscourseElections::ElectionTime.set_poll_close_now(self)
         DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
       end
 

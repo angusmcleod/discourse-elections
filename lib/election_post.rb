@@ -11,22 +11,22 @@ class DiscourseElections::ElectionPost
     end
   end
 
-  def self.rebuild_election_post(topic)
+  def self.rebuild_election_post(topic, unattended = false)
     topic.reload
     status = topic.election_status
 
     if status == Topic.election_statuses[:nomination]
-      build_nominations(topic)
+      build_nominations(topic, unattended)
     end
 
     if status == Topic.election_statuses[:poll] || status == Topic.election_statuses[:closed_poll]
-      build_poll(topic)
+      build_poll(topic, unattended)
     end
   end
 
   private
 
-  def self.build_poll(topic)
+  def self.build_poll(topic, unattended)
     nominations = topic.election_nominations
 
     return if nominations.length < 2
@@ -57,10 +57,10 @@ class DiscourseElections::ElectionPost
       content << "\n\n #{message}"
     end
 
-    update_election_post(topic.id, content, false)
+    update_election_post(topic.id, content, false, unattended)
   end
 
-  def self.build_nominations(topic)
+  def self.build_nominations(topic, unattended)
     content = ""
     nominations = topic.election_nominations
 
@@ -87,7 +87,7 @@ class DiscourseElections::ElectionPost
 
     revisor_opts = { skip_validations: true }
 
-    update_election_post(topic.id, content, true, revisor_opts)
+    update_election_post(topic.id, content, true, unattended, revisor_opts)
   end
 
   def self.build_nominee(topic, user)
@@ -116,7 +116,7 @@ class DiscourseElections::ElectionPost
     html
   end
 
-  def self.update_election_post(topic_id, content, publish_change, revisor_opts = {})
+  def self.update_election_post(topic_id, content, publish_change, unattended, revisor_opts = {})
     election_post = Post.find_by(topic_id: topic_id, post_number: 1)
 
     return if !election_post || election_post.raw == content
@@ -129,11 +129,43 @@ class DiscourseElections::ElectionPost
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
 
     if election_post.errors.any?
-      return raise StandardError.new election_post.errors.to_json
+      errors = election_post.errors.to_json
+      if unattended
+        message_moderators(election_post.topic, errors)
+      else
+        return raise StandardError.new errors
+      end
     end
 
     if !revise_result
-      return raise StandardError.new I18n.t("election.errors.revisor_failed", result: revise_result.to_s)
+      if unattended
+        message_moderators(election_post.topic, I18n.t("election.errors.revisor_failed"))
+      else
+        return raise StandardError.new I18n.t("election.errors.revisor_failed")
+      end
+    end
+  end
+
+  def message_moderators(topic, error)
+    moderators(topic).each do |user|
+      SystemMessage.create_from_system_user(user,
+        :error_updating_election_post,
+          topic_id: topic.id,
+          error: error
+      )
+    end
+  end
+
+  def moderators(topic)
+    moderators = User.where(moderator: true).human_users
+    category_moderators = moderators.select do |u|
+      u.custom_fields['moderator_category_id'].to_i === topic.category_id.to_i
+    end
+
+    if category_moderators.any?
+      category_moderators
+    else
+      moderators.select { |u| u.custom_fields['moderator_category_id'].blank? }
     end
   end
 end

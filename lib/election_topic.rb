@@ -71,7 +71,7 @@ class DiscourseElections::ElectionTopic
     end
   end
 
-  def self.set_status(topic_id, status)
+  def self.set_status(topic_id, status, unattended = false)
     topic = Topic.find(topic_id)
     current_status = topic.election_status
 
@@ -80,7 +80,7 @@ class DiscourseElections::ElectionTopic
     topic.save!
 
     if status != current_status
-      DiscourseElections::ElectionPost.rebuild_election_post(topic)
+      DiscourseElections::ElectionPost.rebuild_election_post(topic, unattended)
     end
 
     topic.election_status

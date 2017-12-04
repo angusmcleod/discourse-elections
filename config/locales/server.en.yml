@@ -13,7 +13,7 @@ en:
       more_nominations: "More nominations are needed to run a poll."
       seperate_poll: "You can't post a poll in an election topic."
       not_authorized: "You are not authorized to perform this action."
-      revisor_failed: "Post Revisor failed to update the Election Post: %{result}"
+      revisor_failed: "Post Revisor failed to update the Election Post."
       set_status_failed: "Failed to set status"
       set_message_failed: "Failed to set message"
       set_position_failed: "Failed to set position"
@@ -55,13 +55,20 @@ en:
       title: "Error Starting Poll"
       subject_template: "An election poll failed to start at the set time"
       text_body_template: |
-        The election poll in [topic id %{topic_id}]('/t/%{topic_id}') failed to start because:
+        The election poll in [this topic (topic_id: %{topic_id})]('/t/%{topic_id}') failed to start because:
         <br>
         %{error}
     error_closing_poll:
       title: "Error Closing Poll"
       subject_template: "An election poll failed to close at the set time"
       text_body_template: |
-        The election poll in [topic id %{topic_id}]('/t/%{topic_id}') failed to close because:
+        The election poll in [this topic (topic_id: %{topic_id})]('/t/%{topic_id}') failed to close because:
+        <br>
+        %{error}
+    error_updating_election_post:
+      title: "Error Updating Election Post"
+      subject_template: "There was an error when trying to update an election post"
+      text_body_template: |
+        The election post in [this topic (topic_id: %{topic_id})]('/t/%{topic_id}') failed to start because:
         <br>
         %{error}

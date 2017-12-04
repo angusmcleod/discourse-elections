@@ -85,4 +85,18 @@ class DiscourseElections::ElectionTime
       topic.id
     )
   end
+
+  def self.set_poll_open_now(topic)
+    if topic.election_poll_open_time.blank?
+      topic.custom_fields['election_poll_open_time'] = Time.now.utc.iso8601
+      topic.save_custom_fields(true)
+    end
+  end
+
+  def self.set_poll_close_now(topic)
+    if topic.election_poll_close_time.blank?
+      topic.custom_fields['election_poll_close_time'] = Time.now.utc.iso8601
+      topic.save_custom_fields(true)
+    end
+  end
 end
