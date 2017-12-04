@@ -1,6 +1,6 @@
 class DiscourseElections::NominationStatement
 
-  def self.update(post)
+  def self.update(post, rebuild_post = true)
     statements = post.topic.election_nomination_statements
     existing = false
     excerpt = PrettyText.excerpt(post.cooked, 100, keep_emoji_images: true)
@@ -20,11 +20,16 @@ class DiscourseElections::NominationStatement
       )
     end
 
-    save_and_update(post.topic, statements)
+    if rebuild_post
+      save_and_rebuild(post.topic, statements)
+    else
+      save(post.topic, statements)
+    end
   end
 
-  def self.remove(topic, removed_nominations)
+  def self.remove(topic, removed_nominations, rebuild_post = true)
     statements = topic.election_nomination_statements
+
     removed_statements = []
 
     removed_nominations.each do |rn|
@@ -36,16 +41,35 @@ class DiscourseElections::NominationStatement
       end
     end
 
-    save_and_update(topic, statements)
-    update_posts(removed_statements)
+    if rebuild_post
+      save_and_rebuild(topic, statements)
+    else
+      save(topic, statements)
+    end
   end
 
-  def self.save_and_update(topic, statements)
+  def self.save(topic, statements)
     topic.custom_fields['election_nomination_statements'] = JSON.generate(statements)
-    topic.save!
+    topic.save_custom_fields(true)
+  end
 
-    DiscourseElections::ElectionPost.rebuild_election_post(topic)
+  def self.save_and_rebuild(topic, statements)
+    TopicCustomField.transaction do
+      self.save(topic, statements)
+      DiscourseElections::ElectionPost.rebuild_election_post(topic)
+    end
+
     update_posts(statements)
+  end
+
+  def self.update_posts(statements)
+    statements.each do |s|
+      s = s.with_indifferent_access
+      if s[:post_id]
+        post = Post.find(s['post_id'])
+        post.publish_change_to_clients!(:revised)
+      end
+    end
   end
 
   def self.retrieve(topic_id, nominees)
@@ -67,15 +91,5 @@ class DiscourseElections::NominationStatement
     end
 
     existing_statements
-  end
-
-  def self.update_posts(statements)
-    statements.each do |s|
-      s = s.with_indifferent_access
-      if s[:post_id]
-        post = Post.find(s['post_id'])
-        post.publish_change_to_clients!(:revised)
-      end
-    end
   end
 end

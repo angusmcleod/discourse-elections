@@ -60,17 +60,19 @@ export default Ember.Controller.extend(ModalFunctionality, {
   usernamesUnchanged(newUsernames, currentUsernames) {
     let unchanged = true;
 
-    // ensure there are no empty strings
-    newUsernames = newUsernames.filter(Boolean);
-    currentUsernames = currentUsernames.filter(Boolean);
+    if (newUsernames) {
+      // ensure there are no empty strings
+      newUsernames = newUsernames.filter(Boolean);
+      currentUsernames = currentUsernames.filter(Boolean);
 
-    if (newUsernames.length !== currentUsernames.length) {
-      unchanged = false;
-    }
-
-    for (let i = 0; i < newUsernames.length; i++) {
-      if (currentUsernames.indexOf(newUsernames[i]) === -1) {
+      if (newUsernames.length !== currentUsernames.length) {
         unchanged = false;
+      }
+
+      for (let i = 0; i < newUsernames.length; i++) {
+        if (currentUsernames.indexOf(newUsernames[i]) === -1) {
+          unchanged = false;
+        }
       }
     }
 

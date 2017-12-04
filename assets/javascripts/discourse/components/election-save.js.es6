@@ -38,10 +38,8 @@ export default Ember.Component.extend({
       this.set('icon', 'check');
       this.set(`topic.election_${name}`, property);
     } else if (result.failed) {
-      this.setProperties({
-        icon: 'times',
-        property: original
-      });
+      this.set('icon', 'times');
+      if (original) this.set('property', original);
       this.sendAction('error', result.message);
     }
 

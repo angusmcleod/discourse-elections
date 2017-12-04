@@ -75,12 +75,19 @@ class DiscourseElections::ElectionTopic
     topic = Topic.find(topic_id)
     current_status = topic.election_status
 
-    topic.custom_fields['election_status'] = status
-    topic.election_status_changed = status != current_status
-    topic.save!
+    saved = false
+    TopicCustomField.transaction do
+      topic.custom_fields['election_status'] = status
+      topic.election_status_changed = status != current_status
+      saved = topic.save_custom_fields(true)
 
-    if status != current_status
-      DiscourseElections::ElectionPost.rebuild_election_post(topic, unattended)
+      if saved && status != current_status
+        DiscourseElections::ElectionPost.rebuild_election_post(topic, unattended)
+      end
+    end
+
+    if !saved || topic.election_post.errors.any?
+      raise StandardError.new I18n.t('election.errors.set_status_failed')
     end
 
     topic.election_status
@@ -88,14 +95,22 @@ class DiscourseElections::ElectionTopic
 
   def self.set_message(topic_id, message, type, same_message = nil)
     topic = Topic.find(topic_id)
-    topic.custom_fields["election_#{type}_message"] = message
-    saved = topic.save!
 
-    if saved && topic.election_status == Topic.election_statuses[type.to_sym]
-      DiscourseElections::ElectionPost.rebuild_election_post(topic)
+    saved = false
+    TopicCustomField.transaction do
+      topic.custom_fields["election_#{type}_message"] = message
+      saved = topic.save_custom_fields(true)
+
+      if saved && topic.election_status == Topic.election_statuses[type.to_sym]
+        DiscourseElections::ElectionPost.rebuild_election_post(topic)
+      end
     end
 
-    saved
+    if !saved || topic.election_post.errors.any?
+      raise StandardError.new I18n.t('election.errors.set_message_failed')
+    end
+
+    topic.send("election_#{type}_message")
   end
 
   def self.set_position(topic_id, position)

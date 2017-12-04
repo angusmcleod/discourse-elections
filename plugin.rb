@@ -203,6 +203,10 @@ after_initialize do
       Topic.election_statuses.has_value? election_status
     end
 
+    def election_post
+      first_post
+    end
+
     def election_status
       self.custom_fields['election_status'].to_i
     end
@@ -361,7 +365,7 @@ after_initialize do
   DiscourseEvent.on(:post_created) do |post, opts, user|
     if SiteSetting.elections_enabled && opts[:election_nomination_statement] && post.topic.election_nominations.include?(user.id)
       post.custom_fields['election_nomination_statement'] = opts[:election_nomination_statement]
-      post.save
+      post.save_custom_fields(true)
 
       DiscourseElections::NominationStatement.update(post)
     end

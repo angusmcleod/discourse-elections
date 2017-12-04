@@ -17,9 +17,7 @@ class DiscourseElections::ElectionPost
 
     if status == Topic.election_statuses[:nomination]
       build_nominations(topic, unattended)
-    end
-
-    if status == Topic.election_statuses[:poll] || status == Topic.election_statuses[:closed_poll]
+    else
       build_poll(topic, unattended)
     end
   end
@@ -57,7 +55,7 @@ class DiscourseElections::ElectionPost
       content << "\n\n #{message}"
     end
 
-    update_election_post(topic.id, content, false, unattended)
+    update_election_post(topic, content, false, unattended)
   end
 
   def self.build_nominations(topic, unattended)
@@ -87,7 +85,7 @@ class DiscourseElections::ElectionPost
 
     revisor_opts = { skip_validations: true }
 
-    update_election_post(topic.id, content, true, unattended, revisor_opts)
+    update_election_post(topic, content, true, unattended, revisor_opts)
   end
 
   def self.build_nominee(topic, user)
@@ -116,8 +114,8 @@ class DiscourseElections::ElectionPost
     html
   end
 
-  def self.update_election_post(topic_id, content, publish_change, unattended, revisor_opts = {})
-    election_post = Post.find_by(topic_id: topic_id, post_number: 1)
+  def self.update_election_post(topic, content, publish_change, unattended, revisor_opts = {})
+    election_post = topic.election_post
 
     return if !election_post || election_post.raw == content
 
@@ -129,11 +127,10 @@ class DiscourseElections::ElectionPost
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
 
     if election_post.errors.any?
-      errors = election_post.errors.messages.to_s
       if unattended
-        message_moderators(topic_id, errors)
+        message_moderators(topic_id, election_post.errors.messages.to_s)
       else
-        return raise StandardError.new errors
+        raise ::ActiveRecord::Rollback
       end
     end
 
@@ -141,9 +138,12 @@ class DiscourseElections::ElectionPost
       if unattended
         message_moderators(election_post.topic, I18n.t("election.errors.revisor_failed"))
       else
-        return raise StandardError.new I18n.t("election.errors.revisor_failed")
+        post.errors.add(:base, I18n.t("election.errors.revisor_failed") )
+        raise ::ActiveRecord::Rollback
       end
     end
+
+    return { success: true }
   end
 
   def self.message_moderators(topic_id, error)

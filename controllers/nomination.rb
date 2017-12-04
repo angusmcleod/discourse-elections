@@ -29,7 +29,7 @@ module DiscourseElections
       elsif user.trust_level < min_trust
         result = { error_message: I18n.t('election.errors.insufficient_trust_to_self_nominate', level: min_trust) }
       else
-        DiscourseElections::Nomination.add(params[:topic_id], user.id)
+        DiscourseElections::Nomination.add_user(params[:topic_id], user.id)
         result = { success: true }
       end
 
@@ -39,7 +39,7 @@ module DiscourseElections
     def remove
       params.require(:topic_id)
 
-      DiscourseElections::Nomination.remove(params[:topic_id], current_user.id)
+      DiscourseElections::Nomination.remove_user(params[:topic_id], current_user.id)
 
       render_result
     end
