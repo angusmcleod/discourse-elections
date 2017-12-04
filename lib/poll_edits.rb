@@ -1,4 +1,4 @@
-require_dependency 'plugins/poll/lib/polls_updater'
+require_dependency Rails.root.join('plugins', 'poll', 'lib', 'polls_updater').to_s
 
 DiscoursePoll::PollsUpdater.class_eval do
   def self.update(post, polls)
