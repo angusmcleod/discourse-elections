@@ -4,7 +4,6 @@ import Composer from 'discourse/models/composer';
 import { ElectionStatuses } from '../lib/election';
 import RawHtml from 'discourse/widgets/raw-html';
 import { default as computed, observes } from 'ember-addons/ember-computed-decorators';
-import { replaceIcon } from 'discourse-common/lib/icon-library';
 import { h } from 'virtual-dom';
 
 export default {
@@ -12,10 +11,6 @@ export default {
   initialize(container) {
     const siteSettings = container.lookup('site-settings:main');
     if (siteSettings.elections_enabled) {
-
-      replaceIcon('notification.election.notification.poll', 'star');
-      replaceIcon('notification.election.notification.closed_poll', 'star');
-
       withPluginApi('0.8.7', api => {
         api.modifyClass('model:topic', {
           @computed('election_status')

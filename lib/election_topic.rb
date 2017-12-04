@@ -118,4 +118,18 @@ class DiscourseElections::ElectionTopic
   def self.refresh(topic_id)
     MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
   end
+
+  def self.moderators(topic_id)
+    topic = Topic.find(topic_id)
+    moderators = User.where(moderator: true).human_users
+    category_moderators = moderators.select do |u|
+      u.custom_fields['moderator_category_id'].to_i === topic.category_id.to_i
+    end
+
+    if category_moderators.any?
+      category_moderators
+    else
+      moderators.select { |u| u.custom_fields['moderator_category_id'].blank? }
+    end
+  end
 end

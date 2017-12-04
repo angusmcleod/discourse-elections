@@ -131,7 +131,7 @@ class DiscourseElections::ElectionPost
     if election_post.errors.any?
       errors = election_post.errors.to_json
       if unattended
-        message_moderators(election_post.topic, errors)
+        message_moderators(topic_id, errors)
       else
         return raise StandardError.new errors
       end
@@ -146,26 +146,13 @@ class DiscourseElections::ElectionPost
     end
   end
 
-  def message_moderators(topic, error)
-    moderators(topic).each do |user|
+  def self.message_moderators(topic_id, error)
+    DiscourseElections::ElectionTopic.moderators(topic_id).each do |user|
       SystemMessage.create_from_system_user(user,
         :error_updating_election_post,
-          topic_id: topic.id,
+          topic_id: topic_d,
           error: error
       )
-    end
-  end
-
-  def moderators(topic)
-    moderators = User.where(moderator: true).human_users
-    category_moderators = moderators.select do |u|
-      u.custom_fields['moderator_category_id'].to_i === topic.category_id.to_i
-    end
-
-    if category_moderators.any?
-      category_moderators
-    else
-      moderators.select { |u| u.custom_fields['moderator_category_id'].blank? }
     end
   end
 end

@@ -3,9 +3,9 @@ en:
     title: "%{position} Election"
     nomination:
       default_message: "This election is currently taking nominations."
-    notification:
-      poll: "\"%{title}\" poll has opened"
-      closed_poll: "\"%{title}\"poll has closed"
+    status:
+      poll: "opened"
+      closed_poll: "closed"
     errors:
       not_changed: "Value has not been changed"
       category_not_enabled: "Category does not have elections enabled"
@@ -72,3 +72,10 @@ en:
         The election post in [this topic (topic_id: %{topic_id})]('/t/%{topic_id}') failed to start because:
         <br>
         %{error}
+    election_status_changed:
+      title: "\"%{title}\" poll has %{status}"
+      subject_template: "\"%{title}\" poll has %{status}"
+      text_body_template: |
+        \"%{title}\" poll has %{status}.
+
+        [Visit the election topic](%{url}) to find out more.
