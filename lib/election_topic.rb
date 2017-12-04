@@ -5,13 +5,15 @@ class DiscourseElections::ElectionTopic
     topic = Topic.new(title: title, user: user, category_id: opts[:category_id])
     topic.subtype = 'election'
     topic.skip_callbacks = true
+    poll_open = ActiveModel::Type::Boolean.new.cast(opts[:poll_open])
+    poll_close = ActiveModel::Type::Boolean.new.cast(opts[:poll_close])
     custom_fields = {
       election_status: Topic.election_statuses[:nomination],
       election_position: opts[:position],
-      election_self_nomination_allowed: opts[:self_nomination_allowed] == 'true',
-      election_status_banner: opts[:status_banner] == 'true',
-      election_poll_open: opts[:poll_open] == 'true',
-      election_poll_close: opts[:poll_close] == 'true',
+      election_self_nomination_allowed: ActiveModel::Type::Boolean.new.cast(opts[:self_nomination_allowed]),
+      election_status_banner: ActiveModel::Type::Boolean.new.cast(opts[:status_banner]),
+      election_poll_open: poll_open,
+      election_poll_close: poll_close,
       election_nomination_message: opts[:nomination_message] || '',
       election_poll_message: opts[:poll_message] || '',
       election_closed_poll_message: opts[:closed_poll_message] || ''
@@ -23,8 +25,8 @@ class DiscourseElections::ElectionTopic
       topic.custom_fields['election_status_banner_result_hours'] = opts[:status_banner_result_hours].to_i
     end
 
-    if opts[:poll_open] == 'true'
-      if topic.custom_fields['election_poll_open_after'] = opts[:poll_open_after] == 'true'
+    if poll_open
+      if topic.custom_fields['election_poll_open_after'] = ActiveModel::Type::Boolean.new.cast(opts[:poll_open_after])
         topic.custom_fields['election_poll_open_after_hours'] = opts[:poll_open_after_hours].to_i
         topic.custom_fields['election_poll_open_after_nominations'] = opts[:poll_open_after_nominations].to_i
       else
@@ -32,8 +34,8 @@ class DiscourseElections::ElectionTopic
       end
     end
 
-    if opts[:poll_close] == 'true'
-      if topic.custom_fields['election_poll_close_after'] = opts[:poll_close_after] == 'true'
+    if poll_close
+      if topic.custom_fields['election_poll_close_after'] = ActiveModel::Type::Boolean.new.cast(opts[:poll_close_after])
         topic.custom_fields['election_poll_close_after_hours'] = opts[:poll_close_after_hours].to_i
       else
         topic.custom_fields['election_poll_close_time'] = opts[:poll_close_time]
