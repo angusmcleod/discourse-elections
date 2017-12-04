@@ -22,6 +22,11 @@ export default Ember.Component.extend({
   @computed('status')
   timeKey: (status) => `election.status_banner.${status}_time`,
 
+  @computed('status', 'election.time')
+  showTime(status, time) {
+    return (status === 'nomination' || status === 'poll') && time;
+  },
+
   click() {
     const topicUrl = this.get('election.topic_url');
     DiscourseURL.routeTo(topicUrl);
