@@ -263,9 +263,9 @@ module DiscourseElections
     def validate_create_time(type)
       validate_time(
         type: type,
-        after: params["poll_#{type}_after".to_sym],
-        hours: params["poll_#{type}_after_hours".to_sym],
-        nominations: params["poll_#{type}_after_nominations".to_sym],
+        after: params["poll_#{type}_after".to_sym] === 'true',
+        hours: params["poll_#{type}_after_hours".to_sym].to_i,
+        nominations: params["poll_#{type}_after_nominations".to_sym].to_i,
         time: params["poll_#{type}_time".to_sym]
       )
     end
