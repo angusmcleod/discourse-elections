@@ -60,7 +60,7 @@ en:
           - Elections are enabled
           - Poll open time is enabled
           - Topic exists and is open
-          - Election status is 'nomination'
+          - Election status is not 'poll'
           - There are 2 or more nominees
         open_time_not_set: "Poll will open{{time}} after {{nominations}} or more nominations are received"
         open_time_set: "Poll will open on {{time}}"
@@ -71,7 +71,7 @@ en:
           - Elections are enabled
           - Poll close time is enabled
           - Topic exists
-          - Election status is 'poll'
+          - Election status is not 'closed_poll'
         close_time_set: "Poll will close on {{time}}"
 
       time_label: "Set Time"

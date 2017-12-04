@@ -129,7 +129,7 @@ class DiscourseElections::ElectionPost
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
 
     if election_post.errors.any?
-      errors = election_post.errors.to_json
+      errors = election_post.errors.messages.to_s
       if unattended
         message_moderators(topic_id, errors)
       else

@@ -34,6 +34,7 @@ en:
       poll_after: "After X not complete"
       poll_manual: "Time needs to be set"
       time_invalid: "Time is invalid"
+      topic_inaccessible: "Topic is inaccessible"
 
     post:
       nominated: "Nominees"

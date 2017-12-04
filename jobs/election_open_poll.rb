@@ -11,7 +11,7 @@ module Jobs
             error = I18n.t('election.errors.more_nominations')
           end
 
-          if !error && topic.election_status != Topic.election_statuses[:nomination]
+          if !error && topic.election_status === Topic.election_statuses[:poll]
             error = I18n.t('election.errors.incorrect_status')
           end
 
@@ -30,11 +30,15 @@ module Jobs
       end
 
       if error
-        SystemMessage.create_from_system_user(Discourse.site_contact_user,
-          :error_starting_poll,
-            topic_id: args[:topic_id],
-            error: error
-        )
+        DiscourseElections::ElectionTopic.moderators(args[:topic_id]).each do |user|
+          if user
+            SystemMessage.create_from_system_user(user,
+              :error_starting_poll,
+                topic_id: args[:topic_id],
+                error: error
+            )
+          end
+        end
       end
     end
   end

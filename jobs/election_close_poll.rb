@@ -7,7 +7,7 @@ module Jobs
         if topic && !topic.closed
           error = nil
 
-          if !error && topic.election_status != Topic.election_statuses[:poll]
+          if !error && topic.election_status === Topic.election_statuses[:closed_poll]
             error = I18n.t('election.errors.incorrect_status')
           end
 
@@ -19,18 +19,22 @@ module Jobs
             end
           end
         else
-          error = I18n.t('election.error.topic_inaccessible')
+          error = I18n.t('election.errors.topic_inaccessible')
         end
       else
-        error = I18n.t('election.error.elections_disabled')
+        error = I18n.t('election.errors.elections_disabled')
       end
 
       if error
-        SystemMessage.create_from_system_user(Discourse.site_contact_user,
-          :error_closing_poll,
-            topic_id: args[:topic_id],
-            error: error
-        )
+        DiscourseElections::ElectionTopic.moderators(args[:topic_id]).each do |user|
+          if user
+            SystemMessage.create_from_system_user(user,
+              :error_closing_poll,
+                topic_id: args[:topic_id],
+                error: error
+            )
+          end
+        end
       end
     end
   end
