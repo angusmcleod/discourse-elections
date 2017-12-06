@@ -138,7 +138,7 @@ class DiscourseElections::ElectionPost
       if unattended
         message_moderators(election_post.topic, I18n.t("election.errors.revisor_failed"))
       else
-        post.errors.add(:base, I18n.t("election.errors.revisor_failed") )
+        post.errors.add(:base, I18n.t("election.errors.revisor_failed"))
         raise ::ActiveRecord::Rollback
       end
     end
