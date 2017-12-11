@@ -33,7 +33,8 @@ after_initialize do
   add_to_serializer(:topic_view, :election_nominations_usernames) { object.topic.election_nominations_usernames }
   add_to_serializer(:topic_view, :election_self_nomination_allowed) { object.topic.custom_fields['election_self_nomination_allowed'] }
   add_to_serializer(:topic_view, :election_can_self_nominate) do
-    scope.user && !scope.user.anonymous? && scope.user.trust_level >= SiteSetting.elections_min_trust_to_self_nominate.to_i
+    scope.user && !scope.user.anonymous? &&
+    (scope.is_admin? || scope.user.trust_level >= SiteSetting.elections_min_trust_to_self_nominate.to_i)
   end
   add_to_serializer(:topic_view, :election_is_nominee) do
     scope.user && object.topic.election_nominations.include?(scope.user.id)
