@@ -26,7 +26,7 @@ module DiscourseElections
 
       if !user || user.anonymous?
         result = { error_message: I18n.t('election.errors.only_named_user_can_self_nominate') }
-      elsif user.trust_level < min_trust
+      elsif !user.admin && user.trust_level < min_trust
         result = { error_message: I18n.t('election.errors.insufficient_trust_to_self_nominate', level: min_trust) }
       else
         DiscourseElections::Nomination.add_user(params[:topic_id], user.id)
