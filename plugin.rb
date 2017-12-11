@@ -196,7 +196,7 @@ after_initialize do
   end
 
   Topic.class_eval do
-    attr_accessor :election_status_changed, :election_status
+    attr_accessor :election_status_changed, :election_status, :election_post
     after_save :handle_election_status_change, if: :election_status_changed
 
     def election
@@ -204,7 +204,7 @@ after_initialize do
     end
 
     def election_post
-      first_post
+      posts.find_by(post_number: 1)
     end
 
     def election_status

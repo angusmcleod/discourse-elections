@@ -108,11 +108,11 @@ class DiscourseElections::ElectionTopic
       end
     end
 
-    if !saved || topic.election_post.errors.any?
+    if !saved || (topic.election_post && topic.election_post.errors.any?)
       raise StandardError.new I18n.t('election.errors.set_message_failed')
     end
 
-    topic.send("election_#{type}_message")
+    topic.custom_fields["election_#{type}_message"]
   end
 
   def self.set_position(topic_id, position)

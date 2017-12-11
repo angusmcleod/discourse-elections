@@ -341,27 +341,29 @@ end
 describe ::DiscourseElections::NominationController do
   routes { ::DiscourseElections::Engine.routes }
 
-  let(:user1) { Fabricate(:user) }
-  let(:user2) { Fabricate(:user) }
+  let!(:adminUser) { Fabricate(:admin) }
+  let!(:user1) { Fabricate(:user) }
+  let!(:user2) { Fabricate(:user) }
 
-  let(:category) { Fabricate(:category, custom_fields: { for_elections: true }) }
-  let(:topic) { Fabricate(:topic, subtype: 'election',
-                                  category_id: category.id,
-                                  title: I18n.t('election.title', position: 'Moderator'),
-                                  user: Fabricate(:admin),
-                                  custom_fields: {
-                                    election_position: 'Moderator',
-                                    election_status: Topic.election_statuses[:nomination]
-                                  }) }
-  let(:election_post) { Fabricate(:post, topic: topic,
-                                         post_number: 1,
-                                         raw: I18n.t('election.nomination.default_message')) }
-  let(:nomination_statement_post) { Fabricate(:post, topic: topic,
-                                                     user_id: user1.id,
-                                                     post_number: 2,
-                                                     custom_fields: {
-                                                       election_nomination_statement: true
-                                                     }) }
+  let!(:category) { Fabricate(:category, custom_fields: { for_elections: true }) }
+  let!(:topic) { Fabricate(:topic, subtype: 'election',
+                                   category_id: category.id,
+                                   title: I18n.t('election.title', position: 'Moderator'),
+                                   user: adminUser,
+                                   custom_fields: {
+                                     election_position: 'Moderator',
+                                     election_status: Topic.election_statuses[:nomination]
+                                   })}
+  let!(:first_post) { Fabricate(:post, topic: topic,
+                                       user: adminUser,
+                                       post_number: 1,
+                                       raw: I18n.t('election.nomination.default_message'))}
+  let!(:nomination_statement_post) { Fabricate(:post, topic: topic,
+                                                      user_id: user1.id,
+                                                      post_number: 2,
+                                                      custom_fields: {
+                                                        election_nomination_statement: true
+                                                      })}
 
   describe "set_by_username" do
     let!(:user) { log_in(:user) }
@@ -425,7 +427,6 @@ describe ::DiscourseElections::NominationController do
 
       it "updates election post" do
         usernames = [user1.username, user2.username]
-        election_post
 
         message = MessageBus.track_publish do
           post :set_by_username, params: { topic_id: topic.id, usernames: usernames }, format: :json
@@ -450,8 +451,6 @@ describe ::DiscourseElections::NominationController do
             "excerpt": "This is my statement"
           }])
           topic.save_custom_fields(true)
-
-          election_post
         end
 
         it "retrieves existing nomination statement if nominee is re-added" do
@@ -493,7 +492,6 @@ describe ::DiscourseElections::NominationController do
       end
 
       it "updates election post" do
-        election_post
         message = MessageBus.track_publish do
           post :add, params: { topic_id: topic.id }, format: :json
         end.find { |m| m.channel == "/topic/#{topic.id}" }
@@ -544,7 +542,6 @@ describe ::DiscourseElections::NominationController do
       end
 
       it "updates election post" do
-        election_post
         message = MessageBus.track_publish do
           post :remove, params: { topic_id: topic.id }, format: :json
         end.find { |m| m.channel == "/topic/#{topic.id}" }
