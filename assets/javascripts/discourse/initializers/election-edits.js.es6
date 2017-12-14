@@ -22,17 +22,22 @@ export default {
         });
 
         api.modifyClass('model:composer', {
-          @computed('electionNominationStatement', 'post.election_nomination_statement', 'topic.election_is_nominee')
-          isNominationStatement(newStatement, existingStatement, isNominee) {
+          @computed('electionNominationStatement', 'post.election_nomination_statement', 'topic.election_is_nominee', 'topic.election_made_statement')
+          isNominationStatement(newStatement, existingStatement, isNominee, madeStatement) {
+            const editingPost = this.get('editingPost');
+            if (madeStatement && (!editingPost || !existingStatement)) return false;
             return (newStatement || existingStatement) && isNominee;
           }
         });
 
         api.modifyClass('component:composer-body', {
-          @observes('composer.isNominationStatement')
+          @observes('composer.isNominationStatement', 'composer.loading')
           addNominationStatementClass() {
             const isNominationStatement = this.get('composer.isNominationStatement');
             Ember.run.scheduleOnce('afterRender', this, () => {
+              if (isNominationStatement) {
+                this.$('.statement-composer-label').detach().appendTo('.reply-details');
+              }
               this.$().toggleClass('nomination-statement', isNominationStatement);
             });
           }
