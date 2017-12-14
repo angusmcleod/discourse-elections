@@ -1,6 +1,8 @@
 class DiscourseElections::ElectionTime
-  def self.set_poll_open_after(topic)
-    if topic.election_poll_open && topic.election_poll_open_after && topic.election_poll_open_after_hours
+  def self.set_poll_open_after(topic, hours = nil)
+    after_hours = hours || topic.election_poll_open_after_hours
+
+    if topic.election_poll_open && topic.election_poll_open_after && after_hours
       topic.custom_fields['election_poll_open_time'] = (Time.now + topic.election_poll_open_after_hours.hours).utc.iso8601
       topic.save_custom_fields(true)
 
@@ -8,9 +10,11 @@ class DiscourseElections::ElectionTime
     end
   end
 
-  def self.set_poll_close_after(topic)
-    if topic.election_poll_close && topic.election_poll_close_after && topic.election_poll_close_after_hours
-      topic.custom_fields['election_poll_close_time'] = (Time.now + topic.election_poll_close_after_hours.hours).utc.iso8601
+  def self.set_poll_close_after(topic, hours = nil)
+    after_hours = hours || topic.election_poll_close_after_hours
+
+    if topic.election_poll_close && topic.election_poll_close_after && after_hours
+      topic.custom_fields['election_poll_close_time'] = (Time.now + after_hours.hours).utc.iso8601
       topic.save_custom_fields(true)
 
       self.schedule_poll_close(topic)
