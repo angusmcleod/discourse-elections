@@ -25,6 +25,7 @@ after_initialize do
   Topic.register_custom_field_type('election_poll_close', :boolean)
   Topic.register_custom_field_type('election_poll_close_after', :boolean)
   Topic.register_custom_field_type('election_poll_close_after_hours', :integer)
+  Topic.register_custom_field_type('election_poll_close_after_voters', :integer)
   Topic.register_custom_field_type('election_poll_close_scheduled', :boolean)
   add_to_serializer(:topic_view, :subtype) { object.topic.subtype }
   add_to_serializer(:topic_view, :election_status) { object.topic.election_status }
@@ -61,6 +62,7 @@ after_initialize do
   add_to_serializer(:topic_view, :election_poll_close) { object.topic.election_poll_close }
   add_to_serializer(:topic_view, :election_poll_close_after) { object.topic.election_poll_close_after }
   add_to_serializer(:topic_view, :election_poll_close_after_hours) { object.topic.election_poll_close_after_hours }
+  add_to_serializer(:topic_view, :election_poll_close_after_voters) { object.topic.election_poll_close_after_voters }
   add_to_serializer(:topic_view, :election_poll_close_time) { object.topic.election_poll_close_time }
   add_to_serializer(:topic_view, :election_poll_close_scheduled) { object.topic.election_poll_close_scheduled }
 
@@ -133,8 +135,9 @@ after_initialize do
 
   Category.class_eval do
     def election_list
-      if self.custom_fields['election_list']
-        [::JSON.parse(self.custom_fields['election_list'])].flatten
+      if list = self.custom_fields['election_list']
+        list = ::JSON.parse(list) if list.is_a?(String)
+        [list].flatten
       else
         []
       end
@@ -260,12 +263,24 @@ after_initialize do
       self.custom_fields['election_poll_close_after_hours'].to_i
     end
 
+    def election_poll_close_after_voters
+      self.custom_fields['election_poll_close_after_voters'].to_i
+    end
+
     def election_poll_close_time
       self.custom_fields['election_poll_close_time']
     end
 
     def election_poll_close_scheduled
       self.custom_fields['election_poll_close_scheduled']
+    end
+
+    def election_poll_voters
+      if polls = election_post.custom_fields['polls']
+        polls['poll']['voters'].to_i
+      else
+        0
+      end
     end
 
     def handle_election_status_change
@@ -283,7 +298,6 @@ after_initialize do
         DiscourseElections::ElectionTopic.notify_moderators(self.id, 'poll')
         DiscourseElections::ElectionTime.set_poll_open_now(self)
         DiscourseElections::ElectionTime.cancel_scheduled_poll_open(self)
-        DiscourseElections::ElectionTime.set_poll_close_after(self)
       end
 
       if election_status === Topic.election_statuses[:closed_poll]
@@ -291,7 +305,6 @@ after_initialize do
         DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
         DiscourseElections::Nomination.notify_nominees(self.id, 'closed_poll')
         DiscourseElections::ElectionTopic.notify_moderators(self.id, 'closed_poll')
-        DiscourseElections::ElectionTime.set_poll_close_now(self)
         DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
       end
 

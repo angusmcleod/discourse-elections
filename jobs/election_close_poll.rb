@@ -1,7 +1,7 @@
 module Jobs
   class ElectionClosePoll < Jobs::Base
     def execute(args)
-      topic = Topic.find(args[:topic_id])
+      topic = Topic.find(args[:topic_id].to_i)
 
       if SiteSetting.elections_enabled
         if topic && !topic.closed

@@ -119,7 +119,7 @@ class DiscourseElections::ElectionPost
 
     return if !election_post || election_post.raw == content
 
-    revisor = PostRevisor.new(election_post, election_post.topic)
+    revisor = PostRevisor.new(election_post, topic)
 
     ## We always skip the revision as these are system edits to a single post.
     revisor_opts.merge!(skip_revision: true)
@@ -128,7 +128,7 @@ class DiscourseElections::ElectionPost
 
     if election_post.errors.any?
       if unattended
-        message_moderators(topic_id, election_post.errors.messages.to_s)
+        message_moderators(topic.id, election_post.errors.messages.to_s)
       else
         raise ::ActiveRecord::Rollback
       end
@@ -136,7 +136,7 @@ class DiscourseElections::ElectionPost
 
     if !revise_result
       if unattended
-        message_moderators(election_post.topic, I18n.t("election.errors.revisor_failed"))
+        message_moderators(topic.id, I18n.t("election.errors.revisor_failed"))
       else
         post.errors.add(:base, I18n.t("election.errors.revisor_failed"))
         raise ::ActiveRecord::Rollback
@@ -150,7 +150,7 @@ class DiscourseElections::ElectionPost
     DiscourseElections::ElectionTopic.moderators(topic_id).each do |user|
       SystemMessage.create_from_system_user(user,
         :error_updating_election_post,
-          topic_id: topic_d,
+          topic_id: topic_id,
           error: error
       )
     end

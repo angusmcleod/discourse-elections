@@ -1,14 +1,9 @@
-import { default as computed, observes, on } from 'ember-addons/ember-computed-decorators';
+import { default as computed, observes } from 'ember-addons/ember-computed-decorators';
 
 export default Ember.Component.extend({
   classNames: 'election-time',
   showNominations: Ember.computed.equal('type', 'open'),
-
-  @on('init')
-  setup() {
-    const after = this.get('after');
-    if (!after) this.set('manual', true);
-  },
+  showVoters: Ember.computed.equal('type', 'close'),
 
   @observes('after')
   toggleManual() {

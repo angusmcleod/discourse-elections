@@ -10,6 +10,7 @@ export default Ember.Controller.extend({
   pollOpenAfterNominations: 2,
   pollCloseAfter: true,
   pollCloseAfterHours: 48,
+  pollCloseAfterVoters: 10,
 
   @computed('position', 'pollTimesValid')
   disabled(position, pollTimesValid) {
@@ -57,6 +58,7 @@ export default Ember.Controller.extend({
         data['poll_close_after'] = pollCloseAfter;
         if (pollCloseAfter) {
           data['poll_close_after_hours'] = this.get('pollCloseAfterHours');
+          data['poll_close_after_voters'] = this.get('pollCloseAfterVoters');
         } else {
           data['poll_close_time'] = this.get('pollCloseTime');
         }

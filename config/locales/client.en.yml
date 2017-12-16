@@ -51,6 +51,7 @@ en:
         date: "Date"
         clear: "Clear"
         nominations: "Nominations"
+        voters: "Voters"
       poll:
         criteria: "Poll will %{action} at the set time if"
         open_time: "Poll open time enabled"
@@ -65,7 +66,7 @@ en:
         open_time_not_set: "Poll will open{{time}} after {{nominations}} or more nominations are received"
         open_time_set: "Poll will open on {{time}}"
         close_time: "Poll close time enabled"
-        close_after: "Set close time to x hours after open"
+        close_after: "Set close time to x hours after x voters have voted"
         close_manual: "Set close time manually"
         close_criteria: |
           - Elections are enabled
@@ -73,6 +74,7 @@ en:
           - Topic exists
           - Election status is not 'closed_poll'
         close_time_set: "Poll will close on {{time}}"
+        close_time_not_set: "Poll will close{{time}} after {{voters}} or more votes are recorded"
 
       time_label: "Set Time"
       manage:

@@ -12,5 +12,14 @@ export default Ember.Component.extend({
     } else {
       return '';
     }
+  },
+
+  @computed('topic.election_poll_close_after_hours')
+  pollCloseTime(hours) {
+    if (hours > 0) {
+      return ` ${I18n.t('dates.medium.x_hours', { count: hours })}`;
+    } else {
+      return '';
+    }
   }
 });

@@ -13,6 +13,12 @@
                           value=nominations
                           class='input-small'}}
   {{/if}}
+  {{#if showVoters}}
+    <span>{{i18n 'election.set_time.voters'}}</span>
+    {{input type='number' placeholder="0"
+                          value=voters
+                          class='input-small'}}
+  {{/if}}
 </div>
 <div class="election-time-control">
   <div class="election-time-control-title">

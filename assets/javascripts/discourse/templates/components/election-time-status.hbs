@@ -11,5 +11,10 @@
 {{#if polling}}
   {{#if topic.election_poll_close_scheduled}}
     <span>{{i18n 'election.poll.close_time_set' time=(election-time topic.election_poll_close_time)}}</span>
+  {{else}}
+    {{#if topic.election_poll_close_after}}
+      <span>{{i18n 'election.poll.close_time_not_set' time=pollCloseTime
+                                                      voters=topic.election_poll_close_after_voters}}</span>
+    {{/if}}
   {{/if}}
 {{/if}}

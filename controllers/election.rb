@@ -20,6 +20,7 @@ module DiscourseElections
                     :poll_close,
                     :poll_close_after,
                     :poll_close_after_hours,
+                    :poll_close_after_voters,
                     :poll_close_time)
 
       validate_create_time('open') if params[:poll_open]
@@ -189,12 +190,13 @@ module DiscourseElections
       params.require(:topic_id)
       params.require(:type)
       params.require(:enabled)
-      params.permit(:after, :hours, :nominations, :time)
+      params.permit(:after, :hours, :nominations, :voters, :time)
 
       enabled = params[:enabled] === 'true'
       after = params[:after] === 'true'
       hours = params[:hours].to_i
       nominations = params[:nominations].to_i
+      voters = params[:voters].to_i
       time = params[:time]
       type = params[:type]
 
@@ -204,21 +206,27 @@ module DiscourseElections
           after: after,
           hours: hours,
           nominations: nominations,
+          voters: voters,
           time: time
         )
       end
 
       topic = Topic.find(params[:topic_id])
-      nominations_count = topic.election_nominations.length
 
+      nominations_count = topic.election_nominations.length
       if type === 'open' && enabled && after && nominations_count >= nominations
         raise StandardError.new I18n.t('election.errors.nominations_already_met')
+      end
+
+      if topic.election_post && topic.election_poll_voters >= voters
+        raise StandardError.new I18n.t('election.errors.voters_already_met')
       end
 
       enabled_str = "election_poll_#{type}"
       after_str = "election_poll_#{type}_after"
       hours_str = "election_poll_#{type}_after_hours"
       nominations_str = "election_poll_#{type}_after_nominations"
+      voters_str = "election_poll_#{type}_after_voters"
       time_str = "election_poll_#{type}_time"
 
       topic.custom_fields[enabled_str] = enabled if enabled != topic.send(enabled_str)
@@ -229,6 +237,9 @@ module DiscourseElections
         if type === 'open' && nominations != topic.send(nominations_str)
           topic.custom_fields[nominations_str] = nominations
         end
+        if type === 'close' && voters != topic.send(voters_str)
+          topic.custom_fields[voters_str] = voters
+        end
       else
         topic.custom_fields[time_str] = time if time != topic.send(time_str)
       end
@@ -236,11 +247,7 @@ module DiscourseElections
       if saved = topic.save_custom_fields(true)
         if topic.send(enabled_str)
           if (topic.send(after_str))
-            if topic.election_nominations.length >= topic.election_poll_open_after_nominations
-              DiscourseElections::ElectionTime.send("set_poll_#{type}_after", topic)
-            else
-              DiscourseElections::ElectionTime.send("cancel_scheduled_poll_#{type}", topic)
-            end
+            DiscourseElections::ElectionTime.send("cancel_scheduled_poll_#{type}", topic)
           else
             DiscourseElections::ElectionTime.send("schedule_poll_#{type}", topic)
           end
@@ -266,18 +273,20 @@ module DiscourseElections
         after: params["poll_#{type}_after".to_sym] == 'true',
         hours: params["poll_#{type}_after_hours".to_sym].to_i,
         nominations: params["poll_#{type}_after_nominations".to_sym].to_i,
+        voters: params["poll_#{type}_after_voters".to_sym].to_i,
         time: params["poll_#{type}_time".to_sym]
       )
     end
 
     def validate_time(opts)
       if opts[:after]
-        if opts[:hours].blank? || (opts[:type] === 'open' && opts[:nominations].blank?)
+        if opts[:hours].blank? || (opts[:type] === 'open' && opts[:nominations].blank?) ||
+          (opts[:type] === 'close' && opts[:voters].blank?)
           raise StandardError.new I18n.t('election.errors.poll_after')
         elsif opts[:type] === 'open' && opts[:nominations].to_i < 2
           raise StandardError.new I18n.t('election.errors.nominations_at_least_2')
-        elsif opts[:type] === 'close' && opts[:hours].to_i < 1
-          raise StandardError.new I18n.t('election.errors.close_hours_at_least_1')
+        elsif opts[:type] === 'close' && opts[:voters].to_i < 1
+          raise StandardError.new I18n.t('election.errors.voters_at_least_1')
         end
       elsif opts[:time].blank?
         raise StandardError.new I18n.t('election.errors.poll_manual')

@@ -37,6 +37,7 @@ class DiscourseElections::ElectionTopic
     if poll_close
       if topic.custom_fields['election_poll_close_after'] = ActiveModel::Type::Boolean.new.cast(opts[:poll_close_after])
         topic.custom_fields['election_poll_close_after_hours'] = opts[:poll_close_after_hours].to_i
+        topic.custom_fields['election_poll_close_after_voters'] = opts[:poll_close_after_voters].to_i
       else
         topic.custom_fields['election_poll_close_time'] = opts[:poll_close_time]
       end
@@ -133,7 +134,7 @@ class DiscourseElections::ElectionTopic
   end
 
   def self.refresh(topic_id)
-    MessageBus.publish("/topic/#{topic_id}", reload_topic: true)
+    MessageBus.publish("/topic/#{topic_id}", reload_topic: true, refresh_stream: true)
   end
 
   def self.moderators(topic_id)
