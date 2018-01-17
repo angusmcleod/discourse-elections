@@ -38,7 +38,7 @@ export default {
               if (isNominationStatement) {
                 this.$('.statement-composer-label').detach().appendTo('.reply-details');
               }
-              this.$().toggleClass('nomination-statement', isNominationStatement);
+              this.$().toggleClass('nomination-statement', Boolean(isNominationStatement));
             });
           }
         });
