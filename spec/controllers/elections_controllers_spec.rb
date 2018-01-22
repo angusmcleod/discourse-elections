@@ -341,9 +341,9 @@ end
 describe ::DiscourseElections::NominationController do
   routes { ::DiscourseElections::Engine.routes }
 
-  let!(:adminUser) { Fabricate(:admin) }
-  let!(:user1) { Fabricate(:user) }
-  let!(:user2) { Fabricate(:user) }
+  let(:adminUser) { Fabricate(:admin) }
+  let(:user1) { Fabricate(:user) }
+  let(:user2) { Fabricate(:user) }
 
   let!(:category) { Fabricate(:category, custom_fields: { for_elections: true }) }
   let!(:topic) { Fabricate(:topic, subtype: 'election',
@@ -352,7 +352,8 @@ describe ::DiscourseElections::NominationController do
                                    user: adminUser,
                                    custom_fields: {
                                      election_position: 'Moderator',
-                                     election_status: Topic.election_statuses[:nomination]
+                                     election_status: Topic.election_statuses[:nomination],
+                                     election_self_nomination_allowed: true
                                    })}
   let!(:first_post) { Fabricate(:post, topic: topic,
                                        user: adminUser,
@@ -482,6 +483,11 @@ describe ::DiscourseElections::NominationController do
   end
 
   describe "add" do
+    it 'raises an exception when user not present' do
+      post :add, params: { topic_id: topic.id }, format: :json
+      expect(response.status).to eq(403)
+    end
+
     context "while logged in" do
       let!(:user) { log_in(:user) }
 
@@ -523,15 +529,14 @@ describe ::DiscourseElections::NominationController do
         expect(json['message']).to eq(I18n.t('election.errors.insufficient_trust_to_self_nominate', level: 2))
       end
     end
-
-    it 'raises an exception when user not present' do
-      expect {
-        post :add, params: { topic_id: topic.id }, format: :json
-      }.to raise_error(Discourse::NotLoggedIn)
-    end
   end
 
   describe "remove" do
+    it 'raises an exception when user not present' do
+      post :remove, params: { topic_id: topic.id }, format: :json
+      expect(response.status).to eq(403)
+    end
+
     context "while logged in" do
       let!(:user) { log_in(:user) }
 
@@ -549,10 +554,6 @@ describe ::DiscourseElections::NominationController do
         post = Post.find_by(topic_id: topic.id, post_number: message.data[:post_number])
         expect(post.raw).to_not include(user.username)
       end
-    end
-
-    it 'raises an exception when user not present' do
-      expect { post :remove, params: { topic_id: topic.id }, format: :json }.to raise_error(Discourse::NotLoggedIn)
     end
   end
 end
