@@ -309,6 +309,8 @@ after_initialize do
         DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
       end
 
+      DiscourseEvent.trigger(:election_status_changed, self, election_status)
+
       election_status_changed = false
     end
 
