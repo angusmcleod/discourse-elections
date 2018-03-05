@@ -146,6 +146,7 @@
   border-radius: 4px;
   color: $secondary;
   transition: all .25s;
+  max-width: 600px;
 
   &.election-nomination {
     background-color: $tertiary;
