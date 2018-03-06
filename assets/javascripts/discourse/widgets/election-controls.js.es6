@@ -57,7 +57,7 @@ export default createWidget('election-controls', {
         this.attrs.topic.set('election_status', ElectionStatuses['poll']);
       }
 
-      this.state.startingPoll = false;
+      if (this.state) this.state.startingPoll = false;
       this.scheduleRerender();
     }).catch((e) => {
       if (e.jqXHR && e.jqXHR.responseText) {
@@ -66,11 +66,11 @@ export default createWidget('election-controls', {
         bootbox.alert(message);
       }
     }).finally(() => {
-      this.state.startingPoll = false;
+      if (this.state) this.state.startingPoll = false;
       this.scheduleRerender();
     });
 
-    this.state.startingPoll = true;
+    if (this.state) this.state.startingPoll = true;
     this.scheduleRerender();
   },
 
@@ -111,7 +111,7 @@ export default createWidget('election-controls', {
         className: 'btn-primary start-poll'
       }));
 
-      if (state.startingPoll) {
+      if (state && state.startingPoll) {
         contents.push(h('div.spinner-container', h('div.spinner.small')));
       }
     }
