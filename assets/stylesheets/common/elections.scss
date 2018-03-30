@@ -169,7 +169,7 @@
     background-color: $highlight;
 
     &:hover {
-      background-color: dark-light-diff($highlight, $primary, 50%, -40%);;
+      background-color: dark-light-diff($highlight, $primary, 50%, -40%);
     }
   }
 }
