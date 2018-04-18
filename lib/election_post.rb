@@ -1,8 +1,69 @@
+PostRevisor.track_topic_field(:election_nomination_statement)
+
+NewPostManager.add_handler do |manager|
+  if SiteSetting.elections_enabled && manager.args[:topic_id]
+    topic = Topic.find(manager.args[:topic_id])
+
+    # do nothing if first post in topic
+    if topic.subtype === 'election' && topic.try(:highest_post_number) != 0
+      extracted_polls = DiscoursePoll::Poll.extract(manager.args[:raw], manager.args[:topic_id], manager.user[:id])
+
+      unless extracted_polls.empty?
+        result = NewPostResult.new(:poll, false)
+        result.errors[:base] = I18n.t('election.errors.seperate_poll')
+        result
+      end
+    end
+  end
+end
+
+require_dependency 'post'
+class ::Post
+  def election_nomination_statement
+    if self.custom_fields['election_nomination_statement'] != nil
+      self.custom_fields['election_nomination_statement']
+    else
+      false
+    end
+  end
+end
+
+require_dependency 'post_custom_field'
+class ::PostCustomField
+  after_save :update_election_status, if: :polls_updated
+
+  def polls_updated
+    name == 'polls'
+  end
+
+  def update_election_status
+    return unless SiteSetting.elections_enabled
+
+    poll = JSON.parse(value)['poll']
+    post = Post.find(post_id)
+    new_status = nil
+
+    if poll['status'] == 'closed' && post.topic.election_status == Topic.election_statuses[:poll]
+      new_status = Topic.election_statuses[:closed_poll]
+    end
+
+    if poll['status'] == 'open' && post.topic.election_status == Topic.election_statuses[:closed_poll]
+      new_status = Topic.election_statuses[:poll]
+    end
+
+    if new_status
+      result = DiscourseElections::ElectionTopic.set_status(post.topic_id, new_status)
+
+      if result
+        DiscourseElections::ElectionTopic.refresh(post.topic.id)
+      end
+    end
+  end
+end
+
 require_dependency 'new_post_manager'
 require_dependency 'post_creator'
-
 class DiscourseElections::ElectionPost
-
   def self.update_poll_status(topic)
     post = topic.first_post
     if post.custom_fields['polls'].present?
@@ -154,5 +215,33 @@ class DiscourseElections::ElectionPost
           error: error
       )
     end
+  end
+end
+
+DiscourseEvent.on(:post_created) do |post, opts, user|
+  if SiteSetting.elections_enabled && opts[:election_nomination_statement] && post.topic.election_nominations.include?(user.id)
+    post.custom_fields['election_nomination_statement'] = opts[:election_nomination_statement]
+    post.save_custom_fields(true)
+
+    DiscourseElections::NominationStatement.update(post)
+  end
+end
+
+DiscourseEvent.on(:post_edited) do |post, _topic_changed|
+  user = User.find(post.user_id)
+  if SiteSetting.elections_enabled && post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
+    DiscourseElections::NominationStatement.update(post)
+  end
+end
+
+DiscourseEvent.on(:post_destroyed) do |post, _opts, user|
+  if SiteSetting.elections_enabled && post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
+    DiscourseElections::NominationStatement.update(post)
+  end
+end
+
+DiscourseEvent.on(:post_recovered) do |post, _opts, user|
+  if SiteSetting.elections_enabled && post.custom_fields['election_nomination_statement'] && post.topic.election_nominations.include?(user.id)
+    DiscourseElections::NominationStatement.update(post)
   end
 end

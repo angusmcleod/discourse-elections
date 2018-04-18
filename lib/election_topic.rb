@@ -1,5 +1,154 @@
-class DiscourseElections::ElectionTopic
+require_dependency 'topic'
+class ::Topic
+  attr_accessor :election_status_changed, :election_status, :election_post
+  after_save :handle_election_status_change, if: :election_status_changed
 
+  def election
+    Topic.election_statuses.has_value? election_status
+  end
+
+  def election_post
+    posts.find_by(post_number: 1)
+  end
+
+  def election_status
+    self.custom_fields['election_status'].to_i
+  end
+
+  def election_position
+    self.custom_fields['election_position']
+  end
+
+  def election_status_banner
+    self.custom_fields['election_status_banner']
+  end
+
+  def election_status_banner_result_hours
+    self.custom_fields['election_status_banner_result_hours'].to_i
+  end
+
+  def election_poll_open
+    self.custom_fields['election_poll_open']
+  end
+
+  def election_poll_open_after
+    self.custom_fields['election_poll_open_after']
+  end
+
+  def election_poll_open_after_hours
+    self.custom_fields['election_poll_open_after_hours'].to_i
+  end
+
+  def election_poll_open_after_nominations
+    self.custom_fields['election_poll_open_after_nominations'].to_i
+  end
+
+  def election_poll_open_time
+    self.custom_fields['election_poll_open_time']
+  end
+
+  def election_poll_open_scheduled
+    self.custom_fields['election_poll_open_scheduled']
+  end
+
+  def election_poll_close
+    self.custom_fields['election_poll_close']
+  end
+
+  def election_poll_close_after
+    self.custom_fields['election_poll_close_after']
+  end
+
+  def election_poll_close_after_hours
+    self.custom_fields['election_poll_close_after_hours'].to_i
+  end
+
+  def election_poll_close_after_voters
+    self.custom_fields['election_poll_close_after_voters'].to_i
+  end
+
+  def election_poll_close_time
+    self.custom_fields['election_poll_close_time']
+  end
+
+  def election_poll_close_scheduled
+    self.custom_fields['election_poll_close_scheduled']
+  end
+
+  def election_poll_voters
+    if polls = election_post.custom_fields['polls']
+      polls['poll']['voters'].to_i
+    else
+      0
+    end
+  end
+
+  def handle_election_status_change
+    return unless SiteSetting.elections_enabled
+
+    if election_status === Topic.election_statuses[:nomination]
+      DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
+      DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
+    end
+
+    if election_status === Topic.election_statuses[:poll]
+      DiscourseElections::ElectionPost.update_poll_status(self)
+      DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
+      DiscourseElections::Nomination.notify_nominees(self.id, 'poll')
+      DiscourseElections::ElectionTopic.notify_moderators(self.id, 'poll')
+      DiscourseElections::ElectionTime.set_poll_open_now(self)
+      DiscourseElections::ElectionTime.cancel_scheduled_poll_open(self)
+    end
+
+    if election_status === Topic.election_statuses[:closed_poll]
+      DiscourseElections::ElectionPost.update_poll_status(self)
+      DiscourseElections::ElectionCategory.update_election_list(self.category_id, self.id, status: election_status)
+      DiscourseElections::Nomination.notify_nominees(self.id, 'closed_poll')
+      DiscourseElections::ElectionTopic.notify_moderators(self.id, 'closed_poll')
+      DiscourseElections::ElectionTime.cancel_scheduled_poll_close(self)
+    end
+
+    DiscourseEvent.trigger(:election_status_changed, self, election_status)
+
+    election_status_changed = false
+  end
+
+  def election_nominations
+    if custom_fields['election_nominations']
+      [*custom_fields['election_nominations']]
+    else
+      []
+    end
+  end
+
+  def election_nominations_usernames
+    if election_nominations.any?
+      usernames = []
+      election_nominations.each do |user_id|
+        usernames.push(User.find(user_id).username) if user_id
+      end
+      usernames
+    else
+      []
+    end
+  end
+
+  def election_nomination_statements
+    if custom_fields['election_nomination_statements']
+      JSON.parse(custom_fields['election_nomination_statements'])
+    else
+      []
+    end
+  end
+
+  def self.election_statuses
+    @types ||= Enum.new(nomination: 1,
+                        poll: 2,
+                        closed_poll: 3)
+  end
+end
+
+class DiscourseElections::ElectionTopic
   def self.create(user, opts)
     title = opts[:title] || I18n.t('election.title', position: opts[:position].capitalize)
     topic = Topic.new(title: title, user: user, category_id: opts[:category_id])

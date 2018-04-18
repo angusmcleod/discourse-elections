@@ -1,3 +1,15 @@
+require_dependency 'category'
+class Category
+  def election_list
+    if list = self.custom_fields['election_list']
+      list = ::JSON.parse(list) if list.is_a?(String)
+      [list].flatten
+    else
+      []
+    end
+  end
+end
+
 class DiscourseElections::ElectionCategory
   def self.update_election_list(category_id, topic_id, opts = {})
     category = Category.find(category_id)
