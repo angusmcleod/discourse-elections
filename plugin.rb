@@ -66,42 +66,69 @@ after_initialize do
 
   add_to_serializer(:topic_view, :subtype) { object.topic.subtype }
   add_to_serializer(:topic_view, :election_status) { object.topic.election_status }
-  add_to_serializer(:topic_view, :election_position) { object.topic.custom_fields['election_position'] }
+  add_to_serializer(:topic_view, :include_election_status?) { object.topic.election }
+  add_to_serializer(:topic_view, :election_position) { object.topic.election_position }
+  add_to_serializer(:topic_view, :include_election_position?) { object.topic.election }
   add_to_serializer(:topic_view, :election_nominations) { object.topic.election_nominations }
+  add_to_serializer(:topic_view, :include_election_nominations?) { object.topic.election }
   add_to_serializer(:topic_view, :election_nominations_usernames) { object.topic.election_nominations_usernames }
-  add_to_serializer(:topic_view, :election_self_nomination_allowed) { object.topic.custom_fields['election_self_nomination_allowed'] }
+  add_to_serializer(:topic_view, :include_election_nominations_usernames?) { object.topic.election }
+  add_to_serializer(:topic_view, :election_self_nomination_allowed) { object.topic.election_self_nomination_allowed }
+  add_to_serializer(:topic_view, :include_election_self_nomination_allowed?) { object.topic.election }
   add_to_serializer(:topic_view, :election_can_self_nominate) do
     scope.user && !scope.user.anonymous? &&
     (scope.is_admin? || scope.user.trust_level >= SiteSetting.elections_min_trust_to_self_nominate.to_i)
   end
+  add_to_serializer(:topic_view, :include_election_can_self_nominate?) { object.topic.election }
   add_to_serializer(:topic_view, :election_is_nominee) do
     scope.user && object.topic.election_nominations.include?(scope.user.id)
   end
+  add_to_serializer(:topic_view, :include_election_is_nominee?) { object.topic.election }
   add_to_serializer(:topic_view, :election_nomination_statements) { object.topic.election_nomination_statements }
+  add_to_serializer(:topic_view, :include_election_nomination_statements?) { object.topic.election }
   add_to_serializer(:topic_view, :election_made_statement) do
     if scope.user
       object.topic.election_nomination_statements.any? { |n| n['user_id'] == scope.user.id }
     end
   end
+  add_to_serializer(:topic_view, :include_election_made_statement?) { object.topic.election }
   add_to_serializer(:topic_view, :election_nomination_message) { object.topic.custom_fields['election_nomination_message'] }
+  add_to_serializer(:topic_view, :include_election_nomination_message?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_message) { object.topic.custom_fields['election_poll_message'] }
+  add_to_serializer(:topic_view, :include_election_poll_message?) { object.topic.election }
   add_to_serializer(:topic_view, :election_closed_poll_message) { object.topic.custom_fields['election_closed_poll_message'] }
+  add_to_serializer(:topic_view, :include_election_closed_poll_message?) { object.topic.election }
   add_to_serializer(:topic_view, :election_same_message) { object.topic.custom_fields['election_poll_message'] }
+  add_to_serializer(:topic_view, :include_election_same_message?) { object.topic.election }
   add_to_serializer(:topic_view, :election_status_banner) { object.topic.custom_fields['election_status_banner'] }
+  add_to_serializer(:topic_view, :include_election_status_banner?) { object.topic.election }
   add_to_serializer(:topic_view, :election_status_banner_result_hours) { object.topic.custom_fields['election_status_banner_result_hours'] }
+  add_to_serializer(:topic_view, :include_election_status_banner_result_hours?) { object.topic.election }
 
   add_to_serializer(:topic_view, :election_poll_open) { object.topic.election_poll_open }
+  add_to_serializer(:topic_view, :include_election_poll_open?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_open_after) { object.topic.election_poll_open_after }
+  add_to_serializer(:topic_view, :include_election_poll_open_after?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_open_after_hours) { object.topic.election_poll_open_after_hours }
+  add_to_serializer(:topic_view, :include_election_poll_open_after_hours?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_open_after_nominations) { object.topic.election_poll_open_after_nominations }
+  add_to_serializer(:topic_view, :include_election_poll_open_after_nominations?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_open_time) { object.topic.election_poll_open_time }
+  add_to_serializer(:topic_view, :include_election_poll_open_time?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_open_scheduled) { object.topic.election_poll_open_scheduled }
+  add_to_serializer(:topic_view, :include_election_poll_open_scheduled?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_close) { object.topic.election_poll_close }
+  add_to_serializer(:topic_view, :include_election_poll_close?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_close_after) { object.topic.election_poll_close_after }
+  add_to_serializer(:topic_view, :include_election_poll_close_after?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_close_after_hours) { object.topic.election_poll_close_after_hours }
+  add_to_serializer(:topic_view, :include_election_poll_close_after_hours?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_close_after_voters) { object.topic.election_poll_close_after_voters }
+  add_to_serializer(:topic_view, :include_election_poll_close_after_voters?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_close_time) { object.topic.election_poll_close_time }
+  add_to_serializer(:topic_view, :include_election_poll_close_time?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_close_scheduled) { object.topic.election_poll_close_scheduled }
+  add_to_serializer(:topic_view, :include_election_poll_close_scheduled?) { object.topic.election }
 
   add_to_serializer(:basic_category, :for_elections) { object.custom_fields['for_elections'] }
   add_to_serializer(:basic_category, :election_list) { object.election_list }

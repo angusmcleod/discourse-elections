@@ -133,6 +133,10 @@ class ::Topic
     end
   end
 
+  def election_self_nomination_allowed
+    self.custom_fields['election_self_nomination_allowed']
+  end
+
   def election_nomination_statements
     if custom_fields['election_nomination_statements']
       JSON.parse(custom_fields['election_nomination_statements'])
