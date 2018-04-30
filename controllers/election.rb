@@ -213,12 +213,11 @@ module DiscourseElections
 
       topic = Topic.find(params[:topic_id])
 
-      nominations_count = topic.election_nominations.length
-      if type === 'open' && enabled && after && nominations_count >= nominations
+      if type === 'open' && enabled && after && topic.election_nominations.length >= nominations
         raise StandardError.new I18n.t('election.errors.nominations_already_met')
       end
 
-      if topic.election_post && topic.election_poll_voters >= voters
+      if after && topic.election_poll_voters >= voters
         raise StandardError.new I18n.t('election.errors.voters_already_met')
       end
 
