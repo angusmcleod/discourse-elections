@@ -76,17 +76,27 @@ class DiscourseElections::ElectionPost
     topic.reload
     status = topic.election_status
 
+    content = ''
+
+    if topic.election_winner.present?
+      user = User.find_by(username: topic.election_winner)
+      content << "<div class='title'>#{I18n.t('election.post.winner')}</div>"
+      content << build_winner(user)
+      content << "\n\n"
+    end
+
     if status == Topic.election_statuses[:nomination]
-      build_nominations(topic, unattended)
+      build_nominations(content, topic, unattended)
     else
-      build_poll(topic, unattended)
+      build_poll(content, topic, unattended)
     end
   end
 
   private
 
-  def self.build_poll(topic, unattended)
+  def self.build_poll(content, topic, unattended)
     nominations = topic.election_nominations
+    status = topic.election_status
 
     return if nominations.length < 2
 
@@ -103,10 +113,10 @@ class DiscourseElections::ElectionPost
       poll_options << build_nominee(topic, user)
     end
 
-    content = "[poll type=regular]#{poll_options}\n[/poll]"
+    content << "[poll type=regular status=#{status}]#{poll_options}\n[/poll]"
 
     message = nil
-    if topic.election_status === Topic.election_statuses[:poll]
+    if status === Topic.election_statuses[:poll]
       message = topic.custom_fields['election_poll_message']
     else
       message = topic.custom_fields['election_closed_poll_message']
@@ -119,8 +129,7 @@ class DiscourseElections::ElectionPost
     update_election_post(topic, content, unattended)
   end
 
-  def self.build_nominations(topic, unattended)
-    content = ""
+  def self.build_nominations(content, topic, unattended)
     nominations = topic.election_nominations
 
     if nominations.any?
@@ -147,6 +156,23 @@ class DiscourseElections::ElectionPost
     revisor_opts = { skip_validations: true }
 
     update_election_post(topic, content, unattended, revisor_opts)
+  end
+
+  def self.build_winner(user)
+    avatar_url = user.avatar_template_url.gsub("{size}", "50")
+
+    html = "<div class='winner'><span>"
+
+    html << "<div class='winner-user'>"
+    html << "<div class='trigger-user-card' href='/u/#{user.username}' data-user-card='#{user.username}'>"
+    html << "<img alt='' width='25' height='25' src='#{avatar_url}' class='avatar'>"
+    html << "<a class='mention'>@#{user.username}</a>"
+    html << "</div>"
+    html << "</div>"
+
+    html << "</span></div>"
+
+    html
   end
 
   def self.build_nominee(topic, user)
@@ -185,11 +211,9 @@ class DiscourseElections::ElectionPost
     ## We always skip the revision as these are system edits to a single post.
     revisor_opts.merge!(skip_revision: true)
 
-    puts "REVISING: #{content.inspect}"
-
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
 
-    puts "REVISING RESULT: #{revise_result.inspect}"
+    puts "HERE IS THE REVISE RESULT: #{revise_result}; #{election_post.errors.inspect}"
 
     if election_post.errors.any?
       if unattended

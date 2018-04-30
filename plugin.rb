@@ -104,7 +104,6 @@ after_initialize do
   add_to_serializer(:topic_view, :include_election_status_banner?) { object.topic.election }
   add_to_serializer(:topic_view, :election_status_banner_result_hours) { object.topic.custom_fields['election_status_banner_result_hours'] }
   add_to_serializer(:topic_view, :include_election_status_banner_result_hours?) { object.topic.election }
-
   add_to_serializer(:topic_view, :election_poll_open) { object.topic.election_poll_open }
   add_to_serializer(:topic_view, :include_election_poll_open?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_open_after) { object.topic.election_poll_open_after }
@@ -129,6 +128,8 @@ after_initialize do
   add_to_serializer(:topic_view, :include_election_poll_close_time?) { object.topic.election }
   add_to_serializer(:topic_view, :election_poll_close_scheduled) { object.topic.election_poll_close_scheduled }
   add_to_serializer(:topic_view, :include_election_poll_close_scheduled?) { object.topic.election }
+  add_to_serializer(:topic_view, :election_winner) { object.topic.election_winner }
+  add_to_serializer(:topic_view, :include_election_winner?) { object.topic.election }
 
   add_to_serializer(:basic_category, :for_elections) { object.custom_fields['for_elections'] }
   add_to_serializer(:basic_category, :election_list) { object.election_list }

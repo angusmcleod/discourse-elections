@@ -38,6 +38,7 @@ export default Ember.Controller.extend(ModalFunctionality, {
         pollCloseAfterHours: topic.election_poll_close_after_hours,
         pollCloseAfterVoters: topic.election_poll_close_after_voters,
         pollCloseTime: topic.election_poll_close_time,
+        winner: topic.election_winner
       });
     }
   },

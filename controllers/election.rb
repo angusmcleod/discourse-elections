@@ -264,6 +264,22 @@ module DiscourseElections
       render_result(result)
     end
 
+    def set_winner
+      params.require(:topic_id)
+
+      winner = params[:winner] || ''
+
+      result = DiscourseElections::ElectionTopic.set_winner(params[:topic_id], winner)
+
+      if result[:success]
+        result = { value: result[:winner] }
+      else
+        result = { error_message: I18n.t('election.errors.set_winner_failed') }
+      end
+
+      render_result(result)
+    end
+
     private
 
     def validate_create_time(type)

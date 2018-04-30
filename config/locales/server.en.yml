@@ -21,6 +21,7 @@ en:
       self_nomination_state_not_changed: "Self nomination state has not been changed"
       user_was_not_found: "User \"%{user}\" was not found"
       set_nominations_failed: "Failed to set nominations"
+      set_winner_failed: "Failed to set winner"
       nominations_not_changed: "Nominations have not changed"
       only_named_user_can_self_nominate: "Only named users can self-nominate"
       insufficient_trust_to_self_nominate: "Self nomination is open to users with trust level %{level} and above"
@@ -39,6 +40,7 @@ en:
     post:
       nominated: "Nominees"
       nominee_title: "<a href='%{url}'>Nominee for %{position}</a>"
+      winner: "Winner"
 
   site_settings:
     elections_admin_moderator: "Allow moderators to administer elections"

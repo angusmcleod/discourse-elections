@@ -88,3 +88,5 @@ en:
       notification:
         poll: "{{description}}"
         closed_poll: "{{description}}"
+      winner:
+        label: "Winner"

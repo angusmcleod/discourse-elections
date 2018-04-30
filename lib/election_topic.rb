@@ -83,6 +83,10 @@ class ::Topic
     end
   end
 
+  def election_winner
+    self.custom_fields['election_winner']
+  end
+
   def handle_election_status_change
     return unless SiteSetting.elections_enabled
 
@@ -280,6 +284,30 @@ class DiscourseElections::ElectionTopic
     end
 
     saved
+  end
+
+  def self.set_winner(topic_id, username)
+    topic = Topic.find(topic_id)
+    result = nil
+
+    TopicCustomField.transaction do
+      topic.custom_fields["election_winner"] = username
+
+      if topic.save_custom_fields(true)
+        result = DiscourseElections::ElectionPost.rebuild_election_post(topic)
+      end
+    end
+
+    if result
+      {
+        winner: topic.election_winner,
+        success: true
+      }
+    else
+      {
+        failed: true
+      }
+    end
   end
 
   def self.notify_moderators(topic_id, type)

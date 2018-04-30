@@ -67,6 +67,11 @@
   width: 50px;
 }
 
+.manage-election div.ac-wrap {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .nomination-statement .statement-composer-label {
   display: inline-block;
   border-left: 1px solid $primary-medium;
@@ -114,6 +119,10 @@
 
   .nomination-user img {
     margin-right: 5px;
+  }
+
+  .winner {
+    margin: 15px 0 20px 0;
   }
 }
 

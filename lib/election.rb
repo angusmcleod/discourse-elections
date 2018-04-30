@@ -21,6 +21,7 @@ DiscourseElections::Engine.routes.draw do
   put 'set-status' => 'election#set_status'
   put 'set-position' => 'election#set_position'
   put 'set-poll-time' => 'election#set_poll_time'
+  put 'set-winner' => 'election#set_winner'
   put 'start-poll' => 'election#start_poll'
   get 'category-list' => 'list#category_list'
 end
