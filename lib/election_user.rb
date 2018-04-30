@@ -34,3 +34,25 @@ class ::User
     end
   end
 end
+
+module UserAnonymizerExtension
+  def make_anonymous
+    super
+    if @user.election_nominations.any?
+      @user.election_nominations.each do |topic_id|
+        result = DiscourseElections::ElectionPost.rebuild_election_post(Topic.find(topic_id), true)
+
+        if result[:success]
+          DiscourseElections::ElectionTopic.refresh(topic_id)
+        end
+      end
+    end
+
+    @user
+  end
+end
+
+require_dependency 'user_anonymizer'
+class ::UserAnonymizer
+  prepend UserAnonymizerExtension
+end

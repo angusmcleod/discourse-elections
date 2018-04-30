@@ -116,7 +116,7 @@ class DiscourseElections::ElectionPost
       content << "\n\n #{message}"
     end
 
-    update_election_post(topic, content, false, unattended)
+    update_election_post(topic, content, unattended)
   end
 
   def self.build_nominations(topic, unattended)
@@ -146,7 +146,7 @@ class DiscourseElections::ElectionPost
 
     revisor_opts = { skip_validations: true }
 
-    update_election_post(topic, content, true, unattended, revisor_opts)
+    update_election_post(topic, content, unattended, revisor_opts)
   end
 
   def self.build_nominee(topic, user)
@@ -175,7 +175,7 @@ class DiscourseElections::ElectionPost
     html
   end
 
-  def self.update_election_post(topic, content, publish_change, unattended, revisor_opts = {})
+  def self.update_election_post(topic, content, unattended = false, revisor_opts = {})
     election_post = topic.election_post
 
     return if !election_post || election_post.raw == content
@@ -185,7 +185,11 @@ class DiscourseElections::ElectionPost
     ## We always skip the revision as these are system edits to a single post.
     revisor_opts.merge!(skip_revision: true)
 
+    puts "REVISING: #{content.inspect}"
+
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
+
+    puts "REVISING RESULT: #{revise_result.inspect}"
 
     if election_post.errors.any?
       if unattended
@@ -199,12 +203,12 @@ class DiscourseElections::ElectionPost
       if unattended
         message_moderators(topic.id, I18n.t("election.errors.revisor_failed"))
       else
-        post.errors.add(:base, I18n.t("election.errors.revisor_failed"))
+        election_post.errors.add(:base, I18n.t("election.errors.revisor_failed"))
         raise ::ActiveRecord::Rollback
       end
     end
 
-    return { success: true }
+    { success: true }
   end
 
   def self.message_moderators(topic_id, error)
