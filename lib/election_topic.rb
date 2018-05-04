@@ -299,14 +299,11 @@ class DiscourseElections::ElectionTopic
     end
 
     if result
-      {
-        winner: topic.election_winner,
-        success: true
-      }
+      winner = topic.election_winner
+
+      { winner: winner, success: true }
     else
-      {
-        failed: true
-      }
+      { failed: true }
     end
   end
 
