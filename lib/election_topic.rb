@@ -308,7 +308,9 @@ class DiscourseElections::ElectionTopic
   end
 
   def self.notify_moderators(topic_id, type)
-    Jobs.enqueue(:election_notify_moderators, topic_id: topic_id, type: type)
+    Jobs.cancel_scheduled_job(:election_notify_moderators, topic_id: topic_id, type: 'poll')
+    Jobs.cancel_scheduled_job(:election_notify_moderators, topic_id: topic_id, type: 'closed_poll')
+    Jobs.enqueue_in(1.hour, :election_notify_moderators, topic_id: topic_id, type: type)
   end
 
   def self.refresh(topic_id)
