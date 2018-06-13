@@ -221,8 +221,6 @@ class DiscourseElections::ElectionPost
 
     revise_result = revisor.revise!(election_post.user, { raw: content }, revisor_opts)
 
-    puts "HERE IS THE REVISE RESULT: #{revise_result}; #{election_post.errors.inspect}"
-
     if election_post.errors.any?
       if unattended
         message_moderators(topic.id, election_post.errors.messages.to_s)
