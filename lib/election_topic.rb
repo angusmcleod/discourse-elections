@@ -239,7 +239,7 @@ class DiscourseElections::ElectionTopic
     TopicCustomField.transaction do
       topic.custom_fields['election_status'] = status
       topic.election_status_changed = status != current_status
-      saved = topic.save! ## need to save whole topic here as it triggers status change handlers - see plugin.rb
+      saved = topic.save! ## need to save whole topic here as it triggers status change handlers - see 'handle_election_status_change' above
 
       if saved && status != current_status
         DiscourseElections::ElectionPost.rebuild_election_post(topic, unattended)
