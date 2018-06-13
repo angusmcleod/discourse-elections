@@ -135,7 +135,9 @@ module DiscourseElections
     end
 
     def self.notify_nominees(topic_id, type)
-      Jobs.enqueue(:election_notify_nominees, topic_id: topic_id, type: type)
+      Jobs.cancel_scheduled_job(:election_notify_nominees, topic_id: topic_id, type: 'poll')
+      Jobs.cancel_scheduled_job(:election_notify_nominees, topic_id: topic_id, type: 'closed_poll')
+      Jobs.enqueue_in(1.hour, :election_notify_nominees, topic_id: topic_id, type: type)
     end
   end
 end
