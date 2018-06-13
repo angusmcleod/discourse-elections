@@ -100,6 +100,14 @@ class DiscourseElections::ElectionPost
 
     return if nominations.length < 2
 
+    poll_status = ''
+
+    if status === Topic.election_statuses[:poll]
+      poll_status = 'open'
+    else
+      poll_status = 'closed'
+    end
+
     poll_options = ''
 
     nominations.each do |n|
@@ -113,7 +121,7 @@ class DiscourseElections::ElectionPost
       poll_options << build_nominee(topic, user)
     end
 
-    content << "[poll type=regular status=#{status}]#{poll_options}\n[/poll]"
+    content << "[poll type=regular status=#{poll_status}]#{poll_options}\n[/poll]"
 
     message = nil
     if status === Topic.election_statuses[:poll]
