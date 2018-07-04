@@ -146,4 +146,6 @@ after_initialize do
   end
   add_to_serializer(:post, :include_election_by_nominee?) { object.topic.election }
   add_to_serializer(:current_user, :is_elections_admin) { object.is_elections_admin? }
+
+  DiscourseEvent.trigger(:elections_ready)
 end
