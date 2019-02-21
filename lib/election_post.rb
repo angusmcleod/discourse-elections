@@ -68,7 +68,7 @@ class DiscourseElections::ElectionPost
     post = topic.first_post
     if post.custom_fields['polls'].present?
       status = topic.election_status == Topic.election_statuses[:closed_poll] ? 'closed' : 'open'
-      DiscoursePoll::Poll.toggle_status(post.id, "poll", status, topic.user_id)
+      DiscoursePoll::Poll.toggle_status(post.id, "poll", status, topic.user)
     end
   end
 
