@@ -131,9 +131,17 @@ after_initialize do
   add_to_serializer(:topic_view, :election_winner) { object.topic.election_winner }
   add_to_serializer(:topic_view, :include_election_winner?) { object.topic.election }
 
+
   add_to_serializer(:basic_category, :for_elections) { object.custom_fields['for_elections'] }
   add_to_serializer(:basic_category, :election_list) { object.election_list }
   add_to_serializer(:basic_category, :include_election_list?) { object.election_list.present? }
+
+  [
+    "for_elections",
+    "election_list",
+  ].each do |key|
+    Site.preloaded_category_custom_fields << key if Site.respond_to? :preloaded_category_custom_fields
+  end
 
   add_to_serializer(:post, :election_post) { object.is_first_post? }
   add_to_serializer(:post, :include_election_post?) { object.topic.election }
