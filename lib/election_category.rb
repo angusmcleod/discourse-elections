@@ -1,3 +1,5 @@
+Site.preloaded_category_custom_fields << 'election_list' if Site.respond_to? :preloaded_category_custom_fields
+
 require_dependency 'category'
 class Category
   def election_list
