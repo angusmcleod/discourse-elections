@@ -84,7 +84,11 @@
 }
 
 .statement-post-label {
-  @extend a.mention;
+  color: dark-light-choose($primary-high, $secondary-low);
+  background: $primary-low;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.93em;
   padding: 0 6px;
   font-weight: normal;
 }
