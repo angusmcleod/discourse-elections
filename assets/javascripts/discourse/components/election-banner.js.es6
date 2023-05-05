@@ -1,5 +1,6 @@
 import { default as computed } from 'ember-addons/ember-computed-decorators';
 import DiscourseURL from 'discourse/lib/url';
+import Component from "@ember/component";
 
 const electionStatus = {
   1: 'nomination',
@@ -7,7 +8,7 @@ const electionStatus = {
   3: 'closed_poll'
 };
 
-export default Ember.Component.extend({
+export default Component.extend({
   classNameBindings: [':election-banner', 'statusClass'],
 
   @computed('election.status')
