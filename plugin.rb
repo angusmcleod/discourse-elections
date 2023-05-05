@@ -1,7 +1,7 @@
 # name: discourse-elections
 # about: Run elections in Discourse
 # version: 0.2
-# authors: angus
+# authors: angusmcleod
 # url: https://github.com/angusmcleod/discourse-elections
 
 register_asset 'stylesheets/common/elections.scss'
