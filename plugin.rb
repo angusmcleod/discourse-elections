@@ -1,6 +1,6 @@
 # name: discourse-elections
 # about: Run elections in Discourse
-# version: 0.2
+# version: 0.2.1
 # authors: angusmcleod
 # url: https://github.com/angusmcleod/discourse-elections
 
